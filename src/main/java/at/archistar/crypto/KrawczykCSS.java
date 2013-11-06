@@ -24,6 +24,8 @@ public class KrawczykCSS implements SecretSharing {
 	
 	private SecretSharing rs;
 	
+	private final String cipherOptions = "AES/CBC/PKCS5Padding";
+	
 	public KrawczykCSS(int n, int k, RandomSource rng) {
 		//Use a SharmirSecretSharing share generator to share the key and the content
 		shamir = new ShamirPSS(n, k, rng);
@@ -45,7 +47,7 @@ public class KrawczykCSS implements SecretSharing {
 		encKey = skey.getEncoded();
 
 		SecretKeySpec sKeySpec = new SecretKeySpec(encKey, "AES");
-		Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
+		Cipher cipher = Cipher.getInstance(cipherOptions);
 		cipher.init(Cipher.ENCRYPT_MODE, sKeySpec, new IvParameterSpec(encKey));
 		encSource = cipher.doFinal(data);
 		
@@ -81,7 +83,7 @@ public class KrawczykCSS implements SecretSharing {
 		
 		/* use the key to decrypt the 'original' share */
 		SecretKeySpec sKeySpec = new SecretKeySpec(key, "AES");
-		Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
+		Cipher cipher = Cipher.getInstance(cipherOptions);
 		cipher.init(Cipher.DECRYPT_MODE, sKeySpec, new IvParameterSpec(sKeySpec.getEncoded()));
 		return cipher.doFinal(share);
 	}
