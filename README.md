@@ -33,12 +33,15 @@ We choose a\_1 and a\_2 randomly (i.e. 1 and 2) and substitute a\_0 with our sec
 
 Now we calculate 5 x|y pairs, for example:
 
-| x | y | y |
-| 1 | 42 + 1 + 2*1 | 45 |
-| 2 | 42 + 2 + 2*4 | 52 |
-| 3 | 42 + 3 + 2*9 | 63 |
+```
+| x | y             | y  |
++---+---------------+----+
+| 1 | 42 + 1 + 2*1  | 45 |
+| 2 | 42 + 2 + 2*4  | 52 |
+| 3 | 42 + 3 + 2*9  | 63 |
 | 4 | 42 + 4 + 2*16 | 76 |
 | 5 | 42 + 5 + 2*25 | 97 |
+```
 
 and distribute one point to each participant. For example User 1 retrieves x=1|y=45, User 2 retrieves x=2,y=52 and so on. No user can tell anything about the original secret.
 
