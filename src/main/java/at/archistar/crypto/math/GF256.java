@@ -26,6 +26,10 @@ public class GF256 {
 		return result;
 	}
 	
+	/**
+	 * NOTE: in a GF(2^8) addition and subtraction is
+	 *       essential the same operation
+	 */
 	public static int sub(int a, int b) {
 
 		a = (a < 0) ? a + 256 : a;
