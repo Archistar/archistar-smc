@@ -4,6 +4,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+import at.archistar.helper.ImpossibleException;
+
 /**
  * creates and verifies MACs for given shares.
  * 
@@ -55,9 +57,9 @@ public class InformationChecking {
 							failed = true;
 						}
 					} catch (InvalidKeyException e) {
-						e.printStackTrace();
+						throw new ImpossibleException(e);
 					} catch (NoSuchAlgorithmException e) {
-						e.printStackTrace();
+						throw new ImpossibleException(e);
 					}
 				}
 			}

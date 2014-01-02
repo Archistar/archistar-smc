@@ -6,6 +6,7 @@ import at.archistar.crypto.math.CustomMatrix;
 import at.archistar.crypto.math.GF256;
 import at.archistar.crypto.math.PolyGF256;
 import at.archistar.crypto.math.ReconstructionException;
+import at.archistar.helper.ImpossibleException;
 
 /**
  * @author Andreas Happe <andreashappe@snikt.net>
@@ -92,7 +93,7 @@ public class RabinIDS implements SecretSharing {
 				}
 			}
 		} catch(ReconstructionException ex) {
-			ex.printStackTrace();
+			throw new ImpossibleException(ex);
 		}
 		return result;
 	}

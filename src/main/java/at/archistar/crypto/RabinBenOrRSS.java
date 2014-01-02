@@ -6,6 +6,7 @@ import at.archistar.crypto.data.InformationChecking;
 import at.archistar.crypto.data.MacSha512;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.random.RandomSource;
+import at.archistar.helper.ImpossibleException;
 
 /**
  * @author Andreas Happe <andreashappe@snikt.net>
@@ -57,7 +58,7 @@ public class RabinBenOrRSS implements SecretSharing {
 			return secretSharer.reconstruct(acceptedShares);
 		} else {
 			/* TODO: throw a security exception */
-			return null;
+			throw new ImpossibleException("error during reconstruct");
 		}
 	}
 }
