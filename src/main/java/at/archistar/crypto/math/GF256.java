@@ -4,6 +4,11 @@ import de.flexiprovider.common.math.codingtheory.GF2mField;
 
 /**
  * GF(2^8) arithmetic
+ *
+ * For more information about operations in finite fields see
+ *
+ *  * https://en.wikipedia.org/wiki/Finite_fields
+ *  * https://en.wikipedia.org/wiki/Finite_field_arithmetic
  * 
  * @author Fehrenbach Franca-Sofia
  * @author Andreas Happe <andreashappe@snikt.net>
