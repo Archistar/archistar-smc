@@ -2,8 +2,6 @@ package at.archistar.crypto;
 
 import java.security.GeneralSecurityException;
 
-import static org.fest.assertions.api.Assertions.*;
-
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -60,7 +58,7 @@ public class KrawczykCSS implements SecretSharing {
 		//Generate a new array of encrypted shares
 		Share[] shares = new Share[contentShares.length];
 		for(int i=0; i < shares.length; i++) {
-			assertThat(contentShares[i].xValue).isEqualTo(keyShares[i].xValue);
+			assert contentShares[i].xValue == keyShares[i].xValue;
 			shares[i] = new Share(contentShares[i].xValue, contentShares[i].yValues, keyShares[i].yValues, encSource.length, Type.KRAWCZYK);
 		}
 		
