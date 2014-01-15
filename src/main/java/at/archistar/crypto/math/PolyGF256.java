@@ -1,6 +1,5 @@
 package at.archistar.crypto.math;
 
-import static org.fest.assertions.api.Assertions.*;
 
 /**
  * Helper class for solving a polynomial
@@ -10,9 +9,8 @@ import static org.fest.assertions.api.Assertions.*;
 public class PolyGF256 {
 
 	public static byte reconstructLagrangeConstantCoeff(int xValues[], int yValues[]) {
-		
-		assertThat(xValues.length).isEqualTo(yValues.length);
-		
+		assert xValues.length == yValues.length;
+		  
 		int secret = 0;
 		int y = 0;
 		int tmp = 0;
