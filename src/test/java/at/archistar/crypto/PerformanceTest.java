@@ -25,33 +25,52 @@ import static org.fest.assertions.api.Assertions.*;
 @RunWith(value = Parameterized.class)
 public class PerformanceTest {
 
-	private final byte[] input;
+	private final byte[][][] input;
 	
 	private final SecretSharing algorithm;
 
-	@Parameters
-	public static Collection<Object[]> data() {
+  private static final int size = 20*1024*1024;
+
+  private static byte[][] createArray(int elementSize) {
+    byte[][] result = new byte[size/elementSize][elementSize];
 		Random rnd = new Random();
 
-		byte[] secret1MB = new byte[4*1024*1024];
-		rnd.nextBytes(secret1MB);
-		
-		final int n = 8;
-		final int k = 5;
+    for(int i=0; i < size/elementSize; i++) {
+      for(int j=0; j < elementSize; j++) {
+        result[i][j] = 42;
+      }
+    }
+
+    return result;
+  }
+
+	@Parameters
+	public static Collection<Object[]> data() {
+
+		byte[][][] secrets = new byte[7][][];
+    secrets[0] = createArray(4*1024);
+    secrets[1] = createArray(32*1024);
+    secrets[2] = createArray(64*1024);
+    secrets[3] = createArray(256*1024);
+    secrets[4] = createArray(512*1024);
+    secrets[5] = createArray(1024*1024);
+    secrets[6] = createArray(4096*1024);
+
+		final int n = 4;
+		final int k = 3;
 		
 		RandomSource rng = new FakeRandomSource();
-
 		Object[][] data = new Object[][] {
-				{ secret1MB, new ShamirPSS(n, k, rng) },
-				{ secret1MB, new RabinIDS(n, k) },
-				{ secret1MB, new KrawczykCSS(n, k, rng) },
-				{ secret1MB, new RabinBenOrRSS(n, k, rng, new KrawczykCSS(n, k, rng)) }
+				{ secrets, new ShamirPSS(n, k, rng) },
+				{ secrets, new RabinIDS(n, k) },
+				{ secrets, new KrawczykCSS(n, k, rng) },
+				{ secrets, new RabinBenOrRSS(n, k, rng, new KrawczykCSS(n, k, rng)) }
 		};
 
 		return Arrays.asList(data);
 	}
 
-	public PerformanceTest(byte[] input, SecretSharing algorithm) {
+	public PerformanceTest(byte[][][] input, SecretSharing algorithm) {
 		this.input = input;
 		this.algorithm = algorithm;
 	}
@@ -59,23 +78,26 @@ public class PerformanceTest {
 	@Test
 	public void testPerformance() throws Exception {
 
-		/* test construction */
-		long beforeShare = System.currentTimeMillis();
-		Share[] shares = algorithm.share(this.input);
+    for (int i =0; i < 7 ; i++) {
+      double sumShare = 0;
+      double sumCombine = 0;
+
+      for(byte[] data : this.input[i]) {
+		    /* test construction */
+    		long beforeShare = System.currentTimeMillis();
+  	  	Share[] shares = algorithm.share(data);
+    		long betweenOperations = System.currentTimeMillis();
+  	  	byte[] reconstructed = algorithm.reconstruct(shares);
+    		long afterAll = System.currentTimeMillis();
 		
-		long betweenOperations = System.currentTimeMillis();
-		
-		byte[] reconstructed = algorithm.reconstruct(shares);
-		
-		long afterAll = System.currentTimeMillis();
-		
-		double dataLength = ((double)this.input.length)/(1024);
-		double timeShare = dataLength/((betweenOperations-beforeShare)/1000.0);
-		double timeReconstruct = dataLength/((afterAll - betweenOperations)/1000.0);
-				
-		System.err.format("Performance of %s: share: %.2fkB/sec, combine: %.2fkB/sec\n", this.algorithm, timeShare, timeReconstruct);
+    		sumShare += (betweenOperations-beforeShare);
+    		sumCombine += (afterAll - betweenOperations);
 	
-		/* test that the reconstructed stuff is the same as the original one */
-		assertThat(reconstructed).isEqualTo(input);
+    		/* test that the reconstructed stuff is the same as the original one */
+    		assertThat(reconstructed).isEqualTo(data);
+      }
+				
+  		System.err.format("Performance(%d) of %s: share: %.3fmsec, combine: %.2fmsec\n", i, this.algorithm, sumShare, sumCombine);
+    }
 	}
 }
