@@ -98,6 +98,7 @@ public class PerformanceTest {
       }
 				
   		System.err.format("Performance(%d) of %s: share: %.3fmsec, combine: %.2fmsec\n", i, this.algorithm, sumShare, sumCombine);
+                System.err.format("Performance(%d) of %s: share: %.3fkb/sec, combine: %.2fkb/sec\n", i, this.algorithm, (size/1024)/(sumShare/1000.0), (size/1024)/(sumCombine/1000.0));
     }
 	}
 }
