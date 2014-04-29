@@ -24,6 +24,16 @@ public class RabinIDS implements SecretSharing {
 		this.k = k;
 	}
 
+
+	private boolean checkForZeros(int[] a) {
+          for(int i=0; i < a.length;i ++) {
+            if (a[i] != 0 ) {
+              return false;
+            }
+          }
+          return true;
+	}
+
 	@Override
 	public Share[] share(byte[] data) throws WeakSecurityException {
 		
@@ -46,16 +56,24 @@ public class RabinIDS implements SecretSharing {
 			for(int j=0; j < k; j++) {
 				if((i+j) < data.length) {
 					a[j] = (data[i+j] < 0) ? data[i+j]+256 : data[i+j];
+					assert(a[j] >= 0 && a[j] <= 255);
 				} else {
 					a[j] = 0;
 				}
 			}
-			
+
 			PolynomialGF2mSmallM poly = new PolynomialGF2mSmallM(GF256.gf256, a);
 			
 			//Calculate the share for this (source)byte for every share
 			for(int j=0; j < n; j++) {
-				shares[j].yValues[fillPosition] = (byte)(poly.evaluateAt(shares[j].xValue) & 0xFF);
+
+                              if (checkForZeros(a)) {
+                                System.err.println("all a coefficients are zero");
+                                System.err.println("i: " + i + " data.length: " + data.length);
+                                shares[j].yValues[fillPosition] = 0;
+                              } else {
+                                shares[j].yValues[fillPosition] = (byte)(poly.evaluateAt(shares[j].xValue) & 0xFF);
+                              }
 			}
 			fillPosition++;
 		}
@@ -84,13 +102,19 @@ public class RabinIDS implements SecretSharing {
 				for(int j=0; j < k; j++)	{
 					yValues[j] = (shares[j].yValues[i] < 0) ? (shares[j].yValues[i] + 256) : shares[j].yValues[i];
 				}
+
+				if (checkForZeros(yValues)) {
+                                  for(int x=0; x < k && w < result.length; x++) {
+                                    result[w++] = 0;
+                                  }
+				} else {
+                                  int resultMatrix[] = decodeMatrix.rightMultiply(yValues);
 				
-				int resultMatrix[] = decodeMatrix.rightMultiply(yValues);
-				
-				for(int j=resultMatrix.length-1; j >= 0 && w < shares[0].contentLength; j--) {
-					int element = resultMatrix[resultMatrix.length -1 -j];
-					result[w++] = (byte)(element & 0xFF);
-				}
+                                  for(int j=resultMatrix.length-1; j >= 0 && w < shares[0].contentLength; j--) {
+                                          int element = resultMatrix[resultMatrix.length -1 -j];
+                                          result[w++] = (byte)(element & 0xFF);
+                                  }
+                                }
 			}
 		} catch(ReconstructionException ex) {
 			throw new ImpossibleException(ex);
