@@ -2,7 +2,6 @@ package at.archistar.crypto;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Random;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,39 +25,38 @@ import static org.fest.assertions.api.Assertions.*;
 public class PerformanceTest {
 
 	private final byte[][][] input;
-	
+
 	private final SecretSharing algorithm;
 
-  private static final int size = 20*1024*1024;
+	private static final int size = 20*1024*1024;
 
-  private static byte[][] createArray(int elementSize) {
-    byte[][] result = new byte[size/elementSize][elementSize];
-		Random rnd = new Random();
+	private static byte[][] createArray(int elementSize) {
+		byte[][] result = new byte[size/elementSize][elementSize];
 
-    for(int i=0; i < size/elementSize; i++) {
-      for(int j=0; j < elementSize; j++) {
-        result[i][j] = 42;
-      }
-    }
+		for(int i=0; i < size/elementSize; i++) {
+			for(int j=0; j < elementSize; j++) {
+				result[i][j] = 42;
+			}
+		}
 
-    return result;
-  }
+		return result;
+	}
 
 	@Parameters
 	public static Collection<Object[]> data() {
 
 		byte[][][] secrets = new byte[7][][];
-    secrets[0] = createArray(4*1024);
-    secrets[1] = createArray(32*1024);
-    secrets[2] = createArray(64*1024);
-    secrets[3] = createArray(256*1024);
-    secrets[4] = createArray(512*1024);
-    secrets[5] = createArray(1024*1024);
-    secrets[6] = createArray(4096*1024);
+		secrets[0] = createArray(4*1024);
+		secrets[1] = createArray(32*1024);
+		secrets[2] = createArray(64*1024);
+		secrets[3] = createArray(256*1024);
+		secrets[4] = createArray(512*1024);
+		secrets[5] = createArray(1024*1024);
+		secrets[6] = createArray(4096*1024);
 
 		final int n = 4;
 		final int k = 3;
-		
+
 		RandomSource rng = new FakeRandomSource();
 		Object[][] data = new Object[][] {
 				{ secrets, new ShamirPSS(n, k, rng) },
@@ -78,27 +76,25 @@ public class PerformanceTest {
 	@Test
 	public void testPerformance() throws Exception {
 
-    for (int i =0; i < 7 ; i++) {
-      double sumShare = 0;
-      double sumCombine = 0;
+		for (int i =0; i < 7 ; i++) {
+			double sumShare = 0;
+			double sumCombine = 0;
 
-      for(byte[] data : this.input[i]) {
-		    /* test construction */
-    		long beforeShare = System.currentTimeMillis();
-  	  	Share[] shares = algorithm.share(data);
-    		long betweenOperations = System.currentTimeMillis();
-  	  	byte[] reconstructed = algorithm.reconstruct(shares);
-    		long afterAll = System.currentTimeMillis();
-		
-    		sumShare += (betweenOperations-beforeShare);
-    		sumCombine += (afterAll - betweenOperations);
-	
-    		/* test that the reconstructed stuff is the same as the original one */
-    		assertThat(reconstructed).isEqualTo(data);
-      }
-				
-  		System.err.format("Performance(%d) of %s: share: %.3fmsec, combine: %.2fmsec\n", i, this.algorithm, sumShare, sumCombine);
-                System.err.format("Performance(%d) of %s: share: %.3fkb/sec, combine: %.2fkb/sec\n", i, this.algorithm, (size/1024)/(sumShare/1000.0), (size/1024)/(sumCombine/1000.0));
-    }
+			for(byte[] data : this.input[i]) {
+				/* test construction */
+				long beforeShare = System.currentTimeMillis();
+				Share[] shares = algorithm.share(data);
+				long betweenOperations = System.currentTimeMillis();
+				byte[] reconstructed = algorithm.reconstruct(shares);
+				long afterAll = System.currentTimeMillis();
+
+				sumShare += (betweenOperations-beforeShare);
+				sumCombine += (afterAll - betweenOperations);
+
+				/* test that the reconstructed stuff is the same as the original one */
+				assertThat(reconstructed).isEqualTo(data);
+			}
+			System.err.format("Performance(%d) of %s: share: %.3fkb/sec, combine: %.2fkb/sec\n", i, this.algorithm, (size/1024)/(sumShare/1000.0), (size/1024)/(sumCombine/1000.0));
+		}
 	}
 }
