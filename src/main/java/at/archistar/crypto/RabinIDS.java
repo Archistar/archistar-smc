@@ -15,9 +15,9 @@ import at.archistar.helper.ImpossibleException;
  */
 public class RabinIDS implements SecretSharing {
 	
-	private int n;
+	private final int n;
 	
-	private int k;
+	private final int k;
 	
 	public RabinIDS(int n, int k) {
 		this.n = n;

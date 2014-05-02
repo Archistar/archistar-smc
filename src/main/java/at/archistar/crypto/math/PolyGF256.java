@@ -12,23 +12,16 @@ public class PolyGF256 {
 		assert xValues.length == yValues.length;
 		  
 		int secret = 0;
-		int y = 0;
-		int tmp = 0;
-		int x = 0;
-		int xj = 0;
-		secret = 0;
 			
 		//Calculate the restored byte from each share
 		for(int j=0; j < xValues.length; j++) {
-			y = yValues[j];
-			xj = xValues[j];
-				
-			//Calculate the secret
-			tmp = 1;
+			int y = yValues[j];
+			int xj = xValues[j];
+                        int tmp = 1;
 					
 			for(int g=0; g < xValues.length; g++) {
 				if(j != g) {
-					x = xValues[g];
+					int x = xValues[g];
 					/* tmp = tmp * (x_g / (x_g - x_j)) */
 					tmp = GF256.mult(tmp, GF256.div(x, GF256.sub(x, xj)));
 				}

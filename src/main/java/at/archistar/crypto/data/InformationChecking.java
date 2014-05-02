@@ -14,7 +14,7 @@ import at.archistar.helper.ImpossibleException;
  */
 public class InformationChecking {
 	
-	private MacHelper macHelper;
+	private final MacHelper macHelper;
 	
 	public InformationChecking(MacHelper mac) {
 		this.macHelper = mac;

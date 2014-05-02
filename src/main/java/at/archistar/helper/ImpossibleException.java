@@ -23,6 +23,7 @@ public class ImpossibleException extends RuntimeException {
 		this.msg = e.getMessage();
 	}
 	
+        @Override
 	public String toString() {
 		return "exception: " + msg;
 	}

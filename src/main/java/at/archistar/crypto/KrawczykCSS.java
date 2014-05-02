@@ -18,9 +18,9 @@ import at.archistar.crypto.random.RandomSource;
  */
 public class KrawczykCSS implements SecretSharing {
 	
-	private SecretSharing shamir;
+	private final SecretSharing shamir;
 	
-	private SecretSharing rs;
+	private final SecretSharing rs;
 	
 	private final String cipherOptions = "AES/CBC/PKCS5Padding";
 	
@@ -35,19 +35,16 @@ public class KrawczykCSS implements SecretSharing {
 	@Override
 	public Share[] share(byte[] data) throws WeakSecurityException, GeneralSecurityException {
 		
-		byte[] encSource = null;
-		byte[] encKey = null;
-	
 		/* try to encrypt original data */
 		KeyGenerator kgen = KeyGenerator.getInstance("AES");
 		kgen.init(128);
 		SecretKey skey = kgen.generateKey();
-		encKey = skey.getEncoded();
+		byte[] encKey = skey.getEncoded();
 
 		SecretKeySpec sKeySpec = new SecretKeySpec(encKey, "AES");
 		Cipher cipher = Cipher.getInstance(cipherOptions);
 		cipher.init(Cipher.ENCRYPT_MODE, sKeySpec, new IvParameterSpec(encKey));
-		encSource = cipher.doFinal(data);
+		byte[] encSource = cipher.doFinal(data);
 		
 		//Share the encrypted secret
 		Share[] contentShares = rs.share(encSource);
