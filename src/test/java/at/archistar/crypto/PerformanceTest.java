@@ -8,28 +8,32 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import at.archistar.crypto.KrawczykCSS;
-import at.archistar.crypto.RabinBenOrRSS;
-import at.archistar.crypto.RabinIDS;
-import at.archistar.crypto.SecretSharing;
 import at.archistar.crypto.ShamirPSS;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.random.FakeRandomSource;
-import at.archistar.crypto.random.RandomSource;
+import at.archistar.crypto.decode.ErasureDecoder;
+import at.archistar.crypto.random.StreamPRNG;
 import static org.fest.assertions.api.Assertions.*;
 
 /**
- * - * @author Andreas Happe <andreashappe@snikt.net>
+ * Tests and compares the performance of the different Secret-Sharing algorithms. 
+ * (does use {@link ErasureDecoder} for reconstruction)
+ * 
+ * @author Elias Frantar <i>(added documentation)</i>
+ * @author Andreas Happe <andreashappe@snikt.net>
+ * @version 2014-7-17
  */
 @RunWith(value = Parameterized.class)
 public class PerformanceTest {
 
     private final byte[][][] input;
-
     private final SecretSharing algorithm;
-
     private static final int size = 20 * 1024 * 1024;
 
+    /**
+     * Creates a byte[] of the given size, with all values set to 42.
+     * @param elementSize the size of the array
+     * @return an array of the given size
+     */
     private static byte[][] createArray(int elementSize) {
         byte[][] result = new byte[size / elementSize][elementSize];
 
@@ -44,7 +48,6 @@ public class PerformanceTest {
 
     @Parameters
     public static Collection<Object[]> data() {
-
         byte[][][] secrets = new byte[7][][];
         secrets[0] = createArray(4 * 1024);
         secrets[1] = createArray(32 * 1024);
@@ -56,13 +59,19 @@ public class PerformanceTest {
 
         final int n = 4;
         final int k = 3;
-
-        RandomSource rng = new FakeRandomSource();
+        
+        ShamirPSS shamir = null;
+        try {
+	        shamir = new ShamirPSS(n, k);
+	        shamir.setRandomSource(new StreamPRNG("HC128")); // HC128 is the fastest secure RNG
+        }
+        catch(Exception e) {}
         Object[][] data = new Object[][]{
-            {secrets, new ShamirPSS(n, k, rng)},
-            {secrets, new RabinIDS(n, k)},
-            {secrets, new KrawczykCSS(n, k, rng)},
-            {secrets, new RabinBenOrRSS(n, k, rng, new KrawczykCSS(n, k, rng))}
+            {secrets, shamir},
+            {secrets, new ReedSolomon(n, k)},
+            {secrets, new KrawczykCSS(n, k)},
+            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k))},
+            {secrets, new USRSSwCompactShares(n, k)}
         };
 
         return Arrays.asList(data);
