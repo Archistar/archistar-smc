@@ -10,6 +10,7 @@ Currently implemented algorithms
 * [Shamir's Secret Sharing](http://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing)
 * [Krawczyk Secret Sharing Made Short](http://courses.csail.mit.edu/6.857/2009/handouts/short-krawczyk.pdf)
 * [Rabin-Ben-Or Verifiable Secret Sharing](http://www.cse.huji.ac.il/course/2003/ns/Papers/RB89.pdf)
+* [Unconditionally Secure Robust Secret Sharing with Compact Shares](http://www.iacr.org/cryptodb/data/paper.php?pubkey=24281)
 
 Basic Introduction to Secret Sharing
 ---------------------------------------------

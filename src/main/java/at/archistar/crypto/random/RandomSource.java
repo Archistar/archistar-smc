@@ -1,14 +1,19 @@
 package at.archistar.crypto.random;
 
 /**
- * Some algorithms need a random source. This interface allows easy exchange of
- * used random number generators. For example test cases utilize a
- * FakeRandomGenerator that returns the same number -- this allows to easily
- * compare test results.
+ * This is the base interface for Random-Number-Generators used in this library.<br>
+ * It allows easy exchange of RNGs. 
  *
+ * @author Elias Frantar <i>(added documentation)</i>
  * @author Andreas Happe <andreashappe@snikt.net>
+ * @version 2014-7-15
  */
 public interface RandomSource {
-
-    public int generateByte();
+	
+	/**
+	 * Generates a new random byte in range 1 - 255. (as an integer)
+	 * @return a random byte excluding 0
+	 */
+    public int generateCoefficient(); // return int because there are no unsigned bytes in java
+    
 }
