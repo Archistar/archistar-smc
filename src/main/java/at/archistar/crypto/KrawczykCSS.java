@@ -4,6 +4,7 @@ import helper.SymmetricEncHelper;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.ErasureDecoder;
 import at.archistar.crypto.decode.PolySolver;
+import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.random.SHA1PRNG;
 
@@ -64,8 +65,7 @@ public class KrawczykCSS extends SecretSharing {
 			}
 			return shares;
 		}
-		catch(Exception e) { e.printStackTrace(); } // TODO: add better Exception-handling
-		return null; // return null if encryption failed
+		catch(Exception e) { throw new ImpossibleException("sharing failed (" + e.getMessage() + ")"); } // encryption should actually never fail
     }
 
     @Override
