@@ -3,16 +3,23 @@
 # - all tests were performed on an intel i7 processor with 2048MB RAM assigned to the JVM
 # - all values are rounded averages; therfore denoted with '~'
 
-No Optimizations:
+1) No optimizations:
 					Share		Combine
 - ShamirPSS:		~ 3200 		~ 4600 
 - RabinIDS:			~ 8000		~ 6500
 - KrawczykCSS:		~ 6500		~ 4600	
 - RabinBenOrRSS:	~ 5700		~ 4200
 
-GF256 with lookup-tables:
+2) GF256 with lookup-tables:
 					Share		Combine
 - ShamirPSS:		~ 3200 		~ 35 000
 - RabinIDS:			~ 8000 		~ 40 000
 - KrawczykCSS:		~ 6500		~ 30 000	
 - RabinBenOrRSS:	~ 5700		~ 18 500
+
+3) GF256Polynomial for evaluation (+ #2):
+					Share		Combine
+- ShamirPSS:		~ 32 000 	~ 35 000
+- RabinIDS:			~ 90 000 	~ 40 000
+- KrawczykCSS:		~ 43 000	~ 30 000	
+- RabinBenOrRSS:	~ 21 500	~ 18 500
