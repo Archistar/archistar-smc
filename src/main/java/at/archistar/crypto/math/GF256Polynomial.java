@@ -32,8 +32,9 @@ public class GF256Polynomial {
 	public int evaluateAt(int x) {
 		/* @author flexiprovider */
 		int result = coeffs[degree];
-		for (int i = degree - 1; i >= 0; i--)
-		    result = GF256.mult(result, x) ^ coeffs[i];
+		for (int i = degree - 1; i >= 0; i--) {
+		    result = GF256.add(GF256.mult(result, x), coeffs[i]);
+		}
 		return result;
 	}
 }
