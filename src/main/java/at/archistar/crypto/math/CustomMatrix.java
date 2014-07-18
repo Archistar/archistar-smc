@@ -1,5 +1,6 @@
 package at.archistar.crypto.math;
 
+import de.flexiprovider.common.math.codingtheory.GF2mField;
 import de.flexiprovider.common.math.linearalgebra.GF2mMatrix;
 
 /**
@@ -10,13 +11,14 @@ import de.flexiprovider.common.math.linearalgebra.GF2mMatrix;
  * @author Andreas Happe <andreashappe@snikt.net>
  */
 public class CustomMatrix extends GF2mMatrix {
-
+	private static final GF2mField gf256 = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0) / 285
+	
     public CustomMatrix(int[][] data) {
-        super(GF256.gf256, data);
+        super(gf256, data);
     }
 
     public CustomMatrix(byte[] encoded) {
-        super(GF256.gf256, encoded);
+        super(gf256, encoded);
     }
 
     public int[] rightMultiply(int vec[]) {
