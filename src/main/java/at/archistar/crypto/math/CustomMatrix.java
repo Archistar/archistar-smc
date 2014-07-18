@@ -14,7 +14,7 @@ import de.flexiprovider.common.math.linearalgebra.GF2mMatrix;
  * @version 2014-7-18
  */
 public class CustomMatrix extends GF2mMatrix {
-	private static final GF2mField gf256 = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0) / 285
+	public static final GF2mField gf256 = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0) / 285
 	
 	/**
      * Constructor
