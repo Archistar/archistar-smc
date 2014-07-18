@@ -1,91 +1,148 @@
 package at.archistar.crypto.math;
 
-import de.flexiprovider.common.math.codingtheory.GF2mField;
+/*
+ * The operations in this class are meant to be very fast and efficient.
+ * The speed is mainly achieved by using lookup-tables for implementing the otherwise very expensive 
+ * mult(), div(), pow() and inverse() operations.
+ */
+
+/* NOTE: Performing parameter-checks would decrease the performance of this class by around 60%! */
 
 /**
- * GF(2^8) arithmetic
- *
- * For more information about operations in finite fields see
- *
- *  * https://en.wikipedia.org/wiki/Finite_fields *
- * https://en.wikipedia.org/wiki/Finite_field_arithmetic
- *
- * @author Fehrenbach Franca-Sofia
- * @author Andreas Happe <andreashappe@snikt.net>
- *
+ * <p>This class implements all basic arithmetic operations in a finite field, more precisely a Galois-Field 256 
+ * (short <i>GF(256)</i>).</p>
+ * 
+ * <p>
+ * Since GF(256) contains only the numbers 0 - 255:
+ * <ul>
+ * <li>all methods do only work with parameters in that range
+ * <li>all methods will return ints in that range (given that the parameters were valid)
+ * <li>you must check yourself (if necessary) if the parameters are in range before calling methods of this class
+ * </ul>
+ * </p>
+ * 
+ * <p>For descriptions on how the arithmetics in GF(256) work see: 
+ *    <a href="http://en.wikipedia.org/wiki/Finite_field_arithmetic.">http://en.wikipedia.org/wiki/Finite_field_arithmetic.</a></p>
+ * 
+ * <b>WARNING:</b> The lookup-table implementation could lead to timing attacks on certain microprocessors!
+ * 				   So this class may not be suitable for all use-cases. 
+ * 				   (but definitively suitable for the <i>Archistar</i>-project)
+ * 
+ * @author Elias Frantar
+ * @version 2014-7-18
  */
 public class GF256 {
-
-    public static final GF2mField gf256 = new GF2mField(8, 0x11d);
-
-    public static int add(int a, int b) {
-
-        a = (a < 0) ? a + 256 : a;
-        b = (b < 0) ? b + 256 : b;
-
-        assert (a >= 0 && a <= 255);
-        assert (b >= 0 && b <= 255);
-
-        int result = gf256.add(a, b) & 0xFF;
-        assert (result >= 0 && result <= 255);
-        return result;
+	private static final int GEN_POLY = 0x11D; // a generator polynomial of GF(256); 285
+	
+	/* lookup-tables for faster operations */
+	private static int[] LOG_TABLE = new int[256]; // = log_g(index) (log base g)
+	private static int[] ALOG_TABLE = new int[1025]; // = pow(g, index); 512 * 2 + 1
+	
+	/* 
+	 * initialize the lookup tables
+	 * basis for writing this code: http://catid.mechafetus.com/news/news.php?view=295
+	 */
+	static {
+		LOG_TABLE[0] = 512;
+		ALOG_TABLE[0] = 1;
+				
+		for (int i = 1; i < 255; i++) {
+			int next = ALOG_TABLE[i - 1] * 2;
+			if (next >= 256) {
+				next ^= GEN_POLY;
+			}
+			
+			ALOG_TABLE[i] = next;
+			LOG_TABLE[ALOG_TABLE[i]] = i;
+		}
+		
+		ALOG_TABLE[255] = ALOG_TABLE[0];
+		LOG_TABLE[ALOG_TABLE[255]] = 255;
+		
+		for (int i = 256; i < 510; i++) { // 2 * 255
+			ALOG_TABLE[i] = ALOG_TABLE[i % 255];
+		}
+		
+		ALOG_TABLE[510] = 1; // 2 * 255
+		
+		for (int i = 511; i < 1020; i++) { // 2 * 255 + 1; 4 * 255
+			ALOG_TABLE[i] = 0;
+		}
+	}
+	
+	/* arithmetic operations */
+	
+	/**
+	 * Performs an addition of two numbers in GF(256). (a + b)
+	 * 
+	 * @param a number in range 0 - 255
+	 * @param b number in range 0 - 255
+	 * @return the result of <i>a + b</i> in GF(256) (will be in range 0 - 255)
+	 */
+	public static int add(int a, int b) {
+		return a ^ b;
     }
-
-    /**
-     * NOTE: in a GF(2^8) addition and subtraction is essential the same
-     * operation
-     */
-    public static int sub(int a, int b) {
-
-        a = (a < 0) ? a + 256 : a;
-        b = (b < 0) ? b + 256 : b;
-
-        assert (a >= 0 && a <= 255);
-        assert (b >= 0 && b <= 255);
-
-        int result = gf256.add(a, b) & 0xFF;
-        assert (result >= 0 && result <= 255);
-        return result;
-    }
-
+	
+	/**
+	 * Performs a subtraction of two numbers in GF(256). (a - b)<br>
+	 * <b>NOTE:</b> addition and subtraction are the same in GF(256)
+	 * 
+	 * @param a number in range 0 - 255
+	 * @param b number in range 0 - 255
+	 * @return the result of <i>a - b</i> in GF(256) (will be in range 0 - 255)
+	 */
+	public static int sub(int a, int b) {
+		return a ^ b;
+	}
+	
+	/**
+	 * Performs a multiplication of two numbers in GF(256). (a × b)
+	 * 
+	 * @param a number in range 0 - 255
+	 * @param b number in range 0 - 255
+	 * @return the result of <i>a × b</i> in GF(256) (will be in range 0 - 255)
+	 */
     public static int mult(int a, int b) {
-
-        a = (a < 0) ? a + 256 : a;
-        b = (b < 0) ? b + 256 : b;
-
-        assert (a >= 0 && a <= 255);
-        assert (b >= 0 && b <= 255);
-
-        int result = gf256.mult(a, b) & 0xFF;
-        assert (result >= 0 && result <= 255);
-        return result;
+		return ALOG_TABLE[LOG_TABLE[a] + LOG_TABLE[b]];
     }
-
-    public static int div(int a, int b) {
-
-        assert (a >= 0 && a <= 255);
-        assert (b >= 0 && b <= 255);
-
-        int result = gf256.mult(a, gf256.inverse(b)) & 0xFF;
-        assert (result >= 0 && result <= 255);
-        return result;
-    }
-
+    
     /**
-     * Calculates the a power p. Sets the result as the new value of this
-     * object. Remember that x^0 = 1.
+     * Performs a division of two numbers in GF(256). (a / b)<br>
+     * Division by 0 throws an ArithmeticException.
+     * 
+     * @param a number in range 0 - 255
+     * @param b number in range 0 - 255
+     * @return the result of <i>a / b</i> in GF(256) (will be in range 0 - 255)
+     */
+    public static int div(int a, int b) {
+		if (b == 0) { // a / 0
+    		throw new ArithmeticException("Division by 0");
+		}
+
+    	return ALOG_TABLE[LOG_TABLE[a] + 255 - LOG_TABLE[b]];
+    }
+    
+    /**
+     * Performs an exponentiation of two numbers in GF(256). (a<sup>p</sup>)
+     * 
+     * @param a number in range 0 - 255
+     * @param p the exponent; a number in range 0 - 255
+     * @return the result of <i>a<sup>p</sup></i> in GF(256) (will be in range 0 - 255)
      */
     public static int pow(int a, int p) {
-
-        a = (a < 0) ? a + 256 : a;
-        p = (p < 0) ? p + 256 : p;
-
-        assert (a >= 0 && a <= 255);
-        assert (p >= 0 && p <= 255);
-
-        int result = gf256.exp(a, p);
-
-        assert (result >= 0 && result <= 255);
-        return result;
+		return ALOG_TABLE[p*LOG_TABLE[a] % 255];
     }
+    
+    /**
+     * Computes the inverse of a number in GF(256). (a<sup>-1</sup>)
+     * 
+     * @param a number in range 0 - 255
+     * @return the inverse of a <i>(a<sup>-1</sup>)</i> in GF(256) (will be in range 0 - 255)
+     */
+    public static int inverse(int a) {
+		return ALOG_TABLE[255 - LOG_TABLE[a]];
+    }
+
+	 
+	private GF256() {} // to remove constructor field from javadoc
 }

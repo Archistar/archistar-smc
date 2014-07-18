@@ -1,13 +1,14 @@
 package at.archistar.crypto;
 
-import de.flexiprovider.common.math.codingtheory.PolynomialGF2mSmallM;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.Share.Type;
 import at.archistar.crypto.math.CustomMatrix;
 import at.archistar.crypto.math.GF256;
+import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.math.PolyGF256;
 import at.archistar.crypto.math.ReconstructionException;
 import at.archistar.crypto.random.RandomSource;
+import at.archistar.helper.ByteUtils;
 
 /**
  * @author Andreas Happe <andreashappe@snikt.net>
@@ -51,7 +52,7 @@ public class ShamirPSS implements SecretSharing {
                 a[j] = rng.generateByte();
             }
 
-            PolynomialGF2mSmallM poly = new PolynomialGF2mSmallM(GF256.gf256, a);
+            GF256Polynomial poly = new GF256Polynomial(a);
 
             //Calculate the share for this (source)byte for every share
             for (int j = 0; j < n; j++) {
@@ -83,7 +84,7 @@ public class ShamirPSS implements SecretSharing {
 
             int yValues[] = new int[shares.length];
             for (int j = 0; j < shares.length; j++) {
-                yValues[j] = shares[j].yValues[i];
+                yValues[j] = ByteUtils.toUnsignedByte(shares[j].yValues[i]); // we may only pass unsigned bytes to GF256
             }
 
             int tmp = 0;
