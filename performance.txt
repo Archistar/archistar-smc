@@ -1,7 +1,7 @@
 # NOTES:
 # - all values are in kb/sec.
 # - all tests were performed on an intel i7 processor with 2048MB RAM assigned to the JVM
-# - all values are rounded averages; therfore denoted with '~'
+# - all values are rounded averages; therefore denoted with '~'
 
 1) No optimizations:
 					Share		Combine
