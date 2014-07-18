@@ -42,9 +42,9 @@ public class CustomMatrix extends GF2mMatrix {
      * @return the product of the matrix and the given vector <i>(matrix * vector)</i>
      */
     public int[] rightMultiply(int vec[]) {
-
-        assert (vec.length == matrix.length);
-        assert (vec.length == matrix[0].length);
+    	if (vec.length != matrix.length || vec.length != matrix[0].length) { // multiplication only works if A(MxN) and B(NxO)
+    		throw new ArithmeticException("when matrix is MxN, vector must be Nx1"); 
+    	}
 
         int[] result = new int[vec.length];
         for (int i = 0; i < vec.length; i++) {
