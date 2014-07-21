@@ -1,4 +1,4 @@
-package at.archistar.crypto;
+package at.archistar.crypto.data;
 
 import java.security.GeneralSecurityException;
 
