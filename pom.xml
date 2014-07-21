@@ -21,6 +21,12 @@
             <artifactId>flexiprovider-core</artifactId>
             <version>1.7p6</version>
         </dependency>
+        <!-- crypto library -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk16</artifactId>
+            <version>1.46</version>
+        </dependency>
         <!-- used for unit testing -->
         <dependency>
             <groupId>junit</groupId>
