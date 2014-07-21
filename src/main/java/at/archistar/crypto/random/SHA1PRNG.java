@@ -3,8 +3,8 @@ package at.archistar.crypto.random;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
+import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.helper.ByteUtils;
-import at.archistar.helper.ImpossibleException;
 
 /**
  * A wrapper class for the internal java SHA1-PRNG (also used in Java's {@link SecureRandom}).

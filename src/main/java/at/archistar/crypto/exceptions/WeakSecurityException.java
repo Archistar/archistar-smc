@@ -1,4 +1,4 @@
-package at.archistar.crypto;
+package at.archistar.crypto.exceptions;
 
 /**
  * This exception is thrown when the given parameters for sharing a secret are

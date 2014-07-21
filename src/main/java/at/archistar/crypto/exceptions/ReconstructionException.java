@@ -1,4 +1,4 @@
-package at.archistar.crypto.math;
+package at.archistar.crypto.exceptions;
 
 /**
  * Exception that is thrown when an error during the reconstruction occurs. This

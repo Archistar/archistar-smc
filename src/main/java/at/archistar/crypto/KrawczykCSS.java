@@ -10,6 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.Share.Type;
+import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.RandomSource;
 
 /**

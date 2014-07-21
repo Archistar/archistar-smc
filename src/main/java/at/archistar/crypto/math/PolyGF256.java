@@ -1,5 +1,7 @@
 package at.archistar.crypto.math;
 
+import at.archistar.crypto.exceptions.ReconstructionException;
+
 /**
  * Helper class for solving a polynomial
  *

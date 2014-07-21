@@ -12,8 +12,8 @@ import org.junit.Test;
 
 import at.archistar.crypto.RabinIDS;
 import at.archistar.crypto.SecretSharing;
-import at.archistar.crypto.WeakSecurityException;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.exceptions.WeakSecurityException;
 
 /**
  * Tests for {@link RabinBenOrRSS}

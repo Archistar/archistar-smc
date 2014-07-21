@@ -1,4 +1,4 @@
-package at.archistar.helper;
+package at.archistar.crypto.exceptions;
 
 /**
  * This will be used for 'this-can-never-happen' exceptions;

@@ -2,11 +2,12 @@ package at.archistar.crypto;
 
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.Share.Type;
+import at.archistar.crypto.exceptions.ReconstructionException;
+import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.CustomMatrix;
 import at.archistar.crypto.math.GF256;
 import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.math.PolyGF256;
-import at.archistar.crypto.math.ReconstructionException;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.helper.ByteUtils;
 

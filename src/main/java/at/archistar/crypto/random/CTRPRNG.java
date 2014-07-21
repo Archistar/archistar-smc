@@ -3,8 +3,8 @@ package at.archistar.crypto.random;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 
+import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.helper.ByteUtils;
-import at.archistar.helper.ImpossibleException;
 
 /**
  * This is a counter-mode-cipher RNG outputting the result of running a symmetric cipher in counter-mode.

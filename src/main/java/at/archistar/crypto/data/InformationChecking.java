@@ -4,7 +4,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-import at.archistar.helper.ImpossibleException;
+import at.archistar.crypto.exceptions.ImpossibleException;
 
 /**
  * creates and verifies MACs for given shares.

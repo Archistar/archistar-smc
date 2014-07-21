@@ -5,8 +5,9 @@ import java.security.GeneralSecurityException;
 import at.archistar.crypto.data.InformationChecking;
 import at.archistar.crypto.data.MacSha512;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.exceptions.ImpossibleException;
+import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.helper.ImpossibleException;
 
 /**
  * @author Andreas Happe <andreashappe@snikt.net>
