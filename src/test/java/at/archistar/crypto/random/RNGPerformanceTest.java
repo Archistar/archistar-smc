@@ -12,6 +12,7 @@ import at.archistar.crypto.random.CTRPRNG;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.random.SHA1PRNG;
 import at.archistar.crypto.random.StreamPRNG;
+import at.archistar.helper.ImpossibleException;
 
 /**
  * This class tests and compares the performance of the different secure RandomNumberGenerators.
@@ -36,7 +37,9 @@ public class RNGPerformanceTest {
 	                {new CTRPRNG()},
 	        		{new SHA1PRNG()}
 	        };
-    	} catch(Exception e) {} // should never happen
+    	} catch(Exception e) {  // should never happen
+    		throw new ImpossibleException(e);
+    	}
 
         return Arrays.asList(data);
     }

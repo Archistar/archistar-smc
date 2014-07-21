@@ -4,6 +4,7 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 
 import at.archistar.helper.ByteUtils;
+import at.archistar.helper.ImpossibleException;
 
 /**
  * This is a counter-mode-cipher RNG outputting the result of running a symmetric cipher in counter-mode.
@@ -37,7 +38,9 @@ public class CTRPRNG implements RandomSource {
 			counter = 0;
 			
 			fillCache();
-		} catch (Exception e) {} // should never happen
+		} catch (Exception e) { // should never happen
+			throw new ImpossibleException(e);
+		}
 	}
 	
 	/**

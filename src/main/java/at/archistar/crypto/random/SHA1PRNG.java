@@ -4,6 +4,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 import at.archistar.helper.ByteUtils;
+import at.archistar.helper.ImpossibleException;
 
 /**
  * A wrapper class for the internal java SHA1-PRNG (also used in Java's {@link SecureRandom}).
@@ -25,7 +26,9 @@ public class SHA1PRNG implements RandomSource {
 	public SHA1PRNG() { 
 		try { 
 			rng = SecureRandom.getInstance(ALGORITHM); 
-		} catch (NoSuchAlgorithmException e) {} // this should never happen
+		} catch (NoSuchAlgorithmException e) { // this should never happen
+			throw new ImpossibleException(e);
+		}
 		
 		rng.nextBoolean(); // force the rng to seed itself
 	}
