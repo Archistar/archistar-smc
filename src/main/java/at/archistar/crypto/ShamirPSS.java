@@ -1,5 +1,7 @@
 package at.archistar.crypto;
 
+import java.security.GeneralSecurityException;
+
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.Share.Type;
 import at.archistar.crypto.exceptions.ReconstructionException;
@@ -65,7 +67,11 @@ public class ShamirPSS implements SecretSharing {
     }
 
     @Override
-    public byte[] reconstruct(Share[] shares) {
+    public byte[] reconstruct(Share[] shares) throws ReconstructionException, GeneralSecurityException {
+    	if (shares.length < k) {
+    		throw new ReconstructionException();
+    	}
+    	
         int xValues[] = new int[shares.length];
         byte result[] = new byte[shares[0].yValues.length];
 

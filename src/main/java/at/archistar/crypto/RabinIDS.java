@@ -1,5 +1,7 @@
 package at.archistar.crypto;
 
+import java.security.GeneralSecurityException;
+
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
@@ -81,8 +83,11 @@ public class RabinIDS implements SecretSharing {
     }
 
     @Override
-    public byte[] reconstruct(Share[] shares) {
-
+    public byte[] reconstruct(Share[] shares) throws ReconstructionException, GeneralSecurityException {
+    	if (shares.length < k) {
+    		throw new ReconstructionException();
+    	}
+    	
         int xValues[] = new int[k];
         byte result[] = new byte[shares[0].contentLength];
 

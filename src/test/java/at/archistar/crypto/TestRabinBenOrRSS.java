@@ -12,6 +12,7 @@ import static org.fest.assertions.api.Assertions.*;
 import at.archistar.crypto.RabinBenOrRSS;
 import at.archistar.crypto.SecretSharing;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
 
@@ -40,7 +41,7 @@ public class TestRabinBenOrRSS {
 	
 	/* should succeed reconstructing */
     @Test
-    public void simpleRoundTest() throws WeakSecurityException, GeneralSecurityException {
+    public void simpleRoundTest() throws WeakSecurityException, GeneralSecurityException, ReconstructionException {
         Share shares[] = algorithm.share(data);
         assertThat(shares.length).isEqualTo(8);
 
@@ -49,7 +50,7 @@ public class TestRabinBenOrRSS {
     }
     
     @Test
-    public void notAllSharesTest() throws WeakSecurityException, GeneralSecurityException {
+    public void notAllSharesTest() throws WeakSecurityException, GeneralSecurityException, ReconstructionException {
         Share shares[] = algorithm.share(data);
         Share shares1[] = Arrays.copyOfRange(shares, 0, 6);
 
@@ -57,11 +58,21 @@ public class TestRabinBenOrRSS {
         assertThat(reconstructedData).isEqualTo(data);
     }
     @Test
-    public void shuffledSharesTest() throws WeakSecurityException, GeneralSecurityException {
+    public void shuffledSharesTest() throws WeakSecurityException, GeneralSecurityException, ReconstructionException {
         Share shares[] = algorithm.share(data);
         Collections.shuffle(Arrays.asList(shares));
         
         byte reconstructedData[] = algorithm.reconstruct(shares);
         assertThat(reconstructedData).isEqualTo(data);
+    }
+    
+    /* should fail reconstructing */
+    @Test(expected=ReconstructionException.class)
+    public void notEnoughSharesTest() throws ReconstructionException, WeakSecurityException, GeneralSecurityException {
+        Share shares[] = algorithm.share(data);
+        Share[] shares1 = Arrays.copyOfRange(shares, 0, 2);
+        
+        @SuppressWarnings("unused")
+        byte reconstructedData[] = algorithm.reconstruct(shares1);
     }
 }

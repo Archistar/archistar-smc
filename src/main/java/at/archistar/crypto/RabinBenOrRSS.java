@@ -5,7 +5,7 @@ import java.security.GeneralSecurityException;
 import at.archistar.crypto.data.InformationChecking;
 import at.archistar.crypto.data.MacSha512;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.exceptions.ImpossibleException;
+import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.RandomSource;
 
@@ -37,7 +37,7 @@ public class RabinBenOrRSS implements SecretSharing {
     }
 
     @Override
-    public byte[] reconstruct(Share[] shares) throws GeneralSecurityException {
+    public byte[] reconstruct(Share[] shares) throws ReconstructionException, GeneralSecurityException {
 
         ic.checkMacs("HMacSHA512", shares);
 
@@ -58,8 +58,7 @@ public class RabinBenOrRSS implements SecretSharing {
 
             return secretSharer.reconstruct(acceptedShares);
         } else {
-            /* TODO: throw a security exception */
-            throw new ImpossibleException("error during reconstruct");
+        	throw new ReconstructionException();
         }
     }
 }

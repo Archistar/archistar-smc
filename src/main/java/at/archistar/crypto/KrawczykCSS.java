@@ -10,6 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.Share.Type;
+import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.RandomSource;
 
@@ -22,10 +23,14 @@ public class KrawczykCSS implements SecretSharing {
     private final SecretSharing shamir;
 
     private final SecretSharing rs;
+    
+    private final int k;
 
     private final String cipherOptions = "AES/CBC/PKCS5Padding";
 
     public KrawczykCSS(int n, int k, RandomSource rng) {
+    	this.k = k;
+    	
         //Use a SharmirSecretSharing share generator to share the key and the content
         shamir = new ShamirPSS(n, k, rng);
 
@@ -64,8 +69,11 @@ public class KrawczykCSS implements SecretSharing {
     }
 
     @Override
-    public byte[] reconstruct(Share[] shares) throws GeneralSecurityException {
-
+    public byte[] reconstruct(Share[] shares) throws ReconstructionException, GeneralSecurityException {
+    	if (shares.length < k) {
+    		throw new ReconstructionException();
+    	}
+    	
         /* extract key */
         Share keyShares[] = new Share[shares.length];
         for (int i = 0; i < shares.length; i++) {
