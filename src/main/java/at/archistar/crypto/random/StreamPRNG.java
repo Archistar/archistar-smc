@@ -7,6 +7,7 @@ import javax.crypto.KeyGenerator;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import at.archistar.crypto.exceptions.CryptoException;
 import at.archistar.helper.ByteUtils;
 
 /**
@@ -47,7 +48,7 @@ public class StreamPRNG implements RandomSource {
 	 * @param algorithm the stream-cipher algorithm to use (do only pass constants of this class)
 	 * @throws CryptoException thrown if initialization of the RNG failed
 	 */
-	public StreamPRNG(String algorithm) throws Exception {
+	public StreamPRNG(String algorithm) throws CryptoException {
 		try {
 			cipher = Cipher.getInstance(algorithm, "BC"); // we want implementations from bouncycastle
 				
@@ -58,7 +59,7 @@ public class StreamPRNG implements RandomSource {
 				
 			fillCache();
 		} catch (Exception e) {
-			throw new Exception("initializing the RNG faild (" + e.getMessage() + ")"); // TODO: introduce a more meaningful Exception like a CryptoException
+			throw new CryptoException("initializing the RNG faild (" + e.getMessage() + ")");
 		}
 	}
 	

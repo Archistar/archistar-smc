@@ -5,7 +5,7 @@ package at.archistar.crypto.exceptions;
  * not secure enough.
  *
  * @author Fehrenbach Franca-Sofia
- *
+ * @version 2014-7-21
  */
 public class WeakSecurityException extends Exception {
 
