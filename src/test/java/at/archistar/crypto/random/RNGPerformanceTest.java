@@ -36,8 +36,7 @@ public class RNGPerformanceTest {
 	                {new CTRPRNG()},
 	        		{new SHA1PRNG()}
 	        };
-    	}
-    	catch(Exception e) {} // should never happen
+    	} catch(Exception e) {} // should never happen
 
         return Arrays.asList(data);
     }
@@ -45,8 +44,9 @@ public class RNGPerformanceTest {
 	@Test
 	public void testPerformance() {
 		long start = System.currentTimeMillis();
-		for(int i = 0;i < 1024 * 1024 * 500;i++)
+		for(int i = 0;i < 1024 * 1024 * 500;i++) {
 			rng.generateByte();
+		}
 		long end = System.currentTimeMillis();
 		
 		System.out.println(rng.toString() + ": 500MB in " + (end - start) + "ms");

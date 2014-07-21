@@ -37,8 +37,7 @@ public class CTRPRNG implements RandomSource {
 			counter = 0;
 			
 			fillCache();
-		} 
-		catch (Exception e) {} // should never happen
+		} catch (Exception e) {} // should never happen
 	}
 	
 	/**
@@ -55,9 +54,11 @@ public class CTRPRNG implements RandomSource {
 	 * Increments the counter-block by one.
 	 */
 	private void incrementState() {
-		for (int i = state.length - 1;i >= 0;i--) // take wrap-arounds into account
-			if(++state[i] != 0)
+		for (int i = state.length - 1;i >= 0;i--) { // take wrap-arounds into account
+			if(++state[i] != 0) {
 				break;
+			}
+		}
 	}
 
 	@Override
@@ -67,8 +68,7 @@ public class CTRPRNG implements RandomSource {
 			if(counter > cache.length - 1) {
 				fillCache();
 			}
-		}
-		while ((b = cache[counter++]) == 0); // result must not be 0
+		} while ((b = cache[counter++]) == 0); // result must not be 0
 		
 		return ByteUtils.toUnsignedByte(b);
 	}

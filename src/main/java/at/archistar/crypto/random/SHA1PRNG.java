@@ -23,7 +23,10 @@ public class SHA1PRNG implements RandomSource {
 	 * Immediately seeds the RNG with system-entropy. (may be a blocking call)
 	 */
 	public SHA1PRNG() { 
-		try { rng = SecureRandom.getInstance(ALGORITHM); } catch (NoSuchAlgorithmException e) {} // this should never happen
+		try { 
+			rng = SecureRandom.getInstance(ALGORITHM); 
+		} catch (NoSuchAlgorithmException e) {} // this should never happen
+		
 		rng.nextBoolean(); // force the rng to seed itself
 	}
 	
@@ -34,8 +37,7 @@ public class SHA1PRNG implements RandomSource {
 		
 		do {
 			rng.nextBytes(bytes);
-		}
-		while (bytes[0] == 0); // the random byte must not be 0
+		} while (bytes[0] == 0); // the random byte must not be 0
 		
 		return ByteUtils.toUnsignedByte(bytes[0]);
 	}

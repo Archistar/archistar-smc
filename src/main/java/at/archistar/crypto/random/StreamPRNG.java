@@ -33,7 +33,9 @@ public class StreamPRNG implements RandomSource {
 	
 	
 	private static byte[] dummy = new byte[16]; // we are only interested in the key-stream (so fill with 0s)
-	static { Security.addProvider(new BouncyCastleProvider()); } // we need to add the "bouncycastle"-provider only once
+	static {
+		Security.addProvider(new BouncyCastleProvider()); // we need to add the "bouncycastle"-provider only once
+	}
 	
 	private Cipher cipher;
 	
@@ -55,8 +57,7 @@ public class StreamPRNG implements RandomSource {
 			counter = 0;
 				
 			fillCache();
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new Exception("initializing the RNG faild (" + e.getMessage() + ")"); // TODO: introduce a more meaningful Exception like a CryptoException
 		}
 	}
@@ -76,8 +77,7 @@ public class StreamPRNG implements RandomSource {
 			if(counter > cache.length - 1) {
 				fillCache();
 			}
-		}
-		while ((b = cache[counter++]) == 0); // result must not be 0
+		} while ((b = cache[counter++]) == 0); // result must not be 0
 		
 		return ByteUtils.toUnsignedByte(b);
 	}
