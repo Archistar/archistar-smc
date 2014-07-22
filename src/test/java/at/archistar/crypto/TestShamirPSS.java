@@ -2,7 +2,6 @@ package at.archistar.crypto;
 
 import static org.fest.assertions.api.Assertions.*;
 
-import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -12,8 +11,9 @@ import org.junit.Test;
 
 import at.archistar.crypto.SecretSharing;
 import at.archistar.crypto.ShamirPSS;
-import at.archistar.crypto.WeakSecurityException;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.exceptions.ReconstructionException;
+import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
 
 /**
@@ -29,7 +29,7 @@ public class TestShamirPSS {
 	
 	/* setup and tear-down */
 	@Before
-	public void setup() {
+	public void setup() throws WeakSecurityException {
 		algorithm = new ShamirPSS(8, 3, new FakeRandomSource());
 	}
 	@After
@@ -41,7 +41,7 @@ public class TestShamirPSS {
 	
 	/* should succeed reconstructing */
     @Test
-    public void simpleRoundTest() throws WeakSecurityException, GeneralSecurityException {
+    public void simpleRoundTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
 
         byte reconstructedData[] = algorithm.reconstruct(shares);
@@ -49,7 +49,7 @@ public class TestShamirPSS {
     }
     
     @Test
-    public void notAllSharesTest() throws WeakSecurityException, GeneralSecurityException {
+    public void notAllSharesTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
         Share[] shares1 = Arrays.copyOfRange(shares, 1, 4);
 
@@ -57,11 +57,21 @@ public class TestShamirPSS {
         assertThat(reconstructedData).isEqualTo(data);
     }
     @Test
-    public void shuffledSharesTest() throws WeakSecurityException, GeneralSecurityException {
+    public void shuffledSharesTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
         Collections.shuffle(Arrays.asList(shares));
 
         byte reconstructedData[] = algorithm.reconstruct(shares);
         assertThat(reconstructedData).isEqualTo(data);
+    }
+    
+    /* should fail reconstructing */
+    @Test (expected = ReconstructionException.class)
+    public void notEnoughSharesTest() throws ReconstructionException {
+        Share shares[] = algorithm.share(data);
+        Share[] shares1 = Arrays.copyOfRange(shares, 0, 2);
+        
+        @SuppressWarnings("unused")
+        byte reconstructedData[] = algorithm.reconstruct(shares1);
     }
 }

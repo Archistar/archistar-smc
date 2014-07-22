@@ -6,11 +6,11 @@ import org.junit.Test;
 
 import at.archistar.crypto.SecretSharing;
 import at.archistar.crypto.ShamirPSS;
-import at.archistar.crypto.WeakSecurityException;
 import at.archistar.crypto.data.InformationChecking;
 import at.archistar.crypto.data.MacHelper;
 import at.archistar.crypto.data.MacSha512;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
 import static org.fest.assertions.api.Assertions.*;
 

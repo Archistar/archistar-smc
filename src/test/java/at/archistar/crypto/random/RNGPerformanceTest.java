@@ -8,11 +8,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.random.CTRPRNG;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.random.SHA1PRNG;
 import at.archistar.crypto.random.StreamPRNG;
-import at.archistar.helper.ImpossibleException;
 
 /**
  * This class tests and compares the performance of the different secure RandomNumberGenerators.

@@ -2,41 +2,34 @@ package at.archistar.crypto;
 
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.Share.Type;
+import at.archistar.crypto.exceptions.ReconstructionException;
+import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.CustomMatrix;
 import at.archistar.crypto.math.GF256;
 import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.math.PolyGF256;
-import at.archistar.crypto.math.ReconstructionException;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.helper.ByteUtils;
 
 /**
+ * @author Elias Frantar <i>(improved Exception handling)</i>
  * @author Andreas Happe <andreashappe@snikt.net>
  * @author Fehrenbach Franca-Sofia
  * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
  */
-public class ShamirPSS implements SecretSharing {
-
-    final private int n;
-
-    final private int k;
+public class ShamirPSS extends SecretSharing {
 
     final private RandomSource rng;
 
-    public ShamirPSS(int n, int k, RandomSource rng) {
-        this.n = n;
-        this.k = k;
+    public ShamirPSS(int n, int k, RandomSource rng) throws WeakSecurityException {
+        super(n, k);
+        
         this.rng = rng;
     }
 
     @Override
-    public Share[] share(byte[] data) throws WeakSecurityException {
-
-        if (k < 2) {
-            throw new WeakSecurityException();
-        }
-
-        //Create shares
+    public Share[] share(byte[] data) {
+    	//Create shares
         Share shares[] = new Share[n];
         for (int i = 0; i < n; i++) {
             shares[i] = new Share(i + 1, data.length, Type.SHAMIR);
@@ -64,37 +57,39 @@ public class ShamirPSS implements SecretSharing {
     }
 
     @Override
-    public byte[] reconstruct(Share[] shares) {
-        int xValues[] = new int[shares.length];
-        byte result[] = new byte[shares[0].yValues.length];
-
-        for (int i = 0; i < shares.length; i++) {
-            xValues[i] = shares[i].xValue;
-        }
-
-        int[] decodeVector = {};
-        try {
-            CustomMatrix decodeMatrix = PolyGF256.erasureDecodePrepare(xValues);
-            decodeVector = decodeMatrix.getRow(0);
-        } catch (ReconstructionException ex) {
-            ex.printStackTrace();
-        }
-
-        for (int i = 0; i < shares[0].yValues.length; i++) {
-
-            int yValues[] = new int[shares.length];
-            for (int j = 0; j < shares.length; j++) {
-                yValues[j] = ByteUtils.toUnsignedByte(shares[j].yValues[i]); // we may only pass unsigned bytes to GF256
-            }
-
-            int tmp = 0;
-            for (int j = 0; j < yValues.length; j++) {
-                tmp = GF256.add(tmp, GF256.mult(yValues[j], decodeVector[j]));
-            }
-            result[i] = (byte) (tmp & 0xFF);
-        }
-
-        return result;
+    public byte[] reconstruct(Share[] shares) throws ReconstructionException {
+    	if (!validateShareCount(shares.length, k)) {
+    		throw new ReconstructionException();
+    	}
+    	
+    	try {
+	        int xValues[] = new int[shares.length];
+	        byte result[] = new byte[shares[0].yValues.length];
+	
+	        for (int i = 0; i < shares.length; i++) {
+	            xValues[i] = shares[i].xValue;
+	        }
+	
+	        CustomMatrix decodeMatrix = PolyGF256.erasureDecodePrepare(xValues);
+	        int[] decodeVector = decodeMatrix.getRow(0);
+	
+	        for (int i = 0; i < shares[0].yValues.length; i++) {
+	
+	            int yValues[] = new int[shares.length];
+	            for (int j = 0; j < shares.length; j++) {
+	                yValues[j] = ByteUtils.toUnsignedByte(shares[j].yValues[i]); // we may only pass unsigned bytes to GF256
+	            }
+	
+	            int tmp = 0;
+	            for (int j = 0; j < yValues.length; j++) {
+	                tmp = GF256.add(tmp, GF256.mult(yValues[j], decodeVector[j]));
+	            }
+	            result[i] = (byte) (tmp & 0xFF);
+	        }
+	
+	        return result;
+    	} catch (Exception e) { // if anything goes wrong during reconstruction, throw a ReconstructionException
+    		throw new ReconstructionException();
+    	}
     }
-
 }
