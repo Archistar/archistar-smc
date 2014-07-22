@@ -2,7 +2,6 @@ package at.archistar.crypto;
 
 import static org.fest.assertions.api.Assertions.*;
 
-import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -29,7 +28,7 @@ public class TestRabinIDS {
 	
 	/* setup and tear-down */
 	@Before
-	public void setup() {
+	public void setup() throws WeakSecurityException {
 		algorithm = new RabinIDS(8, 5);
 	}
 	@After
@@ -41,7 +40,7 @@ public class TestRabinIDS {
 	
 	/* should succeed reconstructing */
     @Test
-    public void simpleRoundTest() throws WeakSecurityException, GeneralSecurityException, ReconstructionException {
+    public void simpleRoundTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
         assertThat(shares.length).isEqualTo(8);
 
@@ -50,7 +49,7 @@ public class TestRabinIDS {
     }
     
     @Test
-    public void notAllSharesTest() throws WeakSecurityException, GeneralSecurityException, ReconstructionException {
+    public void notAllSharesTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
         Share shares1[] = Arrays.copyOfRange(shares, 0, 6);
 
@@ -58,7 +57,7 @@ public class TestRabinIDS {
         assertThat(reconstructedData).isEqualTo(data);
     }
     @Test
-    public void shuffledSharesTest() throws WeakSecurityException, GeneralSecurityException, ReconstructionException {
+    public void shuffledSharesTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
         Collections.shuffle(Arrays.asList(shares));
         
@@ -68,7 +67,7 @@ public class TestRabinIDS {
     
     /* should fail reconstructing */
     @Test(expected=ReconstructionException.class)
-    public void notEnoughSharesTest() throws ReconstructionException, WeakSecurityException, GeneralSecurityException {
+    public void notEnoughSharesTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
         Share[] shares1 = Arrays.copyOfRange(shares, 0, 2);
         

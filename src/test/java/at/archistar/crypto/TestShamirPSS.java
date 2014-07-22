@@ -2,7 +2,6 @@ package at.archistar.crypto;
 
 import static org.fest.assertions.api.Assertions.*;
 
-import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -30,7 +29,7 @@ public class TestShamirPSS {
 	
 	/* setup and tear-down */
 	@Before
-	public void setup() {
+	public void setup() throws WeakSecurityException {
 		algorithm = new ShamirPSS(8, 3, new FakeRandomSource());
 	}
 	@After
@@ -42,7 +41,7 @@ public class TestShamirPSS {
 	
 	/* should succeed reconstructing */
     @Test
-    public void simpleRoundTest() throws WeakSecurityException, GeneralSecurityException, ReconstructionException {
+    public void simpleRoundTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
 
         byte reconstructedData[] = algorithm.reconstruct(shares);
@@ -50,7 +49,7 @@ public class TestShamirPSS {
     }
     
     @Test
-    public void notAllSharesTest() throws WeakSecurityException, GeneralSecurityException, ReconstructionException {
+    public void notAllSharesTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
         Share[] shares1 = Arrays.copyOfRange(shares, 1, 4);
 
@@ -58,7 +57,7 @@ public class TestShamirPSS {
         assertThat(reconstructedData).isEqualTo(data);
     }
     @Test
-    public void shuffledSharesTest() throws WeakSecurityException, GeneralSecurityException, ReconstructionException {
+    public void shuffledSharesTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
         Collections.shuffle(Arrays.asList(shares));
 
@@ -67,8 +66,8 @@ public class TestShamirPSS {
     }
     
     /* should fail reconstructing */
-    @Test(expected=ReconstructionException.class)
-    public void notEnoughSharesTest() throws ReconstructionException, WeakSecurityException, GeneralSecurityException {
+    @Test (expected = ReconstructionException.class)
+    public void notEnoughSharesTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
         Share[] shares1 = Arrays.copyOfRange(shares, 0, 2);
         

@@ -1,9 +1,6 @@
 package at.archistar.crypto;
 
-import java.security.GeneralSecurityException;
-
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.CustomMatrix;
@@ -11,19 +8,14 @@ import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.math.PolyGF256;
 
 /**
+ * @author Elias Frantar <i>(improved Exception handline)</i>
  * @author Andreas Happe <andreashappe@snikt.net>
  * @author Fehrenbach Franca-Sofia
  * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
  */
-public class RabinIDS implements SecretSharing {
-
-    private final int n;
-
-    private final int k;
-
-    public RabinIDS(int n, int k) {
-        this.n = n;
-        this.k = k;
+public class RabinIDS extends SecretSharing {
+	public RabinIDS(int n, int k) throws WeakSecurityException {
+        super(n, k);
     }
 
     private boolean checkForZeros(int[] a) {
@@ -36,12 +28,7 @@ public class RabinIDS implements SecretSharing {
     }
 
     @Override
-    public Share[] share(byte[] data) throws WeakSecurityException {
-
-        if (k < 2) {
-            throw new WeakSecurityException();
-        }
-
+    public Share[] share(byte[] data) {
         //Create shares
         Share shares[] = new Share[n];
         for (int i = 0; i < n; i++) {
@@ -83,46 +70,46 @@ public class RabinIDS implements SecretSharing {
     }
 
     @Override
-    public byte[] reconstruct(Share[] shares) throws ReconstructionException, GeneralSecurityException {
-    	if (shares.length < k) {
+    public byte[] reconstruct(Share[] shares) throws ReconstructionException {
+    	if (!validateShareCount(shares.length, k)) {
     		throw new ReconstructionException();
     	}
     	
-        int xValues[] = new int[k];
-        byte result[] = new byte[shares[0].contentLength];
-
-        for (int i = 0; i < k; i++) {
-            xValues[i] = shares[i].xValue;
-        }
-
-        int w = 0;
-        try {
-
-            CustomMatrix decodeMatrix = PolyGF256.erasureDecodePrepare(xValues);
-
-            for (int i = 0; i < shares[0].yValues.length; i++) {
-
-                int yValues[] = new int[k];
-                for (int j = 0; j < k; j++) {
-                    yValues[j] = (shares[j].yValues[i] < 0) ? (shares[j].yValues[i] + 256) : shares[j].yValues[i];
-                }
-
-                if (checkForZeros(yValues)) {
-                    for (int x = 0; x < k && w < result.length; x++) {
-                        result[w++] = 0;
-                    }
-                } else {
-                    int resultMatrix[] = decodeMatrix.rightMultiply(yValues);
-
-                    for (int j = resultMatrix.length - 1; j >= 0 && w < shares[0].contentLength; j--) {
-                        int element = resultMatrix[resultMatrix.length - 1 - j];
-                        result[w++] = (byte) (element & 0xFF);
-                    }
-                }
-            }
-        } catch (ReconstructionException ex) {
-            throw new ImpossibleException(ex);
-        }
-        return result;
+    	try {
+	        int xValues[] = new int[k];
+	        byte result[] = new byte[shares[0].contentLength];
+	
+	        for (int i = 0; i < k; i++) {
+	            xValues[i] = shares[i].xValue;
+	        }
+	
+	        int w = 0;
+	
+	        CustomMatrix decodeMatrix = PolyGF256.erasureDecodePrepare(xValues);
+	
+	        for (int i = 0; i < shares[0].yValues.length; i++) {
+	
+	        	int yValues[] = new int[k];
+	            for (int j = 0; j < k; j++) {
+	            	yValues[j] = (shares[j].yValues[i] < 0) ? (shares[j].yValues[i] + 256) : shares[j].yValues[i];
+	            }
+	
+	            if (checkForZeros(yValues)) {
+	            	for (int x = 0; x < k && w < result.length; x++) {
+	            		result[w++] = 0;
+	                }
+	           } else {
+	                int resultMatrix[] = decodeMatrix.rightMultiply(yValues);
+	
+	                for (int j = resultMatrix.length - 1; j >= 0 && w < shares[0].contentLength; j--) {
+	                	int element = resultMatrix[resultMatrix.length - 1 - j];
+	                    result[w++] = (byte) (element & 0xFF);
+	                }
+	           }
+	        }
+	        return result;
+    	} catch (Exception e) { // if anything goes wrong during reconstruction, throw a ReconstructionException
+    		throw new ReconstructionException();
+    	}
     }
 }

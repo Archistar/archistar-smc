@@ -14,12 +14,13 @@ import at.archistar.crypto.RabinIDS;
 import at.archistar.crypto.SecretSharing;
 import at.archistar.crypto.ShamirPSS;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import static org.fest.assertions.api.Assertions.*;
 
 /**
- * - * @author Andreas Happe <andreashappe@snikt.net>
+ * @author Andreas Happe <andreashappe@snikt.net>
  */
 @RunWith(value = Parameterized.class)
 public class PerformanceTest {
@@ -43,7 +44,7 @@ public class PerformanceTest {
     }
 
     @Parameters
-    public static Collection<Object[]> data() {
+    public static Collection<Object[]> data() throws WeakSecurityException {
 
         byte[][][] secrets = new byte[7][][];
         secrets[0] = createArray(4 * 1024);
