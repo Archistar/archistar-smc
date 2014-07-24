@@ -9,11 +9,25 @@ import java.util.Map;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 
+/**
+ * Represents a share for {@link RabinBenOrVSS}.
+ * 
+ * @author Elias Frantar
+ * @version 2014-7-24
+ */
 public class RabinBenOrShare extends BaseSerializableShare {
 	private Share share;
 	private Map<Byte, byte[]> macs;
 	private Map<Byte, byte[]> macKeys;
 	
+	/**
+	 * Constructor
+	 * 
+	 * @param share the underlying share
+	 * @param macs a map containing the macs of the underlying share identified by the share-ids
+	 * @param macKeys a map containing the macKeys of the underlying share identified by the share-ids
+	 * @throws NullPointerException if validation failed ({@link #validateShare()})
+	 */
 	public RabinBenOrShare(Share share, Map<Byte, byte[]> macs, Map<Byte, byte[]> macKeys) throws WeakSecurityException {
 		this.share = share;
 		this.macs = macs;
@@ -22,6 +36,15 @@ public class RabinBenOrShare extends BaseSerializableShare {
 		validateShare();
 	}
 	
+	/**
+	 * Constructor<br>
+	 * Tries to deserialize the serialized RabinBenOrShare.
+	 * 
+	 * @param serialized the serialized data (must be a valid serialized RabinBenOrShare)
+	 * @throws IllegalArgumentException if the given data was not a valid serialized share 
+	 * 		   ({@link BaseSerializableShare#validateSerialization(byte[], int)})
+	 * @throws NullPointerException if validation failed ({@link #validateShare()})
+	 */
 	public RabinBenOrShare(byte[] serialized) {
 		validateSerialization(serialized, HEADER_LENGTH + 2*(4 + 4 + 2) + 11); // + macs + macKeys + share
 		
@@ -71,8 +94,6 @@ public class RabinBenOrShare extends BaseSerializableShare {
 
 	@Override
 	protected byte[] serializeBody() {
-		/* TODO: check if all macs and macKeys are of equal length */
-
 		try {
         	ByteArrayOutputStream bos = new ByteArrayOutputStream();
         	
