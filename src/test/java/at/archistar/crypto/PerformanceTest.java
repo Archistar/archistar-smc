@@ -63,7 +63,7 @@ public class PerformanceTest {
             {secrets, new ShamirPSS(n, k, rng)},
             {secrets, new RabinIDS(n, k)},
             {secrets, new KrawczykCSS(n, k, rng)},
-            {secrets, new RabinBenOrRSS(n, k, rng, new KrawczykCSS(n, k, rng))}
+            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng))}
         };
 
         return Arrays.asList(data);

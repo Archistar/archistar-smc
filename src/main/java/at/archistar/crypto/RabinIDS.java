@@ -1,11 +1,13 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.data.ReedSolomonShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.CustomMatrix;
 import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.math.PolyGF256;
+import at.archistar.helper.ByteUtils;
 
 /**
  * @author Elias Frantar <i>(improved Exception handline)</i>
@@ -30,9 +32,9 @@ public class RabinIDS extends SecretSharing {
     @Override
     public Share[] share(byte[] data) {
         //Create shares
-        Share shares[] = new Share[n];
+        ReedSolomonShare shares[] = new ReedSolomonShare[n];
         for (int i = 0; i < n; i++) {
-            shares[i] = new Share(i + 1, (data.length + k - 1) / k, data.length, Share.Type.REED_SOLOMON);
+            shares[i] = new ReedSolomonShare((byte) (i + 1), new byte[(data.length + k - 1) / k], data.length);
         }
 
         int a[] = new int[k];
@@ -43,7 +45,7 @@ public class RabinIDS extends SecretSharing {
             //Let k coefficients be the secret in this polynomial
             for (int j = 0; j < k; j++) {
                 if ((i + j) < data.length) {
-                    a[j] = (data[i + j] < 0) ? data[i + j] + 256 : data[i + j];
+                    a[j] = ByteUtils.toUnsignedByte(data[i + j]);
                     assert (a[j] >= 0 && a[j] <= 255);
                 } else {
                     a[j] = 0;
@@ -58,9 +60,9 @@ public class RabinIDS extends SecretSharing {
                 if (checkForZeros(a)) {
                     System.err.println("all a coefficients are zero");
                     System.err.println("i: " + i + " data.length: " + data.length);
-                    shares[j].yValues[fillPosition] = 0;
+                    shares[j].getY()[fillPosition] = 0;
                 } else {
-                    shares[j].yValues[fillPosition] = (byte) (poly.evaluateAt(shares[j].xValue) & 0xFF);
+                    shares[j].getY()[fillPosition] = (byte) (poly.evaluateAt(shares[j].getId()));
                 }
             }
             fillPosition++;
@@ -76,22 +78,24 @@ public class RabinIDS extends SecretSharing {
     	}
     	
     	try {
+    		ReedSolomonShare[] rsshares = safeCast(shares); // we need access to the fields of ReedSolomonShare
+    		
 	        int xValues[] = new int[k];
-	        byte result[] = new byte[shares[0].contentLength];
+	        byte result[] = new byte[rsshares[0].getOriginalLength()];
 	
 	        for (int i = 0; i < k; i++) {
-	            xValues[i] = shares[i].xValue;
+	            xValues[i] = rsshares[i].getId();
 	        }
 	
 	        int w = 0;
 	
 	        CustomMatrix decodeMatrix = PolyGF256.erasureDecodePrepare(xValues);
 	
-	        for (int i = 0; i < shares[0].yValues.length; i++) {
+	        for (int i = 0; i < rsshares[0].getY().length; i++) {
 	
 	        	int yValues[] = new int[k];
 	            for (int j = 0; j < k; j++) {
-	            	yValues[j] = (shares[j].yValues[i] < 0) ? (shares[j].yValues[i] + 256) : shares[j].yValues[i];
+	            	yValues[j] = ByteUtils.toUnsignedByte(rsshares[j].getY()[i]);
 	            }
 	
 	            if (checkForZeros(yValues)) {
@@ -101,7 +105,7 @@ public class RabinIDS extends SecretSharing {
 	           } else {
 	                int resultMatrix[] = decodeMatrix.rightMultiply(yValues);
 	
-	                for (int j = resultMatrix.length - 1; j >= 0 && w < shares[0].contentLength; j--) {
+	                for (int j = resultMatrix.length - 1; j >= 0 && w < rsshares[0].getOriginalLength(); j--) {
 	                	int element = resultMatrix[resultMatrix.length - 1 - j];
 	                    result[w++] = (byte) (element & 0xFF);
 	                }
@@ -111,5 +115,22 @@ public class RabinIDS extends SecretSharing {
     	} catch (Exception e) { // if anything goes wrong during reconstruction, throw a ReconstructionException
     		throw new ReconstructionException();
     	}
+    }
+    
+    /**
+     * Converts the Share[] to a ReedSolomonShare[] by casting each element individually.
+     * 
+     * @param shares the shares to cast
+     * @return the given Share[] as ReedSolomonShare[]
+     * @throws ClassCastException if the Share[] did not (only) contain ReedSolomonShares
+     */
+    private ReedSolomonShare[] safeCast(Share[] shares) {
+    	ReedSolomonShare[] rsshares = new ReedSolomonShare[shares.length];
+    	
+    	for (int i = 0; i < shares.length; i++) {
+    		rsshares[i] = (ReedSolomonShare) shares[i];
+    	}
+    	
+    	return rsshares;
     }
 }

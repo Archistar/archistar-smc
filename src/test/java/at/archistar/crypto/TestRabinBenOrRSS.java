@@ -29,7 +29,7 @@ public class TestRabinBenOrRSS {
 	/* setup and tear-down */
 	@Before
 	public void setup() throws WeakSecurityException {
-		algorithm = new RabinBenOrRSS(8, 5, new FakeRandomSource(), new ShamirPSS(8, 5, new FakeRandomSource()));
+		algorithm = new RabinBenOrRSS(new ShamirPSS(8, 5, new FakeRandomSource()));
 	}
 	@After
 	public void tearDown() {
