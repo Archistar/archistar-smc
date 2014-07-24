@@ -1,0 +1,36 @@
+The following describes the structure of a serialized share in Format:
+Bytes	Field
+
+======================================================================
+HEADER: (the same for all share-types)
+4		version number (current = 1)
+1		algorithm
+4		length of the whole serialized share
+1		identifier of the share / x-value
+======================================================================
+======================================================================
+BODY: (different for all share-types)
+----------------------------------------------------------------------
+Shamir:
+> 1		y-values
+----------------------------------------------------------------------
+Reed-Solomon:
+> 1		y-values
+4		original length of the share-content
+----------------------------------------------------------------------
+Krawczyk:
+1		encryption algorithm identifier
+4		original length of the share-content
+4		length of the y-values
+> 1		y-values
+> 1		y-values of the shared key
+----------------------------------------------------------------------
+Rabin-Ben-Or:
+4		size of the macs-Map
+4		size of the values in macs-Map
+n*(1+x) entry in the macs-Map in form: key(1) + value(1-n)
+4		size of the macKeys-Map
+4		size of the values in macKeys-Map
+n*(1+x) entry in the macKeys-Map in form: key(1) + value(1-n)
+> 11	serialized underlying share
+=======================================================================

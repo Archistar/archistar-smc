@@ -6,8 +6,11 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import at.archistar.crypto.data.KrawczykShare;
+import at.archistar.crypto.data.KrawczykShare.EncryptionAlgorithm;
+import at.archistar.crypto.data.ReedSolomonShare;
+import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.data.Share.Type;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
@@ -23,7 +26,7 @@ public class KrawczykCSS extends SecretSharing {
 
     private final SecretSharing rs;
 
-    private final String cipherOptions = "AES/CBC/PKCS5Padding";
+    private final EncryptionAlgorithm ALG = EncryptionAlgorithm.AES;
 
     public KrawczykCSS(int n, int k, RandomSource rng) throws WeakSecurityException {
     	super(n, k);
@@ -45,21 +48,21 @@ public class KrawczykCSS extends SecretSharing {
 	        byte[] encKey = skey.getEncoded();
 	
 	        SecretKeySpec sKeySpec = new SecretKeySpec(encKey, "AES");
-	        Cipher cipher = Cipher.getInstance(cipherOptions);
+	        Cipher cipher = Cipher.getInstance(ALG.getAlgString());
 	        cipher.init(Cipher.ENCRYPT_MODE, sKeySpec, new IvParameterSpec(encKey));
 	        byte[] encSource = cipher.doFinal(data);
 	
 	        //Share the encrypted secret
-	        Share[] contentShares = rs.share(encSource);
+	        ReedSolomonShare[] contentShares = (ReedSolomonShare[]) rs.share(encSource); // we need access to the inner fields
 	
 	        //Share the key
-	        Share[] keyShares = shamir.share(encKey);
+	        ShamirShare[] keyShares = (ShamirShare[]) shamir.share(encKey); // we nee access to the inner fields
 	
 	        //Generate a new array of encrypted shares
-	        Share[] shares = new Share[contentShares.length];
+	        KrawczykShare[] shares = new KrawczykShare[contentShares.length];
 	        for (int i = 0; i < shares.length; i++) {
-	            assert contentShares[i].xValue == keyShares[i].xValue;
-	            shares[i] = new Share(contentShares[i].xValue, contentShares[i].yValues, keyShares[i].yValues, encSource.length, Type.KRAWCZYK);
+	            assert contentShares[i].getId() == keyShares[i].getId();
+	            shares[i] = new KrawczykShare((byte) contentShares[i].getId(), contentShares[i].getY(), encSource.length, keyShares[i].getY(), ALG);
 	        }
 	
 	        return shares;
@@ -75,24 +78,46 @@ public class KrawczykCSS extends SecretSharing {
     	}
     	
     	try {
+    		KrawczykShare[] kshares = safeCast(shares); // we need access to the inner fields
+    		
 	        /* extract key */
-	        Share keyShares[] = new Share[shares.length];
-	        for (int i = 0; i < shares.length; i++) {
-	            keyShares[i] = shares[i].newKeyShare();
+	        ShamirShare keyShares[] = new ShamirShare[kshares.length];
+	        for (int i = 0; i < kshares.length; i++) {
+	            keyShares[i] = new ShamirShare((byte) kshares[i].getId(), kshares[i].getKeyY());
 	        }
-	
 	        byte[] key = this.shamir.reconstruct(keyShares);
 	
 	        /* reconstruct share */
-	        byte[] share = this.rs.reconstruct(shares);
+	        ReedSolomonShare contentShares[] = new ReedSolomonShare[kshares.length];
+	        for (int i = 0; i < kshares.length; i++) {
+	            contentShares[i] = new ReedSolomonShare((byte) kshares[i].getId(), kshares[i].getY(), kshares[i].getOriginalLength());
+	        }
+	        byte[] share = this.rs.reconstruct(contentShares);
 	
 	        /* use the key to decrypt the 'original' share */
 	        SecretKeySpec sKeySpec = new SecretKeySpec(key, "AES");
-	        Cipher cipher = Cipher.getInstance(cipherOptions);
+	        Cipher cipher = Cipher.getInstance(kshares[0].getEncryptionAlgorithm().getAlgString());
 	        cipher.init(Cipher.DECRYPT_MODE, sKeySpec, new IvParameterSpec(sKeySpec.getEncoded()));
 	        return cipher.doFinal(share);
     	} catch (Exception e) { // if something went wrong
     		throw new ReconstructionException();
     	}
+    }
+    
+    /**
+     * Converts the Share[] to a KrawczykShare[] by casting each element individually.
+     * 
+     * @param shares the shares to cast
+     * @return the given Share[] as KrawczykShare[]
+     * @throws ClassCastException if the Share[] did not (only) contain KrawczykShares
+     */
+    private KrawczykShare[] safeCast(Share[] shares) {
+    	KrawczykShare[] kshares = new KrawczykShare[shares.length];
+    	
+    	for (int i = 0; i < shares.length; i++) {
+    		kshares[i] = (KrawczykShare) shares[i];
+    	}
+    	
+    	return kshares;
     }
 }
