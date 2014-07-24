@@ -1,64 +1,39 @@
 package at.archistar.crypto.data;
 
-import java.util.HashMap;
-
 /**
- * Simple wrapper class for created data shares. This is the equivalent of a C
- * 'struct' -- everything is public and we are not even pretending to be
- * object-oriented.
- *
- * @author Andreas Happe <andreashappe@snikt.net>
+ * The base interface of a share defining the absolutely necessary methods.
+ * 
+ * @author Elias Frantar
+ * @version 2014-7-22
  */
-public class Share {
-
-    public HashMap<Integer, byte[]> keys = new HashMap<Integer, byte[]>();
-    public HashMap<Integer, byte[]> macs = new HashMap<Integer, byte[]>();
-
-    public boolean accepted = false;
-
-    public int contentLength;
-
-    public int verificationCounter = 0;
-
-    public Share(int xValue, int length, Type type) {
-        this.xValue = xValue;
-        this.yValues = new byte[length];
-        this.type = type;
-        this.key = null;
-    }
-
-    public Share(int xValue, int length, int originalLength, Type type) {
-        this.xValue = xValue;
-        this.yValues = new byte[length];
-        this.type = type;
-        this.key = null;
-        this.contentLength = originalLength;
-    }
-
-    public Share(int xValue, byte[] yValues, byte[] key, int length, Type type) {
-        this.xValue = xValue;
-        this.yValues = yValues;
-        this.key = key;
-        this.type = type;
-        this.contentLength = length;
-    }
-
-    public enum Type {
-
-        REED_SOLOMON,
-        SHAMIR,
-        KRAWCZYK
-    };
-
-    final public Type type;
-
-    final public int xValue;
-
-    final public byte[] yValues;
-
-    final public byte[] key;
-
-    public Share newKeyShare() {
-        return new Share(xValue, key, null, 0, Type.SHAMIR);
-    }
+public interface Share {
+	
+	/**
+	 * Identifier for the algorithm used to create this share.
+	 */
+	public static enum Algorithm {
+		SHAMIR,
+		REED_SOLOMON,
+		KRAWCZYK,
+		RABIN_BEN_OR
+	}
+	
+	/**
+	 * Returns the identifier of the algorithm used for creating this share.
+	 * @return the algorithm used for creating this share
+	 */
+	public Algorithm getAlgorithm();
+	
+	/**
+	 * Returns the identifier (the x-value) of this share.
+	 * @return the x-value of this share (an unsigned byte in range 0 - 255)
+	 */
+	public int getId();
+	
+	/**
+	 * Serializes the share.
+	 * @return the serialized share (in bytes)
+	 */
+	public byte[] serialize();
+	
 }
