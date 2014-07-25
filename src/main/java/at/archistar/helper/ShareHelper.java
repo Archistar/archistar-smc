@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import at.archistar.crypto.data.RabinBenOrShare;
+import at.archistar.crypto.data.ReedSolomonShare;
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.ImpossibleException;
@@ -26,7 +27,7 @@ public class ShareHelper {
 	    int[] y = new int[shares.length];
 	    
 	    for (int j = 0; j < y.length; j++) {
-	        y[j] = shares[j].getY()[i];
+	        y[j] = ByteUtils.toUnsignedByte(shares[j].getY()[i]);
 	    }
 	    
 	    return y;
@@ -40,6 +41,16 @@ public class ShareHelper {
 	    }
 	    
 	    return sshares;
+	}
+	
+	public static ReedSolomonShare[] createReedSolomonShares(int n, int shareLength, int originalLength) {
+	    ReedSolomonShare[] rsshares = new ReedSolomonShare[n];
+        
+        for (int i = 0; i < n; i++) {
+            rsshares[i] = new ReedSolomonShare((byte) (i+1), new byte[shareLength], originalLength);
+        }
+        
+        return rsshares;
 	}
 	
 	public static RabinBenOrShare[] createRabinBenOrShares(Share[] shares, int tagLength, int keyLength) {
