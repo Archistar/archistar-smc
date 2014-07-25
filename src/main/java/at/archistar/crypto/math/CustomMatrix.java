@@ -2,6 +2,7 @@ package at.archistar.crypto.math;
 
 import de.flexiprovider.common.math.codingtheory.GF2mField;
 import de.flexiprovider.common.math.linearalgebra.GF2mMatrix;
+import de.flexiprovider.common.util.IntUtils;
 
 /**
  * <p>A matrix operating in GF(256).</p>
@@ -75,6 +76,114 @@ public class CustomMatrix extends GF2mMatrix {
             }
             System.err.println("");
         }
+    }
+    
+    /**
+     * Computes the inverse of this matrix using <i>Gaussian elimination</i> and eliminating dependent rows. 
+     * (which would otherwise not allow inversion).<br>
+     * Therefore this method should be used for soling matrix-equations.
+     * 
+     * <p>Throws an {@link ArithmeticException} if the matrix is not invertible</p>
+     * 
+     * @return the inverse of this matrix (as a new matrix)
+     */
+    public CustomMatrix computeInverseElimDepRows() {
+    	if (numRows != numColumns)
+            throw new ArithmeticException("Matrix is not invertible.");
+
+        // clone this matrix
+        int[][] tmpMatrix = new int[numRows][numRows];
+        for (int i = numRows - 1; i >= 0; i--)
+            tmpMatrix[i] = IntUtils.clone(matrix[i]);
+
+        // initialize inverse matrix as unit matrix
+        int[][] invMatrix = new int[numRows][numRows];
+        for (int i = numRows - 1; i >= 0; i--)
+            invMatrix[i][i] = 1;
+
+        // simultaneously compute Gaussian reduction of tmpMatrix and unit matrix
+        for (int i = 0; i < numRows; i++) {
+            // if diagonal element is zero
+            if (tmpMatrix[i][i] == 0) {
+                boolean foundNonZero = false;
+                // find a non-zero element in the same column
+                for (int j = i + 1; j < numRows; j++) {
+                    if (tmpMatrix[j][i] != 0) {
+                        // found it, swap rows ...
+                        foundNonZero = true;
+                        swapRows(tmpMatrix, i, j);
+                        swapRows(invMatrix, i, j);
+                        // ... and quit searching
+                        j = numRows;
+                        continue;
+                    }
+                }
+                // if no non-zero element was found
+                if (!foundNonZero) {
+                    // this row is dependent so eliminate it with the corresponding column
+                	numRows--; // this will only happen in the last row
+                	numColumns--;
+                }
+            }
+
+            // normalize i-th row
+            int coef = tmpMatrix[i][i];
+            int invCoef = field.inverse(coef);
+            multRowWithElementThis(tmpMatrix[i], invCoef);
+            multRowWithElementThis(invMatrix[i], invCoef);
+
+            // normalize all other rows
+            for (int j = 0; j < numRows; j++) {
+                if (j != i) {
+                    coef = tmpMatrix[j][i];
+                    if (coef != 0) {
+                        int[] tmpRow = multRowWithElement(tmpMatrix[i], coef);
+                        int[] tmpInvRow = multRowWithElement(invMatrix[i], coef);
+                        addToRow(tmpRow, tmpMatrix[j]);
+                        addToRow(tmpInvRow, invMatrix[j]);
+                    }
+                }
+            }
+        }
+        
+        trim(invMatrix, numRows, numColumns);
+        return new CustomMatrix(invMatrix);
+    }
+    
+    /*
+     * Helper-methods from for Gaussian elimination
+     * @author flexiprovider
+     */
+    private static void swapRows(int[][] matrix, int first, int second) {
+        int[] tmp = matrix[first];
+        matrix[first] = matrix[second];
+        matrix[second] = tmp;
+    }
+    private void multRowWithElementThis(int[] row, int element) {
+        for (int i = row.length - 1; i >= 0; i--)
+            row[i] = GF256.mult(row[i], element);
+    }
+    private int[] multRowWithElement(int[] row, int element) {
+        int[] result = new int[row.length];
+        
+        for (int i = row.length - 1; i >= 0; i--)
+        	result[i] = GF256.mult(row[i], element);
+
+        return result;
+    }
+    private void addToRow(int[] fromRow, int[] toRow) {
+        for (int i = toRow.length - 1; i >= 0; i--)
+            toRow[i] = GF256.add(fromRow[i], toRow[i]);
+    }
+    
+    private void trim(int[][] matrix, int newRows, int newColumns) {
+    	int[][] newMatrix = new int[newRows][newColumns];
+    	
+    	for (int i = 0; i < newRows; i++)
+    		for (int j = 0; j < newColumns; j++)
+    			newMatrix[i][j] = matrix[i][j];
+    	
+    	matrix = newMatrix;
     }
 
 }

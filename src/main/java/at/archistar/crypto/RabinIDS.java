@@ -2,23 +2,38 @@ package at.archistar.crypto;
 
 import at.archistar.crypto.data.ReedSolomonShare;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.decode.ErasureDecoder;
+import at.archistar.crypto.decode.PolySolver;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.math.CustomMatrix;
 import at.archistar.crypto.math.GF256Polynomial;
-import at.archistar.crypto.math.PolyGF256;
 import at.archistar.helper.ByteUtils;
 
 /**
- * @author Elias Frantar <i>(improved Exception handline)</i>
+ * @author Elias Frantar <i>(improved Exception handling, added using a solver)</i>
  * @author Andreas Happe <andreashappe@snikt.net>
  * @author Fehrenbach Franca-Sofia
  * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
  */
 public class RabinIDS extends SecretSharing {
+	private PolySolver solver;
+	
+	/**
+     * Constructor<br>
+     * (applying {@link ErasureDecoder} as default reconstruction algorithm)
+     * 
+     * @param n the number of shares to create
+     * @param k the minimum number of shares required for reconstruction
+	 * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
+     */
 	public RabinIDS(int n, int k) throws WeakSecurityException {
-        super(n, k);
+        this(n, k, new ErasureDecoder());
     }
+	public RabinIDS(int n, int k, PolySolver solver) throws WeakSecurityException {
+		super(n, k);
+		
+		this.solver = solver;
+	}
 
     private boolean checkForZeros(int[] a) {
         for (int i = 0; i < a.length; i++) {
@@ -89,7 +104,7 @@ public class RabinIDS extends SecretSharing {
 	
 	        int w = 0;
 	
-	        CustomMatrix decodeMatrix = PolyGF256.erasureDecodePrepare(xValues);
+	        solver.prepare(xValues);
 	
 	        for (int i = 0; i < rsshares[0].getY().length; i++) {
 	
@@ -103,7 +118,7 @@ public class RabinIDS extends SecretSharing {
 	            		result[w++] = 0;
 	                }
 	           } else {
-	                int resultMatrix[] = decodeMatrix.rightMultiply(yValues);
+	                int resultMatrix[] = solver.solve(yValues);
 	
 	                for (int j = resultMatrix.length - 1; j >= 0 && w < rsshares[0].getOriginalLength(); j--) {
 	                	int element = resultMatrix[resultMatrix.length - 1 - j];
