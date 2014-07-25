@@ -2,17 +2,16 @@ package at.archistar.crypto;
 
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.decode.ErasureDecoder;
+import at.archistar.crypto.decode.PolySolver;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.math.CustomMatrix;
-import at.archistar.crypto.math.GF256;
 import at.archistar.crypto.math.GF256Polynomial;
-import at.archistar.crypto.math.PolyGF256;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.helper.ByteUtils;
 
 /**
- * @author Elias Frantar <i>(improved Exception handling)</i>
+ * @author Elias Frantar <i>(improved Exception handling, modified to use a solver)</i>
  * @author Andreas Happe <andreashappe@snikt.net>
  * @author Fehrenbach Franca-Sofia
  * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
@@ -20,11 +19,25 @@ import at.archistar.helper.ByteUtils;
 public class ShamirPSS extends SecretSharing {
 
     final private RandomSource rng;
+    private final PolySolver solver;
 
+    /**
+     * Constructor<br>
+     * (applying {@link ErasureDecoder} as default reconstruction algorithm)
+     * 
+     * @param n the number of shares to create
+     * @param k the minimum number of shares required for reconstruction
+     * @param rng the source of randomness to use for generating the coefficients
+     * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
+     */
     public ShamirPSS(int n, int k, RandomSource rng) throws WeakSecurityException {
-        super(n, k);
-        
-        this.rng = rng;
+        this(n, k, rng, new ErasureDecoder());
+    }
+    public ShamirPSS(int n, int k, RandomSource rng, PolySolver solver) throws WeakSecurityException {
+    	super(n, k);
+    	
+    	this.rng = rng;
+    	this.solver = solver;
     }
 
     @Override
@@ -72,8 +85,7 @@ public class ShamirPSS extends SecretSharing {
 	            xValues[i] = sshares[i].getId();
 	        }
 	
-	        CustomMatrix decodeMatrix = PolyGF256.erasureDecodePrepare(xValues);
-	        int[] decodeVector = decodeMatrix.getRow(0);
+	        solver.prepare(xValues);
 	
 	        for (int i = 0; i < result.length; i++) {
 	
@@ -82,11 +94,7 @@ public class ShamirPSS extends SecretSharing {
 	                yValues[j] = ByteUtils.toUnsignedByte(sshares[j].getY()[i]); // we may only pass unsigned bytes to GF256
 	            }
 	
-	            int tmp = 0;
-	            for (int j = 0; j < yValues.length; j++) {
-	                tmp = GF256.add(tmp, GF256.mult(yValues[j], decodeVector[j]));
-	            }
-	            result[i] = (byte) (tmp & 0xFF);
+	            result[i] = (byte) solver.solve(yValues)[0];
 	        }
 	
 	        return result;
