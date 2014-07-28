@@ -3,6 +3,8 @@ package at.archistar.helper;
 import java.util.HashMap;
 import java.util.Map;
 
+import at.archistar.crypto.data.KrawczykShare;
+import at.archistar.crypto.data.KrawczykShare.EncryptionAlgorithm;
 import at.archistar.crypto.data.RabinBenOrShare;
 import at.archistar.crypto.data.ReedSolomonShare;
 import at.archistar.crypto.data.ShamirShare;
@@ -51,6 +53,37 @@ public class ShareHelper {
         }
         
         return rsshares;
+	}
+	
+	public static KrawczykShare[] createKrawczykShares(ShamirShare[] sshares, ReedSolomonShare[] rsshares, EncryptionAlgorithm algorithm) {
+	    assert sshares.length == rsshares.length;
+	    
+	    KrawczykShare[] kshares = new KrawczykShare[sshares.length];
+	    for (int i = 0; i < kshares.length; i++) {
+	        kshares[i] = new KrawczykShare((byte) rsshares[i].getId(), rsshares[i].getY(), rsshares[i].getOriginalLength(), sshares[i].getY(), algorithm);
+	    }
+	    
+	    return kshares;
+	}
+	
+	public static ShamirShare[] extractKeyShares(KrawczykShare[] kshares) {
+	    ShamirShare[] sshares = new ShamirShare[kshares.length];
+	    
+	    for (int i = 0; i < kshares.length; i++) {
+	        sshares[i] = new ShamirShare((byte) kshares[i].getId(), kshares[i].getKeyY());
+	    }
+	    
+	    return sshares;
+	}
+	
+	public static ReedSolomonShare[] extractContentShares(KrawczykShare[] kshares) {
+	    ReedSolomonShare[] rsshares = new ReedSolomonShare[kshares.length];
+	    
+	    for (int i = 0; i < kshares.length; i++) {
+	        rsshares[i] = new ReedSolomonShare((byte) kshares[i].getId(), kshares[i].getY(), kshares[i].getOriginalLength());
+	    }
+	    
+	    return rsshares;
 	}
 	
 	public static RabinBenOrShare[] createRabinBenOrShares(Share[] shares, int tagLength, int keyLength) {
