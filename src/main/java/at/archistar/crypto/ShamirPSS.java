@@ -64,8 +64,9 @@ public class ShamirPSS extends SecretSharing {
         for (int i = 0; i < data.length; i++) {
             GF256Polynomial poly = createShamirPolynomial(ByteUtils.toUnsignedByte(data[i]), k-1); // generate a new random polynomial
             
-            for (ShamirShare share : shares) // evaluate the x-values at the polynomial
+            for (ShamirShare share : shares) { // evaluate the x-values at the polynomial
                 share.getY()[i] = (byte) poly.evaluateAt(share.getId());
+            }
         }
 
         return shares;
@@ -92,8 +93,7 @@ public class ShamirPSS extends SecretSharing {
             }   
             
             return result;
-        }
-        catch(Exception e) {
+        } catch(Exception e) {
             throw new ReconstructionException();
         }
     }

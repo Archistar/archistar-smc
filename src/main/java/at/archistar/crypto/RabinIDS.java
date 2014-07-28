@@ -116,8 +116,7 @@ public class RabinIDS extends SecretSharing {
             }
         
             return result;
-        }
-        catch(Exception e) {
+        } catch(Exception e) {
             e.printStackTrace();
             throw new ReconstructionException();
         }
