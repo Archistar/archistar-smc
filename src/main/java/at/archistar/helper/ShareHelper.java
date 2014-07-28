@@ -12,9 +12,21 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 
+/**
+ * This class provides some methods to outsource the initial creation of the Share[]s and also some other small utilities from
+ * the individual SecretSharing schemes.
+ * 
+ * @author Elias Frantar
+ * @version 2014-7-28
+ */
 public class ShareHelper {
 	private ShareHelper() {} // just to not make it show up in javadoc
 	
+	/**
+	 * Extracts all x-values from the given Share[].
+	 * @param shares the shares to extract the x-values from
+	 * @return an array with all x-values from the given shares (in same order as the given Share[])
+	 */
 	public static int[] extractXVals(Share[] shares) {
 	    int[] x = new int[shares.length];
 	    
@@ -25,6 +37,13 @@ public class ShareHelper {
 	    return x;
 	}
 	
+	/**
+	 * Extracts all i<sup>th</sup> y-values from the given Share[].
+	 * 
+	 * @param shares the shares to extract the y-values from
+	 * @param i the index of the y-value to extract from each share
+	 * @return an array with all i<sup>th</sup> y-values from the given shares (in same order as the given Share[])
+	 */
 	public static int[] extractYVals(ShamirShare[] shares, int i) {
 	    int[] y = new int[shares.length];
 	    
@@ -35,6 +54,13 @@ public class ShareHelper {
 	    return y;
 	}
 	
+	/**
+	 * Creates <i>n</i> ShamirShares with the given share-length.
+	 * 
+	 * @param n the number of ShamirShares to create
+	 * @param shareLength the length of all shares
+	 * @return an array with the created shares
+	 */
 	public static ShamirShare[] createShamirShares(int n, int shareLength) {
 	    ShamirShare[] sshares = new ShamirShare[n];
 	    
@@ -45,6 +71,13 @@ public class ShareHelper {
 	    return sshares;
 	}
 	
+	/**
+     * Creates <i>n</i> ReedSolomonShares with the given share- and original-length.
+     * 
+     * @param n the number of ReedSolomonShare to create
+     * @param shareLength the length of all shares
+     * @return an array with the created shares
+     */
 	public static ReedSolomonShare[] createReedSolomonShares(int n, int shareLength, int originalLength) {
 	    ReedSolomonShare[] rsshares = new ReedSolomonShare[n];
         
@@ -55,8 +88,15 @@ public class ShareHelper {
         return rsshares;
 	}
 	
+	/**
+	 * Create <i>n</i> KrawczykShares from the given Shamir- and Reed-Solomon shares.
+	 * @param sshares the ShamirShares (key-shares)
+	 * @param rsshares the ReedSolomonShares (content-shares)
+	 * @param algorithm the algorithm used for encryption
+	 * @return an array with the created shares
+	 */
 	public static KrawczykShare[] createKrawczykShares(ShamirShare[] sshares, ReedSolomonShare[] rsshares, EncryptionAlgorithm algorithm) {
-	    assert sshares.length == rsshares.length;
+	    assert sshares.length == rsshares.length; // both Share[] must have the same length
 	    
 	    KrawczykShare[] kshares = new KrawczykShare[sshares.length];
 	    for (int i = 0; i < kshares.length; i++) {
@@ -66,6 +106,11 @@ public class ShareHelper {
 	    return kshares;
 	}
 	
+	/**
+	 * Extracts the key-shares from the given KrawczykShares.
+	 * @param kshares the shares to extract the key-shares from
+	 * @return an array of the extracted key-shares
+	 */
 	public static ShamirShare[] extractKeyShares(KrawczykShare[] kshares) {
 	    ShamirShare[] sshares = new ShamirShare[kshares.length];
 	    
@@ -76,6 +121,11 @@ public class ShareHelper {
 	    return sshares;
 	}
 	
+	/**
+     * Extracts the content-shares from the given KrawczykShares.
+     * @param kshares the shares to extract the content-shares from
+     * @return an array of the extracted content-shares
+     */
 	public static ReedSolomonShare[] extractContentShares(KrawczykShare[] kshares) {
 	    ReedSolomonShare[] rsshares = new ReedSolomonShare[kshares.length];
 	    
@@ -86,6 +136,14 @@ public class ShareHelper {
 	    return rsshares;
 	}
 	
+	/**
+	 * Creates Rabin-Ben-Or-Shares using the given shares as underlying ones.
+	 * 
+	 * @param shares the underlying shares
+	 * @param tagLength the length of a single tag
+	 * @param keyLength the length of a single MAC-key
+	 * @return the created RabinBenOrShares
+	 */
 	public static RabinBenOrShare[] createRabinBenOrShares(Share[] shares, int tagLength, int keyLength) {
 		RabinBenOrShare[] rboshares = new RabinBenOrShare[shares.length];
 		
@@ -110,5 +168,4 @@ public class ShareHelper {
 		
 		return rboshares;
 	}
-	
 }

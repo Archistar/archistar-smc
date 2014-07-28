@@ -185,5 +185,4 @@ public class CustomMatrix extends GF2mMatrix {
     	
     	matrix = newMatrix;
     }
-
 }
