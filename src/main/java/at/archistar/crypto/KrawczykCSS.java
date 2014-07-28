@@ -74,7 +74,7 @@ public class KrawczykCSS extends SecretSharing {
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
     	try {   
-    	    KrawczykShare[] kshares = (KrawczykShare[]) shares;
+    	    KrawczykShare[] kshares = safeCast(shares);
     	    
 	        byte[] key = shamir.reconstruct(ShareHelper.extractKeyShares(kshares)); // reconstruct the key
 	        byte[] encShare = rs.reconstruct(ShareHelper.extractContentShares(kshares)); // reconstruct the encrypted share
@@ -84,5 +84,22 @@ public class KrawczykCSS extends SecretSharing {
         catch(Exception e) {
         	throw new ReconstructionException();
         }
+    }
+    
+    /**
+     * Converts the Share[] to a KrawczykShare[] by casting each element individually.
+     * 
+     * @param shares the shares to cast
+     * @return the given Share[] as KrawczykShare[]
+     * @throws ClassCastException if the Share[] did not (only) contain KrawczykShare
+     */
+    private KrawczykShare[] safeCast(Share[] shares) {
+        KrawczykShare[] kshares = new KrawczykShare[shares.length];
+        
+        for (int i = 0; i < shares.length; i++) {
+            kshares[i] = (KrawczykShare) shares[i];
+        }
+        
+        return kshares;
     }
 }
