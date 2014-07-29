@@ -5,7 +5,7 @@ import java.util.Map;
 
 import at.archistar.crypto.data.KrawczykShare;
 import at.archistar.crypto.data.KrawczykShare.EncryptionAlgorithm;
-import at.archistar.crypto.data.RabinBenOrShare;
+import at.archistar.crypto.data.VSSShare;
 import at.archistar.crypto.data.ReedSolomonShare;
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
@@ -137,15 +137,15 @@ public class ShareHelper {
 	}
 	
 	/**
-	 * Creates Rabin-Ben-Or-Shares using the given shares as underlying ones.
+	 * Creates VSSShares using the given shares as underlying ones.
 	 * 
 	 * @param shares the underlying shares
 	 * @param tagLength the length of a single tag
 	 * @param keyLength the length of a single MAC-key
 	 * @return the created RabinBenOrShares
 	 */
-	public static RabinBenOrShare[] createRabinBenOrShares(Share[] shares, int tagLength, int keyLength) {
-		RabinBenOrShare[] rboshares = new RabinBenOrShare[shares.length];
+	public static VSSShare[] createVSSShares(Share[] shares, int tagLength, int keyLength) {
+		VSSShare[] vssshares = new VSSShare[shares.length];
 		
 		for (int i = 0; i < shares.length; i++) {
 			/* initialize macs-Map */
@@ -160,12 +160,27 @@ public class ShareHelper {
 			}
 			
 			try {
-				rboshares[i] = new RabinBenOrShare(shares[i], tmpMacs, tmpMacKeys);
+				vssshares[i] = new VSSShare(shares[i], tmpMacs, tmpMacKeys);
 			} catch (WeakSecurityException e) { // this should never happen
 				throw new ImpossibleException(e);
 			}
 		}
 		
-		return rboshares;
+		return vssshares;
+	}
+	
+	/**
+	 * Extracts all underlying shares from the given VSSShares
+	 * @param shares the shares to extract from
+	 * @return an array of the extracted underlying shares
+	 */
+	public static Share[] extractUnderlyingShares(VSSShare[] shares) {
+	    Share[] ushares = new Share[shares.length];
+	    
+	    for (int i = 0; i < shares.length; i++) {
+	        ushares[i] = shares[i].getShare();
+	    }
+	    
+	    return ushares;
 	}
 }

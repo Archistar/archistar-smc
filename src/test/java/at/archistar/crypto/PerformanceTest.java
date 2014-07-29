@@ -72,6 +72,7 @@ public class PerformanceTest {
             {secrets, new RabinIDS(n, k)},
             {secrets, new KrawczykCSS(n, k, rng)},
             {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng))}
+            /* ,{secrets, new CevallosUSRSS(n, k, rng)} */ // this is far too slow for the performance-test because BerlekampWelch-Decoder is very inefficient
         };
 
         return Arrays.asList(data);

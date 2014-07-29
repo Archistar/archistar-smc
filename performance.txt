@@ -23,3 +23,4 @@
 - RabinIDS:			~ 90 000 	~ 40 000
 - KrawczykCSS:		~ 43 000	~ 30 000	
 - RabinBenOrRSS:	~ 21 500	~ 18 500
+- CevallosUSRSS:    ~  7 500    ~    190
