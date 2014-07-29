@@ -77,7 +77,11 @@ public class RabinIDS extends SecretSharing {
 
             /* calculate the share a value for this byte for every share */
             for (int j = 0; j < n; j++) {
-               shares[j].getY()[fillPosition] = (byte)poly.evaluateAt(shares[j].getId());
+                if (checkForZeros(coeffs)) { // skip evaluation in case all coefficients are 0
+                    shares[j].getY()[fillPosition] = 0;
+                } else {
+                    shares[j].getY()[fillPosition] = (byte)poly.evaluateAt(shares[j].getId());
+                }
             }
             fillPosition++;
         }
@@ -120,6 +124,20 @@ public class RabinIDS extends SecretSharing {
             e.printStackTrace();
             throw new ReconstructionException();
         }
+    }
+    
+    /**
+     * Checks if the given array solely consists out of 0s.
+     * @param a the array to check
+     * @return true if yes; false otherwise
+     */
+    private boolean checkForZeros(int[] a) {
+        for (int i = 0; i < a.length; i++) {
+            if (a[i] != 0) {
+                return false;
+            }
+        }
+        return true;
     }
     
     /**
