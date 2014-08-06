@@ -18,12 +18,42 @@ import at.archistar.crypto.random.SHA1PRNG;
  * @version 2014-7-25
  */
 public class TestBerlekampWelchDecoder {
-	private PolySolver polySolver;
+  private PolySolver polySolver;
 	
-	private int[] x;
-	private int[] y;
-	private int[] expected;
-	
+  private int[] x;
+  private int[] y;
+  private int[] expected;
+
+  /**
+   * Generates a random array of the given size in O(r) time. 
+   * This array will have distinct integers of the given range. 
+   * 
+   * It is important that n <= r <= 256. 
+   * @param n the number of bytes
+   * @param r the range of the numbers will be in the range [0, r - 1]
+   */
+  int [] generateRandomIntegerArray(int n, int r){
+    assert(n <= r && r <= 256);
+
+    RandomSource rng = new SHA1PRNG();
+    int ret[] = new int[n];
+    int num[] = new int[r];
+
+    for(int i = 0; i < r; i++)
+      num[i] = i;
+
+    // Use Fisher-Yates algorithm to shuffle this array. 
+    for(int i = num.length - 1; i >= 1; i--){
+      int j = rng.generateByte() % i;
+      int tmp = num[i];
+      num[i] = num[j];
+      num[j] = tmp;
+    }
+    for(int i = 0; i < n; i++){
+      ret[i] = num[i];
+    }
+    return ret;
+  }
 	/**
 	 * Generates a new random test-case with given parameters.
 	 * 
@@ -40,26 +70,22 @@ public class TestBerlekampWelchDecoder {
 		
 		PolynomialGF2mSmallM poly = new PolynomialGF2mSmallM(new GF2mField(8, 0x11d), expected);
 		
-		x = new int[n];
+		x = generateRandomIntegerArray(n, 256);
 		y = new int[n];
 		for (int i = 0; i < x.length; i++) {
-			x[i] = rng.generateByte();
-			y[i] = poly.evaluateAt(x[i]);
+		  y[i] = poly.evaluateAt(x[i]);
 		}
 		
-		for (int i = 0; i < f; i++) {
-			int index = rng.generateByte() % y.length;
-			
-			int rand;
-			do
-				rand = rng.generateByte();
-			while (rand == y[index]); // ensure making f changes
-			
-			y[index] = rand;
+		int[] idx = generateRandomIntegerArray(f, n);
+		int[] delta = generateRandomIntegerArray(f, 255);
+
+		// Adding a number in range [1, 255] to a number will change it for sure. 
+		for(int i = 0; i < f; i++){
+		  y[idx[i]] = (y[idx[i]] + delta[i] + 1) % 256;
 		}
 	}
 	
-	@After
+  @After
 	public void tearDown() {
 		x = null;
 		y = null;
