@@ -1,5 +1,7 @@
 package at.archistar.crypto;
 
+import java.util.Arrays;
+
 import at.archistar.crypto.data.ReedSolomonShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.ErasureDecoder;
@@ -8,19 +10,30 @@ import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.helper.ByteUtils;
+import at.archistar.helper.ShareHelper;
 
 /**
- * @author Elias Frantar <i>(improved Exception handling, added using a solver)</i>
+ * <p>This class implements the <i>Rabin IDS</i> (also called <i>Reed Solomon Code</i>) scheme.</p>
+ * 
+ * <p>For a detailed description of this scheme, see: 
+ * <a href='http://en.wikipedia.org/wiki/Reed–Solomon_error_correction'>http://en.wikipedia.org/wiki/Reed–Solomon_error_correction</a></p>
+ *  
+ * <p><b>NOTE:</b> This scheme is not secure at all. It should only be used for sharing already encrypted 
+ *                 data like for example how it is done in {@link KrawczykCSS}.</p>
+ * 
+ * @author Elias Frantar <i>(code refactored, documentation added)</i>
  * @author Andreas Happe <andreashappe@snikt.net>
  * @author Fehrenbach Franca-Sofia
  * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
+ * 
+ * @version 2014-7-25
  */
 public class RabinIDS extends SecretSharing {
 	private PolySolver solver;
 	
 	/**
-     * Constructor<br>
-     * (applying {@link ErasureDecoder} as default reconstruction algorithm)
+     * Constructor
+     * <p>(applying {@link ErasureDecoder} as default reconstruction algorithm)</p>
      * 
      * @param n the number of shares to create
      * @param k the minimum number of shares required for reconstruction
@@ -29,60 +42,50 @@ public class RabinIDS extends SecretSharing {
 	public RabinIDS(int n, int k) throws WeakSecurityException {
         this(n, k, new ErasureDecoder());
     }
+	/**
+     * Constructor
+     * 
+     * @param n the number of shares to create
+     * @param k the minimum number of shares required for reconstruction
+     * @param solver the solving algorithm to use for reconstructing the secret
+     * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
+     */
 	public RabinIDS(int n, int k, PolySolver solver) throws WeakSecurityException {
 		super(n, k);
 		
 		this.solver = solver;
 	}
 
-    private boolean checkForZeros(int[] a) {
-        for (int i = 0; i < a.length; i++) {
-            if (a[i] != 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     @Override
     public Share[] share(byte[] data) {
-        //Create shares
-        ReedSolomonShare shares[] = new ReedSolomonShare[n];
-        for (int i = 0; i < n; i++) {
-            shares[i] = new ReedSolomonShare((byte) (i + 1), new byte[(data.length + k - 1) / k], data.length);
-        }
+        ReedSolomonShare shares[] = ShareHelper.createReedSolomonShares(n, (data.length + k-1) / k, data.length);
 
-        int a[] = new int[k];
-
+        /* compute share values */
+        int coeffs[] = new int[k];
         int fillPosition = 0;
+        
         for (int i = 0; i < data.length; i += k) {
-
-            //Let k coefficients be the secret in this polynomial
-            for (int j = 0; j < k; j++) {
+            for (int j = 0; j < k; j++) { // let k coefficients be the secret in this polynomial
                 if ((i + j) < data.length) {
-                    a[j] = ByteUtils.toUnsignedByte(data[i + j]);
-                    assert (a[j] >= 0 && a[j] <= 255);
+                    coeffs[j] = ByteUtils.toUnsignedByte(data[i + j]);
                 } else {
-                    a[j] = 0;
+                    coeffs[j] = 0;
                 }
             }
 
-            GF256Polynomial poly = new GF256Polynomial(a);
+            GF256Polynomial poly = new GF256Polynomial(coeffs);
 
-            //Calculate the share for this (source)byte for every share
+            /* calculate the share a value for this byte for every share */
             for (int j = 0; j < n; j++) {
-
-                if (checkForZeros(a)) {
-                    System.err.println("all a coefficients are zero");
-                    System.err.println("i: " + i + " data.length: " + data.length);
+                if (checkForZeros(coeffs)) { // skip evaluation in case all coefficients are 0
                     shares[j].getY()[fillPosition] = 0;
                 } else {
-                    shares[j].getY()[fillPosition] = (byte) (poly.evaluateAt(shares[j].getId()));
+                    shares[j].getY()[fillPosition] = (byte)poly.evaluateAt(shares[j].getId());
                 }
             }
             fillPosition++;
         }
-
+        
         return shares;
     }
 
@@ -93,43 +96,48 @@ public class RabinIDS extends SecretSharing {
     	}
     	
     	try {
-    		ReedSolomonShare[] rsshares = safeCast(shares); // we need access to the fields of ReedSolomonShare
-    		
-	        int xValues[] = new int[k];
-	        byte result[] = new byte[rsshares[0].getOriginalLength()];
-	
-	        for (int i = 0; i < k; i++) {
-	            xValues[i] = rsshares[i].getId();
-	        }
-	
-	        int w = 0;
-	
-	        solver.prepare(xValues);
-	
-	        for (int i = 0; i < rsshares[0].getY().length; i++) {
-	
-	        	int yValues[] = new int[k];
-	            for (int j = 0; j < k; j++) {
-	            	yValues[j] = ByteUtils.toUnsignedByte(rsshares[j].getY()[i]);
-	            }
-	
-	            if (checkForZeros(yValues)) {
-	            	for (int x = 0; x < k && w < result.length; x++) {
-	            		result[w++] = 0;
-	                }
-	           } else {
-	                int resultMatrix[] = solver.solve(yValues);
-	
-	                for (int j = resultMatrix.length - 1; j >= 0 && w < rsshares[0].getOriginalLength(); j--) {
-	                	int element = resultMatrix[resultMatrix.length - 1 - j];
-	                    result[w++] = (byte) (element & 0xFF);
-	                }
-	           }
-	        }
-	        return result;
-    	} catch (Exception e) { // if anything goes wrong during reconstruction, throw a ReconstructionException
-    		throw new ReconstructionException();
-    	}
+    	    ReedSolomonShare[] rsshares = safeCast(shares); // we need access to the inner fields
+            
+    	    int xValues[] = Arrays.copyOfRange(ShareHelper.extractXVals(rsshares), 0, k); // we only need k x-values for reconstruction
+            byte result[] = new byte[rsshares[0].getOriginalLength()];
+        
+            int index = 0;
+            
+            solver.prepare(xValues);
+    
+            for (int i = 0; i < rsshares[0].getY().length; i++) {
+                int yValues[] = new int[k];
+                
+                for (int j = 0; j < k; j++) { // extract only k y-values (so we have k xy-pairs)
+                    yValues[j] = ByteUtils.toUnsignedByte(rsshares[j].getY()[i]);
+                }
+                
+                /* perform matrix-multiplication to compute the coefficients */
+                int resultMatrix[] = solver.solve(yValues);
+                for (int j = resultMatrix.length - 1; j >= 0 && index < rsshares[0].getOriginalLength(); j--) {
+                    result[index++] = (byte) resultMatrix[resultMatrix.length - 1 - j];
+                }
+            }
+        
+            return result;
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw new ReconstructionException();
+        }
+    }
+    
+    /**
+     * Checks if the given array solely consists out of 0s.
+     * @param a the array to check
+     * @return true if yes; false otherwise
+     */
+    private boolean checkForZeros(int[] a) {
+        for (int i = 0; i < a.length; i++) {
+            if (a[i] != 0) {
+                return false;
+            }
+        }
+        return true;
     }
     
     /**

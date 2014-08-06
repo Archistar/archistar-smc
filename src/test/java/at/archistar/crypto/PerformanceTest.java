@@ -20,17 +20,25 @@ import at.archistar.crypto.random.RandomSource;
 import static org.fest.assertions.api.Assertions.*;
 
 /**
+ * Tests and compares the performance of the different Secret-Sharing algorithms. 
+ * (does use {@link ErasureDecoder} for reconstruction)
+ * 
+ * @author Elias Frantar <i>(added documentation)</i>
  * @author Andreas Happe <andreashappe@snikt.net>
+ * @version 2014-7-28
  */
 @RunWith(value = Parameterized.class)
 public class PerformanceTest {
 
     private final byte[][][] input;
-
     private final SecretSharing algorithm;
-
     private static final int size = 20 * 1024 * 1024;
 
+    /**
+     * Creates a byte[] of the given size, with all values set to 42.
+     * @param elementSize the size of the array
+     * @return an array of the given size
+     */
     private static byte[][] createArray(int elementSize) {
         byte[][] result = new byte[size / elementSize][elementSize];
 

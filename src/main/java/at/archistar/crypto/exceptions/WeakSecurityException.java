@@ -8,6 +8,5 @@ package at.archistar.crypto.exceptions;
  * @version 2014-7-21
  */
 public class WeakSecurityException extends Exception {
-
     private static final long serialVersionUID = 1L;
 }
