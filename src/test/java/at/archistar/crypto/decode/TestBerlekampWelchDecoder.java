@@ -77,11 +77,11 @@ public class TestBerlekampWelchDecoder {
 		}
 		
 		int[] idx = generateRandomIntegerArray(f, n);
-		int[] delta = generateRandomIntegerArray(f, 256);
+		int[] delta = generateRandomIntegerArray(f, 255);
 
-		// Adding a number in range [0, 255] to a number will change it for sure. 
+		// Adding a number in range [1, 255] to a number will change it for sure. 
 		for(int i = 0; i < f; i++){
-		  y[idx[i]] = (y[idx[i]] + delta[i]) % 256;
+		  y[idx[i]] = (y[idx[i]] + delta[i] + 1) % 256;
 		}
 	}
 	
