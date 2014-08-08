@@ -52,7 +52,7 @@ public class CevallosUSRSS extends SecretSharing {
     public CevallosUSRSS(int n, int k, RandomSource rng) throws WeakSecurityException {
         super(n, k);
         
-        if(k-1 >= n/3 && k-1 < n/2)
+        if(!((k-1) * 3 >= n && (k-1) * 2 < n))
             throw new ImpossibleException("this scheme only works when n/3 <= t < n/2 (where t = k-1)");
         
         /* this scheme requires ShamirPSS and Berlekamp-Welch decoder */
@@ -99,7 +99,8 @@ public class CevallosUSRSS extends SecretSharing {
         
         /* build a group I such that only shares with at least k accepts are in there */
         List<Share> valid = new LinkedList<Share>(Arrays.asList(ShareHelper.extractUnderlyingShares(cshares)));
-        
+    
+        // todo: we can improve this O(n^3) algorithm to O(n^2)
         boolean finished = false;
         while(!finished) {
             finished = true;
