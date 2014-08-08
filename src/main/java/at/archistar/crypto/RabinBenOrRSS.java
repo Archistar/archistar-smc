@@ -78,20 +78,20 @@ public class RabinBenOrRSS extends SecretSharing {
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
     	VSSShare[] rboshares = safeCast(shares); // we need access to it's inner fields
-    	int[] accepts = new int[rboshares.length]; // counts the number of accepts for every share
 		Share[] valid = new Share[rboshares.length];
 		int counter = 0;
 		
 		for (int i = 0; i < rboshares.length; i++) { // go through all shares
+			int accepts = 0; // number of participants accepting i
 			for(VSSShare rboshare: rboshares) { // go through all shares
 				try { 
-					accepts[i] += (mac.verifyMAC(rboshares[i].getShare(), rboshares[i].getMacs().get((byte) rboshare.getId()),
+					accepts += (mac.verifyMAC(rboshares[i].getShare(), rboshares[i].getMacs().get((byte) rboshare.getId()),
 												            rboshare.getMacKeys().get((byte) rboshares[i].getId()))
 							      ) ? 1 : 0; // verify the mac with the corresponding key for each share
 				} catch(Exception e) { } // catch faulty shares
 			}
 			
-			if(accepts[i] >= k) { // if there are at least k accepts, this share is counted as valid
+			if(accepts >= k) { // if there are at least k accepts, this share is counted as valid
 				valid[counter++] = rboshares[i].getShare();
 			}
 		}
