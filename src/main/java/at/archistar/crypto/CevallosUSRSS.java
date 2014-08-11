@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.VSSShare;
@@ -90,38 +91,40 @@ public class CevallosUSRSS extends SecretSharing {
         VSSShare[] cshares = safeCast(shares); // we need access to its inner fields
         
         /* create an accepts table */
-        boolean[][] accepts = new boolean[n + 1][n + 1];
-        
-        for (VSSShare s1 : cshares)
-            for (VSSShare s2 : cshares)
-                try { accepts[s1.getId()][s2.getId()] = mac.verifyMAC(s1.getShare(), s1.getMacs().get((byte) s2.getId()), s2.getMacKeys().get((byte) s1.getId())); }
-                catch (Exception e) {} // catch faulty shares
+        boolean[][] accepts = new boolean[n + 1][n + 1]; // accepts[i][j] means participant j accepts i
+        int a[] = new int[n + 1];
+        for (VSSShare s1 : cshares){
+        	for (VSSShare s2 : cshares){
+        		try { 
+        			accepts[s1.getId()][s2.getId()] = mac.verifyMAC(s1.getShare(), s1.getMacs().get((byte) s2.getId()), s2.getMacKeys().get((byte) s1.getId())); 
+        			a[s1.getId()] += accepts[s1.getId()][s2.getId()] ? 1 : 0;
+        		}
+                catch (Exception e) {
+                	
+                } // catch faulty shares
+        	}
+        }
+            
         
         /* build a group I such that only shares with at least k accepts are in there */
         List<Share> valid = new LinkedList<Share>(Arrays.asList(ShareHelper.extractUnderlyingShares(cshares)));
-    
-        // todo: we can improve this O(n^3) algorithm to O(n^2)
-        boolean finished = false;
-        while(!finished) {
-            finished = true;
             
+        boolean bad;
+        while(valid.size() >= k) {
+        	bad = false;
             Iterator<Share> i1 = valid.iterator();
-            while(i1.hasNext()) {
+            while(!bad && i1.hasNext()) {
                 Share s1 = i1.next();
-            
-                /* count the number of accepts for the current share */
-                int count = 0;
-                for(Share s2 : valid)
-                    try { count += (accepts[s1.getId()][s2.getId()]) ? 1 : 0; }
-                    catch (Exception e) {} // ArrayIndexOutOfBoundsException may be thrown when x is not valid
-                
-                if(count < k) { // share is not accepted by enough others
-                    i1.remove();
-                    
-                    /* start over */
-                    finished = false;
-                    break;
+                if(a[s1.getId()] < k) { // share is not accepted by enough others
+                    i1.remove();   
+                    for(Share s2: valid){
+                    	a[s2.getId()] -= accepts[s2.getId()][s1.getId()] ? 1 : 0;
+                    }
+                    bad = true;
                 }
+            }
+            if(!bad){
+            	break;
             }
         }
         
