@@ -2,6 +2,8 @@ package at.archistar.crypto.decode;
 
 import java.util.Arrays;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import de.flexiprovider.common.math.codingtheory.GF2mField;
 import de.flexiprovider.common.math.codingtheory.PolynomialGF2mSmallM;
 import at.archistar.crypto.exceptions.ImpossibleException;
@@ -49,6 +51,7 @@ public class BerlekampWelchDecoder extends PolySolver {
      * Prepares the <i>E(x)</i> part of the matrix (the not constant part). Must be done for every solve.
      * @param y the y-coordinates to use for preparation
      */
+    @SuppressFBWarnings("UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR")
     private void prepareEx(int[] y) {
         int t = y.length - f;
 
@@ -58,8 +61,10 @@ public class BerlekampWelchDecoder extends PolySolver {
             }
         }
     }
-    
+   
+    /** TODO: why isn't x (and thus matrix) assigned in the contructor? */ 
     @Override
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public void prepare(int[] x) {
         /* compute the number of max allowed errors */
         f = (x.length - k) / 2; // (n - k) / 2
@@ -70,7 +75,9 @@ public class BerlekampWelchDecoder extends PolySolver {
         prepared = true;
     }
     
+    /** TODO: why isn't x assigned in the contructor? */ 
     @Override
+    @SuppressFBWarnings
     public int[] solve(int[] y) {
         /* catch some common errors */
         if (!prepared) {
@@ -99,6 +106,7 @@ public class BerlekampWelchDecoder extends PolySolver {
         PolynomialGF2mSmallM[] divRes = q.div(e);
         
         if (divRes[1].getDegree() > 0) { // if there is a remainder, reconstruction failed
+            /** TODO: need better return behaviour, maybe use an exception for this */
             return null;
         }
         

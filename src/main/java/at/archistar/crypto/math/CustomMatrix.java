@@ -16,7 +16,7 @@ import de.flexiprovider.common.util.IntUtils;
  */
 public class CustomMatrix extends GF2mMatrix {
 
-    public static GF2mField gf256 = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0) / 285
+    private static final GF2mField gf256 = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0) / 285
     
     /**
      * Constructor
@@ -150,7 +150,6 @@ public class CustomMatrix extends GF2mMatrix {
             }
         }
         
-        trim(invMatrix, numRows, numColumns);
         return new CustomMatrix(invMatrix);
     }
     
@@ -181,17 +180,5 @@ public class CustomMatrix extends GF2mMatrix {
         for (int i = toRow.length - 1; i >= 0; i--) {
             toRow[i] = GF256.add(fromRow[i], toRow[i]);
         }
-    }
-    
-    private void trim(int[][] matrix, int newRows, int newColumns) {
-        int[][] newMatrix = new int[newRows][newColumns];
-        
-        for (int i = 0; i < newRows; i++) {
-            for (int j = 0; j < newColumns; j++) {
-                newMatrix[i][j] = matrix[i][j];
-            }
-        }
-        
-        matrix = newMatrix;
     }
 }

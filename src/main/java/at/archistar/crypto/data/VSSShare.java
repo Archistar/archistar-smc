@@ -1,6 +1,7 @@
 package at.archistar.crypto.data;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,7 +28,7 @@ public class VSSShare extends BaseSerializableShare {
      * @param share the underlying share
      * @param macs a map containing the macs of the underlying share identified by the share-ids
      * @param macKeys a map containing the macKeys of the underlying share identified by the share-ids
-     * @throws NullPointerException if validation failed ({@link #validateShare()})
+     * @throws WeakSecurityException if validation failed ({@link #validateShare()})
      */
     public VSSShare(Share share, Map<Byte, byte[]> macs, Map<Byte, byte[]> macKeys) throws WeakSecurityException {
         this.share = share;
@@ -120,7 +121,7 @@ public class VSSShare extends BaseSerializableShare {
             bos.write(share.serialize());
             
             return bos.toByteArray();
-        } catch (Exception e) { // this should never happen
+        } catch (IOException e) { // this should never happen
             throw new ImpossibleException("serializing failed");
         }
     }
@@ -139,11 +140,12 @@ public class VSSShare extends BaseSerializableShare {
      * @throws NullPointerException if any of the other above conditions is violated
      */
     private void validateShare() throws WeakSecurityException {
-        if (!(share.getAlgorithm() == Algorithm.SHAMIR || share.getAlgorithm() == Algorithm.KRAWCZYK)) { // underlying share may only be a Shamir or a Krawczyk one
-            throw new WeakSecurityException();
-        }
         if (share == null || macs == null || macKeys == null) { // catch invalid parameters
             throw new NullPointerException();
+        }
+
+        if (!(share.getAlgorithm() == Algorithm.SHAMIR || share.getAlgorithm() == Algorithm.KRAWCZYK)) { // underlying share may only be a Shamir or a Krawczyk one
+            throw new WeakSecurityException();
         }
         
         /* check if all macs are of equal length */

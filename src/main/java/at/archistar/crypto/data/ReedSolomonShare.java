@@ -2,6 +2,8 @@ package at.archistar.crypto.data;
 
 import java.nio.ByteBuffer;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import at.archistar.helper.ByteUtils;
 
 /**
@@ -23,6 +25,7 @@ public final class ReedSolomonShare extends BaseSerializableShare {
      * @param originalLength the original length of the shared data
      * @throws NullPointerException if validation failed ({@link #validateShare()})
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public ReedSolomonShare(byte x, byte[] y, int originalLength) {
         this.x = x;
         this.y = y;
@@ -98,6 +101,7 @@ public final class ReedSolomonShare extends BaseSerializableShare {
     }
     
     /* Getters */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public byte[] getY() { return y; }
     public int getOriginalLength() { return originalLength; }
 }

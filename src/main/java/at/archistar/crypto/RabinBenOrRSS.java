@@ -1,6 +1,7 @@
 package at.archistar.crypto;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.InvalidKeyException;
 import java.util.Arrays;
 
 import at.archistar.crypto.data.VSSShare;
@@ -70,9 +71,8 @@ public class RabinBenOrRSS extends SecretSharing {
                     
                     share1.getMacs().put((byte) share2.getId(), tag);
                     share2.getMacKeys().put((byte) share1.getId(), key);
-                } catch (Exception e) {
-                    // TODO: throw an exception!
-                    return null;
+                } catch (InvalidKeyException e) {
+                    throw new ImpossibleException("this cannot happen");
                 }
             }
         }
@@ -89,11 +89,10 @@ public class RabinBenOrRSS extends SecretSharing {
         for (int i = 0; i < rboshares.length; i++) { // go through all shares
             int accepts = 0; // number of participants accepting i
             for (VSSShare rboshare: rboshares) { // go through all shares
-                try { 
-                    accepts += (mac.verifyMAC(rboshares[i].getShare(), rboshares[i].getMacs().get((byte) rboshare.getId()),
-                                                            rboshare.getMacKeys().get((byte) rboshares[i].getId()))
-                                  ) ? 1 : 0; // verify the mac with the corresponding key for each share
-                } catch (Exception e) { } // catch faulty shares
+                // TODO: split this up to make it more readable
+                accepts += (mac.verifyMAC(rboshares[i].getShare(), rboshares[i].getMacs().get((byte) rboshare.getId()),
+                                                        rboshare.getMacKeys().get((byte) rboshares[i].getId()))
+                              ) ? 1 : 0; // verify the mac with the corresponding key for each share
             }
             
             if (accepts >= k) { // if there are at least k accepts, this share is counted as valid

@@ -1,5 +1,7 @@
 package at.archistar.crypto.data;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import at.archistar.crypto.data.Share.Algorithm;
 
 /**
@@ -18,6 +20,7 @@ public class ShareDeserializer {
      * @return the deserialized share
      * @throws IllegalArgumentException if the given share could not be deserialized properly
      */
+    @SuppressFBWarnings("DB_DUPLICATE_SWITCH_CLAUSES")
     public static Share deserialize(byte[] serialized) {
         switch(Algorithm.values()[serialized[BaseSerializableShare.ALGORITHM]]) {
             case SHAMIR:

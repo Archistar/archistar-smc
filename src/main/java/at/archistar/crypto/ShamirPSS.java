@@ -78,24 +78,20 @@ public class ShamirPSS extends SecretSharing {
             throw new ReconstructionException();
         }
         
-        try {
-            ShamirShare[] sshares = safeCast(shares); // we need access to the inner fields
+        ShamirShare[] sshares = safeCast(shares); // we need access to the inner fields
+        
+        byte[] result = new byte[sshares[0].getY().length];
+        int[] xVals = ShareHelper.extractXVals(sshares);
+        
+        solver.prepare(xVals);
+        
+        for (int i = 0; i < result.length; i++) { // reconstruct all individual parts of the secret
+            int[] yVals = ShareHelper.extractYVals(sshares, i);
             
-            byte[] result = new byte[sshares[0].getY().length];
-            int[] xVals = ShareHelper.extractXVals(sshares);
-            
-            solver.prepare(xVals);
-            
-            for (int i = 0; i < result.length; i++) { // reconstruct all individual parts of the secret
-                int[] yVals = ShareHelper.extractYVals(sshares, i);
-                
-                result[i] = (byte) solver.solve(yVals)[0];
-            }   
-            
-            return result;
-        } catch (Exception e) {
-            throw new ReconstructionException();
-        }
+            result[i] = (byte) solver.solve(yVals)[0];
+        }   
+        
+        return result;
     }
     
     /**

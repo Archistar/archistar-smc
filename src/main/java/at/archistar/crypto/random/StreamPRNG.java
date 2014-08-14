@@ -1,6 +1,7 @@
 package at.archistar.crypto.random;
 
 import java.security.Security;
+import java.security.GeneralSecurityException;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -58,7 +59,7 @@ public class StreamPRNG implements RandomSource {
             counter = 0;
                 
             fillCache();
-        } catch (Exception e) {
+        } catch (GeneralSecurityException e) {
             throw new CryptoException("initializing the RNG faild (" + e.getMessage() + ")");
         }
     }

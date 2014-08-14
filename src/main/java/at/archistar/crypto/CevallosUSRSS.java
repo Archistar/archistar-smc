@@ -1,5 +1,6 @@
 package at.archistar.crypto;
 
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -84,7 +85,7 @@ public class CevallosUSRSS extends SecretSharing {
                     
                     share1.getMacs().put((byte) share2.getId(), tag);
                     share2.getMacKeys().put((byte) share1.getId(), key);
-                } catch (Exception e) {
+                } catch (InvalidKeyException e) {
                      throw new ImpossibleException("TODO: find a good exception message");
                 }
             }
@@ -103,11 +104,8 @@ public class CevallosUSRSS extends SecretSharing {
 
         for (VSSShare s1 : cshares){
             for (VSSShare s2 : cshares){
-                try { 
-                    accepts[s1.getId()][s2.getId()] = mac.verifyMAC(s1.getShare(), s1.getMacs().get((byte) s2.getId()), s2.getMacKeys().get((byte) s1.getId())); 
-                    a[s1.getId()] += accepts[s1.getId()][s2.getId()] ? 1 : 0;
-                } catch (Exception e) {
-            } // catch faulty shares
+                accepts[s1.getId()][s2.getId()] = mac.verifyMAC(s1.getShare(), s1.getMacs().get((byte) s2.getId()), s2.getMacKeys().get((byte) s1.getId())); 
+                a[s1.getId()] += accepts[s1.getId()][s2.getId()] ? 1 : 0;
             }
         }
             

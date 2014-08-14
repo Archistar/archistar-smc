@@ -1,5 +1,7 @@
 package at.archistar.crypto;
 
+import java.security.NoSuchAlgorithmException;
+
 import at.archistar.helper.ShareHelper;
 import at.archistar.helper.SymmetricEncHelper;
 import at.archistar.crypto.data.KrawczykShare;
@@ -8,6 +10,7 @@ import at.archistar.crypto.data.ReedSolomonShare;
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.ErasureDecoder;
+import at.archistar.crypto.exceptions.CryptoException;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
@@ -66,9 +69,13 @@ public class KrawczykCSS extends SecretSharing {
 
             //Generate a new array of encrypted shares
             return ShareHelper.createKrawczykShares((ShamirShare[]) keyShares, (ReedSolomonShare[]) contentShares, ALG);
-        } catch (Exception e) { 
+        } catch (CryptoException e) { 
+            // encryption should actually never fail
             throw new ImpossibleException("sharing failed (" + e.getMessage() + ")");
-        } // encryption should actually never fail
+        } catch (NoSuchAlgorithmException e) { 
+            // encryption should actually never fail
+            throw new ImpossibleException("sharing failed (" + e.getMessage() + ")");
+        } 
     }
 
     @Override
@@ -80,7 +87,7 @@ public class KrawczykCSS extends SecretSharing {
             byte[] encShare = rs.reconstruct(ShareHelper.extractContentShares(kshares)); // reconstruct the encrypted share
 
             return SymmetricEncHelper.decrypt(ALG.getAlgString(), key, encShare); // decrypt the encrypted data with the extracted key
-        } catch (Exception e) {
+        } catch (CryptoException e) {
             throw new ReconstructionException();
         }
     }

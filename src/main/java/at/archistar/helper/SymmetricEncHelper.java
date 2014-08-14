@@ -1,6 +1,8 @@
 package at.archistar.helper;
 
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.GeneralSecurityException;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -68,7 +70,11 @@ public class SymmetricEncHelper {
             cipher.init(cipherMode, sKeySpec, new IvParameterSpec(sKey)); // TODO: IV == key ???
             
             return cipher.doFinal(data);
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException e) {
+            throw new CryptoException("en- or decrypting failed (cause: " + e.toString() + ")");
+        } catch (InvalidKeyException e) {
+            throw new CryptoException("en- or decrypting failed (cause: " + e.toString() + ")");
+        } catch (GeneralSecurityException e) {
             throw new CryptoException("en- or decrypting failed (cause: " + e.toString() + ")");
         }
     }

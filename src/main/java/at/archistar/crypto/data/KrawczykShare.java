@@ -4,6 +4,8 @@ import java.nio.ByteBuffer;
 
 import at.archistar.crypto.KrawczykCSS;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * Represents a share for {@link KrawczykCSS}.
  * 
@@ -43,6 +45,7 @@ public final class KrawczykShare extends BaseSerializableShare {
      * @param alg the algorithm used for encrypting the content
      * @throws NullPointerException if validation failed ({@link #validateShare()})
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public KrawczykShare(byte x, byte[] y, int originalLength, byte[] keyY, EncryptionAlgorithm alg) {
         this.x = x;
         this.y = y;
@@ -143,8 +146,15 @@ public final class KrawczykShare extends BaseSerializableShare {
     }
     
     /* Getters */
+
+    /* TODO: those two actually return a reference to the array, not
+     *       sure that we want this security-wise, but performance
+     *       might make this mandatory */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public byte[] getY() { return y; }
-    public int getOriginalLength() { return originalLength; }
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public byte[] getKeyY() { return keyY; }
+
+    public int getOriginalLength() { return originalLength; }
     public EncryptionAlgorithm getEncryptionAlgorithm() { return alg; }
 }

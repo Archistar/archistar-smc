@@ -3,6 +3,8 @@ package at.archistar.crypto.random;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 
+import java.security.GeneralSecurityException;
+
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.helper.ByteUtils;
 
@@ -38,7 +40,7 @@ public class CTRPRNG implements RandomSource {
             counter = 0;
             
             fillCache();
-        } catch (Exception e) { // should never happen
+        } catch (GeneralSecurityException e) { // should never happen
             throw new ImpossibleException(e);
         }
     }

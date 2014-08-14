@@ -2,6 +2,8 @@ package at.archistar.crypto.data;
 
 import java.nio.ByteBuffer;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import at.archistar.helper.ByteUtils;
 
 /**
@@ -21,6 +23,7 @@ public final class ShamirShare extends BaseSerializableShare { // objects of thi
      * @param y the y-values of this share
      * @throws NullPointerException if validation failed ({@link #validateShare()})
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public ShamirShare(byte x, byte[] y) {
         this.x = x;
         this.y = y;
@@ -83,5 +86,7 @@ public final class ShamirShare extends BaseSerializableShare { // objects of thi
     }
     
     /* Getters */
+    /* TODO: security vs performance */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public byte[] getY() { return y; }
 }

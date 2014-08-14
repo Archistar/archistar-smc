@@ -1,5 +1,7 @@
 package at.archistar.crypto.math;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * This class represents a simple polynomial in GF(256) and provides basic functionality like evaluating points.
  * 
@@ -18,6 +20,7 @@ public class GF256Polynomial {
      * @param coeffs the coefficients of the polynomial (numbers in range 0 - 255)<br>
      *        will be interpreted as <i>coeffs[i] * x<sup>i</sup></i> (so the element at index 0 is the constant coefficient)
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public GF256Polynomial(int[] coeffs) {
         this.coeffs = coeffs;
         degree = coeffs.length - 1;

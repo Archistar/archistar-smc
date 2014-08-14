@@ -1,5 +1,7 @@
 package at.archistar.crypto.decode;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.math.CustomMatrix;
 import at.archistar.crypto.math.GF256;
@@ -29,7 +31,9 @@ public class ErasureDecoder extends PolySolver {
         prepared = true;
     }
 
+    /** TODO: why is x (and thus matrix) not assigend within constructor */
     @Override
+    @SuppressFBWarnings("UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR")
     public int[] solve(int[] y) {
         if (!prepared) {
             throw new ImpossibleException("Solve has not been prepared properly!");
