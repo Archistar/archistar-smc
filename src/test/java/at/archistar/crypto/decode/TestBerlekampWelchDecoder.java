@@ -8,7 +8,6 @@ import de.flexiprovider.common.math.codingtheory.GF2mField;
 import de.flexiprovider.common.math.codingtheory.PolynomialGF2mSmallM;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.random.SHA1PRNG;
-import org.junit.Assert;
 
 /**
  * Basic tests for {@link BerlekampWelchDecoder}
@@ -84,7 +83,7 @@ public class TestBerlekampWelchDecoder {
     }
 
     @Test
-    public void testErrorDecodeAll4Correct() {
+    public void testErrorDecodeAll4Correct() throws UnsolvableException {
         // f = 1;
         int[] x = {17, 114, 98, 213}; // 17, 114, 98, 213
         int[] y = {153, 174, 168, 62}; // 153, 174, 168, 62
@@ -95,7 +94,7 @@ public class TestBerlekampWelchDecoder {
     }
 
     @Test
-    public void testErrorDecode41YWrong() {
+    public void testErrorDecode41YWrong() throws UnsolvableException {
         // f = 1;
         int[] x = {17, 114, 98, 213}; // 17, 114, 98, 213
         int[] y = {153, 174, 244, 62}; // 153, 174, 168, 62
@@ -106,7 +105,7 @@ public class TestBerlekampWelchDecoder {
     }
 
     @Test
-    public void testErrorDecode41XWrong() {
+    public void testErrorDecode41XWrong() throws UnsolvableException {
         // f = 1;
         int[] x = {17, 127, 98, 213}; // 17, 114, 98, 213
         int[] y = {153, 174, 168, 62}; // 153, 174, 168, 62
@@ -117,7 +116,7 @@ public class TestBerlekampWelchDecoder {
     }
 
     @Test
-    public void testErrorDecodeRandom82() {
+    public void testErrorDecodeRandom82() throws UnsolvableException {
         
         int n = 8;
         int coeffs = 2;
@@ -133,7 +132,7 @@ public class TestBerlekampWelchDecoder {
     }
 
     @Test
-    public void testErrorDecode51Wrong() {
+    public void testErrorDecode51Wrong() throws UnsolvableException {
         // f = 1;
         int[] x = {137, 23, 223, 99, 158}; // 137, 23, 223, 99, 158
         int[] y = {37, 225, 176, 89, 210}; // 37, 224, 176, 89, 210
@@ -143,8 +142,8 @@ public class TestBerlekampWelchDecoder {
         assertArrayEquals(expected, polySolver.decode(y));
     }
 
-    @Test
-    public void testErrorDecode85WrongFail() {
+    @Test(expected = UnsolvableException.class)
+    public void testErrorDecode85WrongFail() throws UnsolvableException {
         
         int n = 8;
         int coeffs = 2;
@@ -156,6 +155,6 @@ public class TestBerlekampWelchDecoder {
         genRandomTest(x, y, expected, coeffs, n, 5);
 
         Decoder polySolver = new BerlekampWelchDecoderFactory(expected.length - 1).createDecoder(x);
-        Assert.assertEquals(null, polySolver.decode(y));
+        polySolver.decode(y);
     }
 }

@@ -6,6 +6,7 @@ import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
+import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
@@ -89,7 +90,11 @@ public class ShamirPSS extends SecretSharing {
         for (int i = 0; i < result.length; i++) { // reconstruct all individual parts of the secret
             int[] yVals = ShareHelper.extractYVals(sshares, i);
             
-            result[i] = (byte) decoder.decode(yVals)[0];
+            try {
+                result[i] = (byte) decoder.decode(yVals)[0];
+            } catch (UnsolvableException e) {
+                throw new ReconstructionException("too few shares to reconstruct");
+            }
         }   
         
         return result;

@@ -67,7 +67,6 @@ public class BerlekampWelchDecoder implements Decoder {
      * Prepares the <i>E(x)</i> part of the matrix (the not constant part). Must be done for every solve.
      * @param y the y-coordinates to use for preparation
      */
-    @SuppressFBWarnings("UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR")
     private void prepareEx(int[] y) {
         int t = y.length - f;
 
@@ -79,8 +78,8 @@ public class BerlekampWelchDecoder implements Decoder {
     }
    
     @Override
-    @SuppressFBWarnings
-    public int[] decode(int[] y) {
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
+    public int[] decode(int[] y) throws UnsolvableException {
         if (x.length != y.length) {
             throw new ImpossibleException("Number of x-values does not equal number of y-values!");
         }
@@ -103,8 +102,7 @@ public class BerlekampWelchDecoder implements Decoder {
         PolynomialGF2mSmallM[] divRes = q.div(e);
         
         if (divRes[1].getDegree() > 0) { // if there is a remainder, reconstruction failed
-            /** TODO: need better return behaviour, maybe use an exception for this */
-            return null;
+            throw new UnsolvableException();
         }
         
         for (int i = 0; i < k; i++) { // flexiprovider does not support getCoeffs() ...

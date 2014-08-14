@@ -15,7 +15,8 @@ public interface Decoder {
      * (The solve must have been prepared before! Otherwise an {@link ImpossibleException} will be thrown.)
      * 
      * @param y the corresponding y-coordinates to the x-coordinates given when calling {@link #prepare(int[])}
-     * @return an array of all coefficients of this polynomial; null if the polynomial was not solvable
+     * @return an array of all coefficients of this polynomial
+     * @throws UnsolvableException if the polynomial was not solvable
      */
-    int[] decode(int[] y);
+    int[] decode(int[] y) throws UnsolvableException;
 }

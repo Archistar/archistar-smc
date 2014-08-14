@@ -8,4 +8,14 @@ package at.archistar.crypto.exceptions;
  */
 public class ReconstructionException extends Exception {
     private static final long serialVersionUID = 1L;
+    
+    private String msg;
+
+    public ReconstructionException() {
+        this.msg = "generic";
+    }
+    
+    public ReconstructionException(String msg) {
+        this.msg = msg;
+    }
 }

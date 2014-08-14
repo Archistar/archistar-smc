@@ -62,8 +62,7 @@ public class CevallosUSRSS extends SecretSharing {
             // we are using HMacSHA256 at the moment
             mac = new ShareMacHelper(MAC, new SHA1PRNG());
         } catch (NoSuchAlgorithmException e) {
-            // this should never happen
-            // TODO: throw impossible exception
+            throw new ImpossibleException("algorithm unknown?");
         }
     }
     
