@@ -15,22 +15,38 @@ import at.archistar.crypto.math.GF256;
  * <a href="http://en.wikipedia.org/wiki/Berlekamp–Welch_algorithm">Berlekamp-Welch algorithm</a>.<br>
  * This algorithm tolerates up to <i>(n - k) / 2</i> errors (wrong points) when reconstructing the polynomial.
  * 
+ * @author Andreas Happe
  * @author Elias Frantar
  * @version 2014-7-25
  */
-public class BerlekampWelchDecoder extends PolySolver {
+public class BerlekampWelchDecoder implements Decoder {
     private int[][] matrix;
-    private int[] x;
+    private final int[] x;
     
-    private int f; // max number of allowed errors
-    private int k; // number of points required for reconstruction
+    private final int f; // max number of allowed errors
+    private final int k; // number of points required for reconstruction
     
     /**
      * Constructor
      * @param order the order of the polynomial to reconstruct
      */
-    public BerlekampWelchDecoder(int order) {
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
+    public BerlekampWelchDecoder(int order, int[] xValues) {
         this.k = order + 1;
+        f = (xValues.length - k) / 2; // (n - k) / 2
+        
+        this.x = xValues;
+        prepareQx(xValues);        
+    }
+
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
+    BerlekampWelchDecoder(int[] xValues) {
+        /* compute the number of max allowed errors */
+        k = 0; //TODO: this might not have been set in the old implementation?
+        f = (xValues.length - k) / 2; // (n - k) / 2
+        
+        this.x = xValues;
+        prepareQx(xValues);
     }
 
     /**
@@ -62,28 +78,9 @@ public class BerlekampWelchDecoder extends PolySolver {
         }
     }
    
-    /** TODO: why isn't x (and thus matrix) assigned in the contructor? */ 
-    @Override
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public void prepare(int[] x) {
-        /* compute the number of max allowed errors */
-        f = (x.length - k) / 2; // (n - k) / 2
-        
-        this.x = x;
-        prepareQx(x);
-        // this.matrix = new GF256Matrix(matrix).computeInverseElimDepRows(); // compute inverse and eliminate all dependent rows
-        prepared = true;
-    }
-    
-    /** TODO: why isn't x assigned in the contructor? */ 
     @Override
     @SuppressFBWarnings
-    public int[] solve(int[] y) {
-        /* catch some common errors */
-        if (!prepared) {
-            throw new ImpossibleException("Solve has not been prepared properly!");
-        }
-
+    public int[] decode(int[] y) {
         if (x.length != y.length) {
             throw new ImpossibleException("Number of x-values does not equal number of y-values!");
         }

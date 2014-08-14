@@ -1,16 +1,17 @@
 package at.archistar.crypto;
 
-import java.util.Arrays;
-
 import at.archistar.crypto.data.ReedSolomonShare;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.decode.Decoder;
+import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
-import at.archistar.crypto.decode.PolySolver;
+import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.helper.ByteUtils;
 import at.archistar.helper.ShareHelper;
+import java.util.Arrays;
 
 /**
  * <p>This class implements the <i>Rabin IDS</i> (also called <i>Reed Solomon Code</i>) scheme.</p>
@@ -29,7 +30,7 @@ import at.archistar.helper.ShareHelper;
  * @version 2014-7-25
  */
 public class RabinIDS extends SecretSharing {
-    private PolySolver solver;
+    private final DecoderFactory decoderFactory;
     
     /**
      * Constructor
@@ -40,20 +41,19 @@ public class RabinIDS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public RabinIDS(int n, int k) throws WeakSecurityException {
-        this(n, k, new ErasureDecoder());
+        this(n, k, new ErasureDecoderFactory());
     }
     /**
      * Constructor
      * 
      * @param n the number of shares to create
      * @param k the minimum number of shares required for reconstruction
-     * @param solver the solving algorithm to use for reconstructing the secret
+     * @param decoderFactory the solving algorithm to use for reconstructing the secret
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
-    public RabinIDS(int n, int k, PolySolver solver) throws WeakSecurityException {
+    public RabinIDS(int n, int k, DecoderFactory decoderFactory) throws WeakSecurityException {
         super(n, k);
-        
-        this.solver = solver;
+        this.decoderFactory = decoderFactory;
     }
 
     @Override
@@ -103,8 +103,7 @@ public class RabinIDS extends SecretSharing {
         
             int index = 0;
             
-            solver.prepare(xValues);
-    
+            Decoder decoder = decoderFactory.createDecoder(xValues);
             for (int i = 0; i < rsshares[0].getY().length; i++) {
                 int yValues[] = new int[k];
                 
@@ -113,7 +112,7 @@ public class RabinIDS extends SecretSharing {
                 }
                 
                 /* perform matrix-multiplication to compute the coefficients */
-                int resultMatrix[] = solver.solve(yValues);
+                int resultMatrix[] = decoder.decode(yValues);
                 for (int j = resultMatrix.length - 1; j >= 0 && index < rsshares[0].getOriginalLength(); j--) {
                     result[index++] = (byte) resultMatrix[resultMatrix.length - 1 - j];
                 }

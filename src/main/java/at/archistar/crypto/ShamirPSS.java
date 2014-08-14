@@ -2,8 +2,10 @@ package at.archistar.crypto;
 
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.decode.Decoder;
+import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
-import at.archistar.crypto.decode.PolySolver;
+import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
@@ -26,7 +28,7 @@ import at.archistar.helper.ShareHelper;
  */
 public class ShamirPSS extends SecretSharing {
     private final RandomSource rng;
-    private final PolySolver solver;
+    private final DecoderFactory decoderFactory;
     
     /**
      * Constructor
@@ -38,7 +40,7 @@ public class ShamirPSS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public ShamirPSS(int n, int k, RandomSource rng) throws WeakSecurityException {
-        this(n, k, rng, new ErasureDecoder());
+        this(n, k, rng, new ErasureDecoderFactory());
     }
     /**
      * Constructor
@@ -46,14 +48,14 @@ public class ShamirPSS extends SecretSharing {
      * @param n the number of shares to create
      * @param k the minimum number of shares required for reconstruction
      * @param rng the source of randomness to use for generating the coefficients
-     * @param solver the solving algorithm to use for reconstructing the secret
+     * @param decoderFactory the solving algorithm to use for reconstructing the secret
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
-    public ShamirPSS(int n, int k, RandomSource rng, PolySolver solver) throws WeakSecurityException {
+    public ShamirPSS(int n, int k, RandomSource rng, DecoderFactory decoderFactory) throws WeakSecurityException {
         super(n, k);
         
         this.rng = rng;
-        this.solver = solver;
+        this.decoderFactory = decoderFactory;
     }
 
     @Override
@@ -83,12 +85,11 @@ public class ShamirPSS extends SecretSharing {
         byte[] result = new byte[sshares[0].getY().length];
         int[] xVals = ShareHelper.extractXVals(sshares);
         
-        solver.prepare(xVals);
-        
+        Decoder decoder = decoderFactory.createDecoder(xVals);
         for (int i = 0; i < result.length; i++) { // reconstruct all individual parts of the secret
             int[] yVals = ShareHelper.extractYVals(sshares, i);
             
-            result[i] = (byte) solver.solve(yVals)[0];
+            result[i] = (byte) decoder.decode(yVals)[0];
         }   
         
         return result;

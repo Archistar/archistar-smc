@@ -1,24 +1,21 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.VSSShare;
+import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
+import at.archistar.crypto.exceptions.ImpossibleException;
+import at.archistar.crypto.exceptions.ReconstructionException;
+import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.random.RandomSource;
+import at.archistar.crypto.random.SHA1PRNG;
+import at.archistar.helper.ShareHelper;
+import at.archistar.helper.ShareMacHelper;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-
-import at.archistar.helper.ShareHelper;
-import at.archistar.helper.ShareMacHelper;
-
-import at.archistar.crypto.data.Share;
-import at.archistar.crypto.data.VSSShare;
-import at.archistar.crypto.decode.BerlekampWelchDecoder;
-import at.archistar.crypto.exceptions.ImpossibleException;
-import at.archistar.crypto.exceptions.ReconstructionException;
-import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.random.SHA1PRNG;
 
 /**
  * <p>This class implements the <i>Unconditionally-Secure Robust Secret Sharing with Compact Shares</i>-scheme developed by:
@@ -59,7 +56,7 @@ public class CevallosUSRSS extends SecretSharing {
         }
         
         /* this scheme requires ShamirPSS and Berlekamp-Welch decoder */
-        sharing = new ShamirPSS(n, k, rng, new BerlekampWelchDecoder(k - 1));
+        sharing = new ShamirPSS(n, k, rng, new BerlekampWelchDecoderFactory(k - 1));
         
         try {
             // we are using HMacSHA256 at the moment
