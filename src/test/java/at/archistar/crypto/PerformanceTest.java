@@ -68,10 +68,11 @@ public class PerformanceTest {
 
         RandomSource rng = new FakeRandomSource();
         Object[][] data = new Object[][]{
-            {secrets, new ShamirPSS(n, k, rng)},
-            {secrets, new RabinIDS(n, k)},
-            {secrets, new KrawczykCSS(n, k, rng)},
-            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng))}
+           {secrets, new ShamirPSS(n, k, rng)},
+           {secrets, new RabinIDS(n, k)},
+           {secrets, new KrawczykCSS(n, k, rng)},
+           {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng))},
+           // {secrets, new CevallosUSRSS(5, 3, rng)}// this is far too slow for the performance-test because BerlekampWelch-Decoder has O(n^3) complexity
         };
 
         return Arrays.asList(data);

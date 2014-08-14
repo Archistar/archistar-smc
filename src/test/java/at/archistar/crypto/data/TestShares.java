@@ -63,10 +63,10 @@ public class TestShares {
 		macKeys.put((byte) 1, new byte[]{7, 8, 9});
 		macKeys.put((byte) 2, new byte[]{10, 11, 12});
 		
-		RabinBenOrShare rbos = new RabinBenOrShare(s, macs, macKeys); 
+		VSSShare rbos = new VSSShare(s, macs, macKeys); 
 		
 		byte[] serialized = rbos.serialize();
-		RabinBenOrShare deserialized = new RabinBenOrShare(serialized);
+		VSSShare deserialized = new VSSShare(serialized);
 		
 		assertTrue(equals(rbos, deserialized));
 	}
@@ -271,7 +271,7 @@ public class TestShares {
 		
 		return true;
 	}
-	private boolean equals(RabinBenOrShare s1, RabinBenOrShare s2) {
+	private boolean equals(VSSShare s1, VSSShare s2) {
 		if (!equals((ShamirShare) s1.getShare(), (ShamirShare) s2.getShare())) { // hardcoded cast because we use ShamirShare in the test-case
 			return false;
 		}
