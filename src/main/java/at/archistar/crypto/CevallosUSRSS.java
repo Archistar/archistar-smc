@@ -1,14 +1,14 @@
 package at.archistar.crypto;
 
-import at.archistar.helper.ShareHelper;
-import at.archistar.helper.ShareMacHelper;
-
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+
+import at.archistar.helper.ShareHelper;
+import at.archistar.helper.ShareMacHelper;
 
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.VSSShare;
@@ -33,8 +33,8 @@ import at.archistar.crypto.random.SHA1PRNG;
  * @version 2014-7-29
  */
 public class CevallosUSRSS extends SecretSharing {
-    private final String MAC = "HMacSHA512";
-    private final int E = 128; // security constant for computing the tag length; means 128 bit
+    private static final String MAC = "HMacSHA512";
+    private static final int E = 128; // security constant for computing the tag length; means 128 bit
     
     private int keyTagLength;
     
@@ -42,7 +42,7 @@ public class CevallosUSRSS extends SecretSharing {
     private ShareMacHelper mac; // final has been omitted to allow a try/catch-block in constructor
     
     /**
-     * Constructor
+     * Constructor.
      * 
      * @param n the number of shares to create
      * @param k the minimum number of (correct) shares required to reconstruct the message (degree of the polynomial + 1)
@@ -53,14 +53,20 @@ public class CevallosUSRSS extends SecretSharing {
     public CevallosUSRSS(int n, int k, RandomSource rng) throws WeakSecurityException {
         super(n, k);
         
-        if(!((k-1) * 3 >= n && (k-1) * 2 < n))
+        if (!((k - 1) * 3 >= n && (k - 1) * 2 < n)) {
             throw new ImpossibleException("this scheme only works when n/3 <= t < n/2 (where t = k-1)");
+        }
         
         /* this scheme requires ShamirPSS and Berlekamp-Welch decoder */
-        sharing = new ShamirPSS(n, k, rng, new BerlekampWelchDecoder(k-1));
+        sharing = new ShamirPSS(n, k, rng, new BerlekampWelchDecoder(k - 1));
         
-        try { mac = new ShareMacHelper(MAC, new SHA1PRNG()); } // we are using HMacSHA256 at the moment
-        catch(NoSuchAlgorithmException e) { } // this should never happen
+        try {
+            // we are using HMacSHA256 at the moment
+            mac = new ShareMacHelper(MAC, new SHA1PRNG());
+        } catch (NoSuchAlgorithmException e) {
+            // this should never happen
+            // TODO: throw impossible exception
+        }
     }
     
     @Override
@@ -70,16 +76,17 @@ public class CevallosUSRSS extends SecretSharing {
         VSSShare[] cshares = ShareHelper.createVSSShares(sharing.share(data), keyTagLength, keyTagLength);
         
         /* compute and add the corresponding tags */
-        for(VSSShare share1 : cshares) {
-            for(VSSShare share2 : cshares) {
+        for (VSSShare share1 : cshares) {
+            for (VSSShare share2 : cshares) {
                 try {
                     byte[] key = mac.genSampleKey(keyTagLength);
                     byte[] tag = mac.computeMAC(share1.getShare(), key, keyTagLength);
                     
                     share1.getMacs().put((byte) share2.getId(), tag);
                     share2.getMacKeys().put((byte) share1.getId(), key);
+                } catch (Exception e) {
+                     throw new ImpossibleException("TODO: find a good exception message");
                 }
-                catch(Exception e) { return null; }
             }
         }
         
@@ -93,16 +100,15 @@ public class CevallosUSRSS extends SecretSharing {
         /* create an accepts table */
         boolean[][] accepts = new boolean[n + 1][n + 1]; // accepts[i][j] means participant j accepts i
         int a[] = new int[n + 1];
+
         for (VSSShare s1 : cshares){
-        	for (VSSShare s2 : cshares){
-        		try { 
-        			accepts[s1.getId()][s2.getId()] = mac.verifyMAC(s1.getShare(), s1.getMacs().get((byte) s2.getId()), s2.getMacKeys().get((byte) s1.getId())); 
-        			a[s1.getId()] += accepts[s1.getId()][s2.getId()] ? 1 : 0;
-        		}
-                catch (Exception e) {
-                	
-                } // catch faulty shares
-        	}
+            for (VSSShare s2 : cshares){
+                try { 
+                    accepts[s1.getId()][s2.getId()] = mac.verifyMAC(s1.getShare(), s1.getMacs().get((byte) s2.getId()), s2.getMacKeys().get((byte) s1.getId())); 
+                    a[s1.getId()] += accepts[s1.getId()][s2.getId()] ? 1 : 0;
+                } catch (Exception e) {
+            } // catch faulty shares
+            }
         }
             
         
@@ -110,26 +116,27 @@ public class CevallosUSRSS extends SecretSharing {
         List<Share> valid = new LinkedList<Share>(Arrays.asList(ShareHelper.extractUnderlyingShares(cshares)));
             
         boolean bad;
-        while(valid.size() >= k) {
-        	bad = false;
+        while (valid.size() >= k) {
+            bad = false;
             Iterator<Share> i1 = valid.iterator();
-            while(!bad && i1.hasNext()) {
+            while (!bad && i1.hasNext()) {
                 Share s1 = i1.next();
-                if(a[s1.getId()] < k) { // share is not accepted by enough others
+                if (a[s1.getId()] < k) { // share is not accepted by enough others
                     i1.remove();   
-                    for(Share s2: valid){
-                    	a[s2.getId()] -= accepts[s2.getId()][s1.getId()] ? 1 : 0;
+                    for (Share s2: valid){
+                        a[s2.getId()] -= accepts[s2.getId()][s1.getId()] ? 1 : 0;
                     }
                     bad = true;
                 }
             }
-            if(!bad){
-            	break;
+            if (!bad){
+                break;
             }
         }
         
-        if(valid.size() >= k) // not enough shares for reconstruction
+        if (valid.size() >= k) { // not enough shares for reconstruction
             return sharing.reconstruct(valid.toArray(new Share[valid.size()]));
+        }
         
         throw new ReconstructionException(); // if there weren't enough valid shares
     }
@@ -162,7 +169,7 @@ public class CevallosUSRSS extends SecretSharing {
      * @return the amount of bytes the MAC-tags should have
      */
     private int computeTagLength(int m, int k, int e) {
-        return (log2(k) + log2(m) + 2/k*e + log2(e)) / 8; // result in bytes
+        return (log2(k) + log2(m) + 2 / k * e + log2(e)) / 8; // result in bytes
     }
     
     /**
@@ -172,8 +179,9 @@ public class CevallosUSRSS extends SecretSharing {
      * @return the integer logarithm (whole number -> floor()) of the given number
      */
     private int log2(int n){
-        if (n <= 0) 
+        if (n <= 0) {
             throw new IllegalArgumentException();
+        }
         
         return 31 - Integer.numberOfLeadingZeros(n);
     }

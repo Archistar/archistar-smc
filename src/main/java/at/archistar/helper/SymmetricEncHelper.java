@@ -68,8 +68,7 @@ public class SymmetricEncHelper {
             cipher.init(cipherMode, sKeySpec, new IvParameterSpec(sKey)); // TODO: IV == key ???
             
             return cipher.doFinal(data);
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             throw new CryptoException("en- or decrypting failed (cause: " + e.toString() + ")");
         }
     }

@@ -10,10 +10,10 @@ package at.archistar.crypto.random;
  */
 public interface RandomSource {
 
-	/**
-	 * Generates a new random byte in range 1 - 255. (as an integer)
-	 * @return a random byte excluding 0
-	 */
+    /**
+     * Generates a new random byte in range 1 - 255. (as an integer)
+     * @return a random byte excluding 0
+     */
     public int generateByte(); // return int because there are no unsigned bytes in java
     
 }

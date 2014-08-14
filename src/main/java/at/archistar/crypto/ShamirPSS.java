@@ -50,10 +50,10 @@ public class ShamirPSS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public ShamirPSS(int n, int k, RandomSource rng, PolySolver solver) throws WeakSecurityException {
-    	super(n, k);
-    	
-    	this.rng = rng;
-    	this.solver = solver;
+        super(n, k);
+        
+        this.rng = rng;
+        this.solver = solver;
     }
 
     @Override
@@ -74,13 +74,13 @@ public class ShamirPSS extends SecretSharing {
 
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
-    	if (!validateShareCount(shares.length, k)) {
-    		throw new ReconstructionException();
-    	}
-    	
-    	try {
-    	    ShamirShare[] sshares = safeCast(shares); // we need access to the inner fields
-    	    
+        if (!validateShareCount(shares.length, k)) {
+            throw new ReconstructionException();
+        }
+        
+        try {
+            ShamirShare[] sshares = safeCast(shares); // we need access to the inner fields
+            
             byte[] result = new byte[sshares[0].getY().length];
             int[] xVals = ShareHelper.extractXVals(sshares);
             
@@ -93,7 +93,7 @@ public class ShamirPSS extends SecretSharing {
             }   
             
             return result;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new ReconstructionException();
         }
     }
@@ -111,8 +111,9 @@ public class ShamirPSS extends SecretSharing {
         
         coeffs[0] = secret;
         
-        for (int i = 1; i <= degree; i++)
+        for (int i = 1; i <= degree; i++) {
             coeffs[i] = rng.generateByte();
+        }
         
         return new GF256Polynomial(coeffs);
     }
@@ -125,12 +126,12 @@ public class ShamirPSS extends SecretSharing {
      * @throws ClassCastException if the Share[] did not (only) contain ShamirShares
      */
     private ShamirShare[] safeCast(Share[] shares) {
-    	ShamirShare[] sshares = new ShamirShare[shares.length];
-    	
-    	for (int i = 0; i < shares.length; i++) {
-    		sshares[i] = (ShamirShare) shares[i];
-    	}
-    	
-    	return sshares;
+        ShamirShare[] sshares = new ShamirShare[shares.length];
+        
+        for (int i = 0; i < shares.length; i++) {
+            sshares[i] = (ShamirShare) shares[i];
+        }
+        
+        return sshares;
     }
 }

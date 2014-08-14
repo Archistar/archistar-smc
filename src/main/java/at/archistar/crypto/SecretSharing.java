@@ -18,31 +18,31 @@ import at.archistar.crypto.exceptions.WeakSecurityException;
  * @version 2014-7-22
  */
 public abstract class SecretSharing {
-	protected final int n; // number of shares
-	protected final int k; // minimum number of valid shares required for reconstruction
-	
-	/**
-	 * Constructor (can and should only be called from sub-classes)
-	 * 
-	 * @param n the number of shares to create
-	 * @param k the minimum number of valid shares required for reconstruction
-	 * @throws WeakSecurityException if the scheme is not secure for the given parameters
-	 */
-	protected SecretSharing(int n, int k) throws WeakSecurityException {
-		checkSecurity(n, k); // validate security
-		
-		this.n = n;
-		this.k = k;
-	}
-	
-	/* abstract methods which need to have different implementations for every Secret-Sharing scheme */
-	
-	/**
-	 * Creates <i>n</i> secret shares for the given data where <i>k</i> shares are required for reconstruction. 
-	 * (n, k should have been previously initialized)
-	 * @param data the data to share secretly
-	 * @return the n different secret shares for the given data
-	 */
+    protected final int n; // number of shares
+    protected final int k; // minimum number of valid shares required for reconstruction
+    
+    /**
+     * Constructor (can and should only be called from sub-classes)
+     * 
+     * @param n the number of shares to create
+     * @param k the minimum number of valid shares required for reconstruction
+     * @throws WeakSecurityException if the scheme is not secure for the given parameters
+     */
+    protected SecretSharing(int n, int k) throws WeakSecurityException {
+        checkSecurity(n, k); // validate security
+        
+        this.n = n;
+        this.k = k;
+    }
+    
+    /* abstract methods which need to have different implementations for every Secret-Sharing scheme */
+    
+    /**
+     * Creates <i>n</i> secret shares for the given data where <i>k</i> shares are required for reconstruction. 
+     * (n, k should have been previously initialized)
+     * @param data the data to share secretly
+     * @return the n different secret shares for the given data
+     */
     public abstract Share[] share(byte[] data);
     /**
      * Attempts to reconstruct the secret from the given shares.<br>
@@ -65,9 +65,9 @@ public abstract class SecretSharing {
      * @throws WeakSecurityException thrown if the Secret-Sharing scheme is not secure enough
      */
     protected static void checkSecurity(int n, int k) throws WeakSecurityException { // n is there in case we want to override this
-    	if (k < 2) {
-    		throw new WeakSecurityException();
-    	}
+        if (k < 2) {
+            throw new WeakSecurityException();
+        }
     }
     /**
      * Checks if there are enough shares for reconstruction.<br>
@@ -78,7 +78,7 @@ public abstract class SecretSharing {
      * @return true if there are enough shares; false otherwise
      */
     protected static boolean validateShareCount(int n, int k) {
-    	return n >= k; // base implementation; necessary condition for every Secret-Sharing scheme
+        return n >= k; // base implementation; necessary condition for every Secret-Sharing scheme
     }
     
     /* only Getters; objects of this class should be immutable */

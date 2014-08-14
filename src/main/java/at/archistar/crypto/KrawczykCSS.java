@@ -31,10 +31,10 @@ import at.archistar.crypto.random.SHA1PRNG;
  * @version 2014-7-28
  */
 public class KrawczykCSS extends SecretSharing {
-    private final EncryptionAlgorithm ALG = EncryptionAlgorithm.AES;
-    private final int KEY_LENGTH = 128;
+    private static final EncryptionAlgorithm ALG = EncryptionAlgorithm.AES;
+    private static final int KEY_LENGTH = 128;
     
-	private final SecretSharing shamir;
+    private final SecretSharing shamir;
     private final SecretSharing rs;
 
     /**
@@ -55,34 +55,33 @@ public class KrawczykCSS extends SecretSharing {
 
     @Override
     public Share[] share(byte[] data) {
-		try {
-	    	/* encrypt the data */
-			byte[] encKey = SymmetricEncHelper.genRandomSecretKey(ALG.getAlgString(), KEY_LENGTH);
-			byte[] encSource = SymmetricEncHelper.encrypt(ALG.getAlgString(), encKey, data);
+        try {
+            /* encrypt the data */
+            byte[] encKey = SymmetricEncHelper.genRandomSecretKey(ALG.getAlgString(), KEY_LENGTH);
+            byte[] encSource = SymmetricEncHelper.encrypt(ALG.getAlgString(), encKey, data);
 
-			/* share key and content */
-			Share[] contentShares = rs.share(encSource); // since the content is encrypted the share does not have to be perfectly secure (-> Reed-Solomon-Code)
-			Share[] keyShares = shamir.share(encKey);
+            /* share key and content */
+            Share[] contentShares = rs.share(encSource); // since the content is encrypted the share does not have to be perfectly secure (-> Reed-Solomon-Code)
+            Share[] keyShares = shamir.share(encKey);
 
-			//Generate a new array of encrypted shares
-			return ShareHelper.createKrawczykShares((ShamirShare[]) keyShares, (ReedSolomonShare[]) contentShares, ALG);
-		} catch(Exception e) { 
-		    throw new ImpossibleException("sharing failed (" + e.getMessage() + ")");
-		} // encryption should actually never fail
+            //Generate a new array of encrypted shares
+            return ShareHelper.createKrawczykShares((ShamirShare[]) keyShares, (ReedSolomonShare[]) contentShares, ALG);
+        } catch (Exception e) { 
+            throw new ImpossibleException("sharing failed (" + e.getMessage() + ")");
+        } // encryption should actually never fail
     }
 
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
-    	try {   
-    	    KrawczykShare[] kshares = safeCast(shares);
-    	    
-	        byte[] key = shamir.reconstruct(ShareHelper.extractKeyShares(kshares)); // reconstruct the key
-	        byte[] encShare = rs.reconstruct(ShareHelper.extractContentShares(kshares)); // reconstruct the encrypted share
+        try {   
+            KrawczykShare[] kshares = safeCast(shares);
+            
+            byte[] key = shamir.reconstruct(ShareHelper.extractKeyShares(kshares)); // reconstruct the key
+            byte[] encShare = rs.reconstruct(ShareHelper.extractContentShares(kshares)); // reconstruct the encrypted share
 
-        	return SymmetricEncHelper.decrypt(ALG.getAlgString(), key, encShare); // decrypt the encrypted data with the extracted key
-    	}
-        catch(Exception e) {
-        	throw new ReconstructionException();
+            return SymmetricEncHelper.decrypt(ALG.getAlgString(), key, encShare); // decrypt the encrypted data with the extracted key
+        } catch (Exception e) {
+            throw new ReconstructionException();
         }
     }
     

@@ -15,9 +15,10 @@ import de.flexiprovider.common.util.IntUtils;
  * @version 2014-7-18
  */
 public class CustomMatrix extends GF2mMatrix {
-	public static final GF2mField gf256 = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0) / 285
-	
-	/**
+
+    public static GF2mField gf256 = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0) / 285
+    
+    /**
      * Constructor
      * @param data the data to put into the matrix
      */
@@ -26,9 +27,9 @@ public class CustomMatrix extends GF2mMatrix {
     }
 
     /**
-	 * Constructor
-	 * @param encoded the encoded matrix (got via {@link #getEncoded()})
-	 */
+     * Constructor
+     * @param encoded the encoded matrix (got via {@link #getEncoded()})
+     */
     public CustomMatrix(byte[] encoded) {
         super(gf256, encoded);
     }
@@ -37,15 +38,15 @@ public class CustomMatrix extends GF2mMatrix {
      * Performs a matrix * vector multiplication.
      * 
      * <b>NOTE:</b> Matrix multiplication is not commutative. (A*B != B*A) and so does only work if A(MxN) and B(NxO).
-     * 		 		Throws an {@link ArithmeticException} if this condition is violated.
+     *              Throws an {@link ArithmeticException} if this condition is violated.
      * 
      * @param vec the vector to multiply the matrix with (a 1D-matrix)
      * @return the product of the matrix and the given vector <i>(matrix * vector)</i>
      */
     public int[] rightMultiply(int vec[]) {
-    	if (vec.length != matrix.length || vec.length != matrix[0].length) { // multiplication only works if A(MxN) and B(NxO)
-    		throw new ArithmeticException("when matrix is MxN, vector must be Nx1"); 
-    	}
+        if (vec.length != matrix.length || vec.length != matrix[0].length) { // multiplication only works if A(MxN) and B(NxO)
+            throw new ArithmeticException("when matrix is MxN, vector must be Nx1"); 
+        }
 
         int[] result = new int[vec.length];
         for (int i = 0; i < vec.length; i++) {
@@ -88,18 +89,21 @@ public class CustomMatrix extends GF2mMatrix {
      * @return the inverse of this matrix (as a new matrix)
      */
     public CustomMatrix computeInverseElimDepRows() {
-    	if (numRows != numColumns)
+        if (numRows != numColumns) {
             throw new ArithmeticException("Matrix is not invertible.");
+        }
 
         // clone this matrix
         int[][] tmpMatrix = new int[numRows][numRows];
-        for (int i = numRows - 1; i >= 0; i--)
+        for (int i = numRows - 1; i >= 0; i--) {
             tmpMatrix[i] = IntUtils.clone(matrix[i]);
+        }
 
         // initialize inverse matrix as unit matrix
         int[][] invMatrix = new int[numRows][numRows];
-        for (int i = numRows - 1; i >= 0; i--)
+        for (int i = numRows - 1; i >= 0; i--) {
             invMatrix[i][i] = 1;
+        }
 
         // simultaneously compute Gaussian reduction of tmpMatrix and unit matrix
         for (int i = 0; i < numRows; i++) {
@@ -121,8 +125,8 @@ public class CustomMatrix extends GF2mMatrix {
                 // if no non-zero element was found
                 if (!foundNonZero) {
                     // this row is dependent so eliminate it with the corresponding column
-                	numRows--; // this will only happen in the last row
-                	numColumns--;
+                    numRows--; // this will only happen in the last row
+                    numColumns--;
                 }
             }
 
@@ -160,29 +164,34 @@ public class CustomMatrix extends GF2mMatrix {
         matrix[second] = tmp;
     }
     private void multRowWithElementThis(int[] row, int element) {
-        for (int i = row.length - 1; i >= 0; i--)
+        for (int i = row.length - 1; i >= 0; i--) {
             row[i] = GF256.mult(row[i], element);
+        }
     }
     private int[] multRowWithElement(int[] row, int element) {
         int[] result = new int[row.length];
         
-        for (int i = row.length - 1; i >= 0; i--)
-        	result[i] = GF256.mult(row[i], element);
+        for (int i = row.length - 1; i >= 0; i--) {
+            result[i] = GF256.mult(row[i], element);
+        }
 
         return result;
     }
     private void addToRow(int[] fromRow, int[] toRow) {
-        for (int i = toRow.length - 1; i >= 0; i--)
+        for (int i = toRow.length - 1; i >= 0; i--) {
             toRow[i] = GF256.add(fromRow[i], toRow[i]);
+        }
     }
     
     private void trim(int[][] matrix, int newRows, int newColumns) {
-    	int[][] newMatrix = new int[newRows][newColumns];
-    	
-    	for (int i = 0; i < newRows; i++)
-    		for (int j = 0; j < newColumns; j++)
-    			newMatrix[i][j] = matrix[i][j];
-    	
-    	matrix = newMatrix;
+        int[][] newMatrix = new int[newRows][newColumns];
+        
+        for (int i = 0; i < newRows; i++) {
+            for (int j = 0; j < newColumns; j++) {
+                newMatrix[i][j] = matrix[i][j];
+            }
+        }
+        
+        matrix = newMatrix;
     }
 }

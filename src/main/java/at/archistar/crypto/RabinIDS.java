@@ -29,20 +29,20 @@ import at.archistar.helper.ShareHelper;
  * @version 2014-7-25
  */
 public class RabinIDS extends SecretSharing {
-	private PolySolver solver;
-	
-	/**
+    private PolySolver solver;
+    
+    /**
      * Constructor
      * <p>(applying {@link ErasureDecoder} as default reconstruction algorithm)</p>
      * 
      * @param n the number of shares to create
      * @param k the minimum number of shares required for reconstruction
-	 * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
+     * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
-	public RabinIDS(int n, int k) throws WeakSecurityException {
+    public RabinIDS(int n, int k) throws WeakSecurityException {
         this(n, k, new ErasureDecoder());
     }
-	/**
+    /**
      * Constructor
      * 
      * @param n the number of shares to create
@@ -50,11 +50,11 @@ public class RabinIDS extends SecretSharing {
      * @param solver the solving algorithm to use for reconstructing the secret
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
-	public RabinIDS(int n, int k, PolySolver solver) throws WeakSecurityException {
-		super(n, k);
-		
-		this.solver = solver;
-	}
+    public RabinIDS(int n, int k, PolySolver solver) throws WeakSecurityException {
+        super(n, k);
+        
+        this.solver = solver;
+    }
 
     @Override
     public Share[] share(byte[] data) {
@@ -91,14 +91,14 @@ public class RabinIDS extends SecretSharing {
 
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
-    	if (!validateShareCount(shares.length, k)) {
-    		throw new ReconstructionException();
-    	}
-    	
-    	try {
-    	    ReedSolomonShare[] rsshares = safeCast(shares); // we need access to the inner fields
+        if (!validateShareCount(shares.length, k)) {
+            throw new ReconstructionException();
+        }
+        
+        try {
+            ReedSolomonShare[] rsshares = safeCast(shares); // we need access to the inner fields
             
-    	    int xValues[] = Arrays.copyOfRange(ShareHelper.extractXVals(rsshares), 0, k); // we only need k x-values for reconstruction
+            int xValues[] = Arrays.copyOfRange(ShareHelper.extractXVals(rsshares), 0, k); // we only need k x-values for reconstruction
             byte result[] = new byte[rsshares[0].getOriginalLength()];
         
             int index = 0;
@@ -120,7 +120,7 @@ public class RabinIDS extends SecretSharing {
             }
         
             return result;
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             throw new ReconstructionException();
         }
@@ -148,12 +148,12 @@ public class RabinIDS extends SecretSharing {
      * @throws ClassCastException if the Share[] did not (only) contain ReedSolomonShares
      */
     private ReedSolomonShare[] safeCast(Share[] shares) {
-    	ReedSolomonShare[] rsshares = new ReedSolomonShare[shares.length];
-    	
-    	for (int i = 0; i < shares.length; i++) {
-    		rsshares[i] = (ReedSolomonShare) shares[i];
-    	}
-    	
-    	return rsshares;
+        ReedSolomonShare[] rsshares = new ReedSolomonShare[shares.length];
+        
+        for (int i = 0; i < shares.length; i++) {
+            rsshares[i] = (ReedSolomonShare) shares[i];
+        }
+        
+        return rsshares;
     }
 }

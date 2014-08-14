@@ -8,20 +8,20 @@ package at.archistar.crypto.exceptions;
  * @version 2014-7-21
  */
 public class CryptoException extends Exception {
-	private static final long serialVersionUID = 1L; // unnecessary; just to prevent warning
-	
-	private String message;
-	
-	/**
-	 * Constructor
-	 * @param message the message to deliver with this Exception
-	 */
-	public CryptoException(String message) {
-		this.message = message;
-	}
-	
-	@Override
-	public String toString() {
-		return "Exception: " + message;
-	}
+    private static final long serialVersionUID = 1L; // unnecessary; just to prevent warning
+    
+    private String message;
+    
+    /**
+     * Constructor
+     * @param message the message to deliver with this Exception
+     */
+    public CryptoException(String message) {
+        this.message = message;
+    }
+    
+    @Override
+    public String toString() {
+        return "Exception: " + message;
+    }
 }

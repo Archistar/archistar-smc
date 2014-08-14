@@ -7,5 +7,5 @@ package at.archistar.crypto.exceptions;
  * @version 2014-7-21
  */
 public class ReconstructionException extends Exception {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 }
