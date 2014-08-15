@@ -1,19 +1,19 @@
 package at.archistar.crypto;
 
-import static org.fest.assertions.api.Assertions.assertThat;
-
+import at.archistar.crypto.data.Share;
+import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
+import at.archistar.crypto.decode.DecoderFactory;
+import at.archistar.crypto.exceptions.ReconstructionException;
+import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.random.FakeRandomSource;
+import at.archistar.crypto.random.RandomSource;
 import java.util.Arrays;
 import java.util.Collections;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import at.archistar.crypto.data.Share;
-import at.archistar.crypto.exceptions.ImpossibleException;
-import at.archistar.crypto.exceptions.ReconstructionException;
-import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.random.FakeRandomSource;
 
 /**
  * Tests for {@link CevallosUSRSS}
@@ -23,11 +23,15 @@ import at.archistar.crypto.random.FakeRandomSource;
 public class TestCevallosUSRSS {
     byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
     private SecretSharing algorithm;
+    private static final RandomSource rng = new FakeRandomSource();
+    //private static final DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
+    private static final DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
     
     @Before
     public void setup() throws WeakSecurityException {
-        algorithm = new CevallosUSRSS(8, 4, new FakeRandomSource());
+        algorithm = new CevallosUSRSS(8, 4, decoderFactory, rng);
     }
+    
     @After
     public void tearDown() {
         algorithm = null;
@@ -46,28 +50,28 @@ public class TestCevallosUSRSS {
     public void tGoodRangeLowerBoundGoodTest() throws WeakSecurityException{
     	int n = 11;
     	int t = 4;
-        new CevallosUSRSS(n, t + 1, new FakeRandomSource()); // very close above the lower bound n/3
+        new CevallosUSRSS(n, t + 1, decoderFactory, rng); // very close above the lower bound n/3
     }
     
-    @Test(expected=ImpossibleException.class)
+    @Test(expected=WeakSecurityException.class)
     public void tGoodRangeLowerBoundFailTest() throws WeakSecurityException{
     	int n = 11;
     	int t = 3;
-        new CevallosUSRSS(n, t + 1, new FakeRandomSource()); // very close below the lower bound n/3
+        new CevallosUSRSS(n, t + 1, decoderFactory, rng); // very close below the lower bound n/3
     }
     
     @Test
     public void tRangeUpperBoundLimitGoodTest() throws WeakSecurityException{
     	int n = 11;
     	int t = 5;
-        new CevallosUSRSS(n, t + 1, new FakeRandomSource()); // here t is close to the upper bound but still in the good range
+        new CevallosUSRSS(n, t + 1, decoderFactory, rng); // here t is close to the upper bound but still in the good range
     }
     
-    @Test(expected=ImpossibleException.class)
+    @Test(expected=WeakSecurityException.class)
     public void tGoodRangeUpperBoundLimitFailTest() throws WeakSecurityException{
     	int n = 10;
     	int t = 5;
-        new CevallosUSRSS(n, t + 1, new FakeRandomSource()); // here the t is over the upper bound
+        new CevallosUSRSS(n, t + 1, decoderFactory, rng); // here the t is over the upper bound
     }
     
     @Test
@@ -93,8 +97,7 @@ public class TestCevallosUSRSS {
         Share shares[] = algorithm.share(data);
         Share[] shares1 = Arrays.copyOfRange(shares, 0, 2);
         
-        @SuppressWarnings("unused")
-        byte reconstructedData[] = algorithm.reconstruct(shares1);
+        algorithm.reconstruct(shares1);
     }
 
 }

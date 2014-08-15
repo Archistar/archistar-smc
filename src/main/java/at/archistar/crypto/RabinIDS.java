@@ -6,6 +6,7 @@ import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
+import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
@@ -95,34 +96,32 @@ public class RabinIDS extends SecretSharing {
             throw new ReconstructionException();
         }
         
-        try {
-            ReedSolomonShare[] rsshares = safeCast(shares); // we need access to the inner fields
+        ReedSolomonShare[] rsshares = safeCast(shares); // we need access to the inner fields
             
-            int xValues[] = Arrays.copyOfRange(ShareHelper.extractXVals(rsshares), 0, k); // we only need k x-values for reconstruction
-            byte result[] = new byte[rsshares[0].getOriginalLength()];
+        int xValues[] = Arrays.copyOfRange(ShareHelper.extractXVals(rsshares), 0, k); // we only need k x-values for reconstruction
+        byte result[] = new byte[rsshares[0].getOriginalLength()];
         
-            int index = 0;
+        int index = 0;
             
-            Decoder decoder = decoderFactory.createDecoder(xValues);
-            for (int i = 0; i < rsshares[0].getY().length; i++) {
-                int yValues[] = new int[k];
+        Decoder decoder = decoderFactory.createDecoder(xValues, k);
+        for (int i = 0; i < rsshares[0].getY().length; i++) {
+            int yValues[] = new int[k];
+            for (int j = 0; j < k; j++) { // extract only k y-values (so we have k xy-pairs)
+                yValues[j] = ByteUtils.toUnsignedByte(rsshares[j].getY()[i]);
+            }
                 
-                for (int j = 0; j < k; j++) { // extract only k y-values (so we have k xy-pairs)
-                    yValues[j] = ByteUtils.toUnsignedByte(rsshares[j].getY()[i]);
-                }
-                
-                /* perform matrix-multiplication to compute the coefficients */
-                int resultMatrix[] = decoder.decode(yValues);
+            /* perform matrix-multiplication to compute the coefficients */
+            try {
+                int resultMatrix[] = decoder.decode(yValues, 0);
+            
                 for (int j = resultMatrix.length - 1; j >= 0 && index < rsshares[0].getOriginalLength(); j--) {
                     result[index++] = (byte) resultMatrix[resultMatrix.length - 1 - j];
                 }
+            } catch (UnsolvableException e) {
+                throw new ReconstructionException();
             }
-        
-            return result;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new ReconstructionException();
         }
+        return result;
     }
     
     /**

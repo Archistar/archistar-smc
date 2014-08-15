@@ -1,23 +1,18 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.data.Share;
+import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
+import at.archistar.crypto.decode.ErasureDecoderFactory;
+import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.random.FakeRandomSource;
+import at.archistar.crypto.random.RandomSource;
 import java.util.Arrays;
 import java.util.Collection;
-
+import static org.fest.assertions.api.Assertions.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
-import at.archistar.crypto.KrawczykCSS;
-import at.archistar.crypto.RabinBenOrRSS;
-import at.archistar.crypto.RabinIDS;
-import at.archistar.crypto.SecretSharing;
-import at.archistar.crypto.ShamirPSS;
-import at.archistar.crypto.data.Share;
-import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.random.FakeRandomSource;
-import at.archistar.crypto.random.RandomSource;
-import static org.fest.assertions.api.Assertions.*;
 
 /**
  * Tests and compares the performance of the different Secret-Sharing algorithms. 
@@ -72,7 +67,8 @@ public class PerformanceTest {
            {secrets, new RabinIDS(n, k)},
            {secrets, new KrawczykCSS(n, k, rng)},
            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng))},
-           // {secrets, new CevallosUSRSS(5, 3, rng)}// this is far too slow for the performance-test because BerlekampWelch-Decoder has O(n^3) complexity
+           {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng)},
+           {secrets, new CevallosUSRSS(5, 3, new ErasureDecoderFactory(), rng)}
         };
 
         return Arrays.asList(data);

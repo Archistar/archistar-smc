@@ -3,6 +3,7 @@ package at.archistar.crypto;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.VSSShare;
 import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
+import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
@@ -45,18 +46,19 @@ public class CevallosUSRSS extends SecretSharing {
      * @param n the number of shares to create
      * @param k the minimum number of (correct) shares required to reconstruct the message (degree of the polynomial + 1)
      *          must be in range: <i>n/3 <= k-1 < n/2</i> ({@link ImpossibleException} if thrown if that constraint is violated)
-     * @param rng the source of randomness to use for the underlying Shamir-scheme
+     * @param rng the source of randomness to be used
+     * @param decoderFactory the decoder to be used
      * @throws WeakSecurityException thrown if this scheme is not secure for the given parameters
      */
-    public CevallosUSRSS(int n, int k, RandomSource rng) throws WeakSecurityException {
+    public CevallosUSRSS(int n, int k, DecoderFactory decoderFactory, RandomSource rng) throws WeakSecurityException {
         super(n, k);
         
         if (!((k - 1) * 3 >= n && (k - 1) * 2 < n)) {
-            throw new ImpossibleException("this scheme only works when n/3 <= t < n/2 (where t = k-1)");
+            throw new WeakSecurityException("this scheme only works when n/3 <= t < n/2 (where t = k-1)");
         }
         
-        /* this scheme requires ShamirPSS and Berlekamp-Welch decoder */
-        sharing = new ShamirPSS(n, k, rng, new BerlekampWelchDecoderFactory(k - 1));
+        /* this scheme requires ShamirPSS */
+        sharing = new ShamirPSS(n, k, rng, decoderFactory);
         
         try {
             // we are using HMacSHA256 at the moment
@@ -128,7 +130,7 @@ public class CevallosUSRSS extends SecretSharing {
             }
         }
         
-        if (valid.size() >= k) { // not enough shares for reconstruction
+        if (valid.size() >= k) {
             return sharing.reconstruct(valid.toArray(new Share[valid.size()]));
         }
         

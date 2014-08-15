@@ -16,7 +16,8 @@ public interface DecoderFactory {
     
     /** create a new Decoder
      * @param xValues the constant xValues the Decoder was initialized with.
+     * @param k (degree+1)/count of the decoded elements
      * @return a new Decoder for the given xValues
      */
-    Decoder createDecoder(int[] xValues);
+    Decoder createDecoder(int[] xValues, int k);
 }

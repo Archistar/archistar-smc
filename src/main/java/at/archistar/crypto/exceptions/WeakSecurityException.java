@@ -9,4 +9,14 @@ package at.archistar.crypto.exceptions;
  */
 public class WeakSecurityException extends Exception {
     private static final long serialVersionUID = 1L;
+    
+    private final String msg;
+
+    public WeakSecurityException() {
+        this.msg = "none given";
+    }
+    
+    public WeakSecurityException(String msg) {
+        this.msg = msg;
+    }
 }

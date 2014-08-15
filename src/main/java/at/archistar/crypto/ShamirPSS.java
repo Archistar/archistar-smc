@@ -86,12 +86,12 @@ public class ShamirPSS extends SecretSharing {
         byte[] result = new byte[sshares[0].getY().length];
         int[] xVals = ShareHelper.extractXVals(sshares);
         
-        Decoder decoder = decoderFactory.createDecoder(xVals);
+        Decoder decoder = decoderFactory.createDecoder(xVals, k);
         for (int i = 0; i < result.length; i++) { // reconstruct all individual parts of the secret
             int[] yVals = ShareHelper.extractYVals(sshares, i);
             
             try {
-                result[i] = (byte) decoder.decode(yVals)[0];
+                result[i] = (byte) decoder.decode(yVals, 0)[0];
             } catch (UnsolvableException e) {
                 throw new ReconstructionException("too few shares to reconstruct");
             }

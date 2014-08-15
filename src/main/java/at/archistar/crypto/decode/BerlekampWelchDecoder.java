@@ -20,44 +20,29 @@ import at.archistar.crypto.math.GF256;
  * @version 2014-7-25
  */
 public class BerlekampWelchDecoder implements Decoder {
-    private int[][] matrix;
+    private final int[][] matrix;
     private final int[] x;
-    
     private final int f; // max number of allowed errors
-    private final int k; // number of points required for reconstruction
+    private final int k; // (degree+1), number of reconstructed elements
     
     /**
      * Constructor
-     * @param order the order of the polynomial to reconstruct
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public BerlekampWelchDecoder(int order, int[] xValues) {
-        this.k = order + 1;
-        f = (xValues.length - k) / 2; // (n - k) / 2
+    public BerlekampWelchDecoder(int[] xValues, int k) {
         
+        int n = xValues.length;
+        
+        this.k = k;
+        this.f = (n - k) / 2;
         this.x = xValues;
-        prepareQx(xValues);        
-    }
-
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    BerlekampWelchDecoder(int[] xValues) {
-        /* compute the number of max allowed errors */
-        k = 0; //TODO: this might not have been set in the old implementation?
-        f = (xValues.length - k) / 2; // (n - k) / 2
         
-        this.x = xValues;
-        prepareQx(xValues);
-    }
-
-    /**
-     * Prepares the <i>Q(x)</i> part of the matrix (the constant part). Must be only done once.
-     * @param x the x-coordinates to use for preparation
-     */
-    private void prepareQx(int[] x) {
-        matrix = new int[x.length][x.length];
+        /* prepare the Q(x) part of the matrix */
+        matrix = new int[n][n];
         
+        /* how many should be correct? */
         int t = x.length - f;
-        for (int i = 0; i < x.length; i++) {
+        for (int i = 0; i < n; i++) {
             for (int j = 0; j < t; j++) {
                 matrix[i][j] = GF256.pow(x[i], j);
             }
@@ -79,9 +64,13 @@ public class BerlekampWelchDecoder implements Decoder {
    
     @Override
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public int[] decode(int[] y) throws UnsolvableException {
+    public int[] decode(int[] y, int errors) throws UnsolvableException {
         if (x.length != y.length) {
             throw new ImpossibleException("Number of x-values does not equal number of y-values!");
+        }
+        
+        if (errors > this.f) {
+            throw new UnsolvableException("too many errors for this decoder (f=" + this.f + ", errors=" + errors + ")");
         }
         
         /* finish preparation of the decode-matrix */

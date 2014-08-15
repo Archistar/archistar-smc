@@ -14,8 +14,13 @@ import at.archistar.crypto.math.GF256;
  */
 public class ErasureDecoder implements Decoder {
     private final CustomMatrix matrix;
+    
+    private final int k;
 
-    ErasureDecoder(int[] xValues) {
+    ErasureDecoder(int[] xValues, int k) {
+        
+        this.k = k;
+        
         int[][] matrixX = new int[xValues.length][xValues.length];
 
         for (int i = 0; i < xValues.length; i++) {
@@ -28,7 +33,20 @@ public class ErasureDecoder implements Decoder {
     }
     
     @Override
-    public int[] decode(int[] y) {
+    public int[] decode(int[] y, int errorCount) throws UnsolvableException {
+        if (errorCount != 0) {
+            throw new UnsolvableException("Erasuredecoder cannot fix errors");
+        }
+        
+        if (matrix.getNumRows() != y.length) {
+            throw new UnsolvableException("Different Lengths");
+        }
+
+        
+        if (k > matrix.getNumRows()) {
+            throw new UnsolvableException("Seems to be a Configuraiton error");
+        }
+        
         return matrix.rightMultiply(y);
     }
 }

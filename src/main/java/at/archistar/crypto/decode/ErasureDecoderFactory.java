@@ -7,7 +7,7 @@ package at.archistar.crypto.decode;
 public class ErasureDecoderFactory implements DecoderFactory {
 
     @Override
-    public Decoder createDecoder(int[] xValues) {
-        return new ErasureDecoder(xValues);
+    public Decoder createDecoder(int[] xValues, int k) {
+        return new ErasureDecoder(xValues, k);
     }
 }
