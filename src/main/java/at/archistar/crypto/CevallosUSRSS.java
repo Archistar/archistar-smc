@@ -2,7 +2,6 @@ package at.archistar.crypto;
 
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.VSSShare;
-import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
@@ -14,7 +13,6 @@ import at.archistar.helper.ShareMacHelper;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -106,14 +104,10 @@ public class CevallosUSRSS extends SecretSharing {
         int a[] = new int[n + 1];
         for (VSSShare s1 : cshares) {
             for (VSSShare s2 : cshares) {
-                try {
-                    accepts[s1.getId()][s2.getId()] = mac.verifyMAC(
+                accepts[s1.getId()][s2.getId()] = mac.verifyMAC(
                             s1.getShare(), s1.getMacs().get((byte) s2.getId()),
                             s2.getMacKeys().get((byte) s1.getId()));
-                    a[s1.getId()] += accepts[s1.getId()][s2.getId()] ? 1 : 0;
-                } catch (Exception e) {
-                    throw new ImpossibleException("TODO: find a good exception message");
-                } // catch faulty shares
+                a[s1.getId()] += accepts[s1.getId()][s2.getId()] ? 1 : 0;
             }
             if (a[s1.getId()] < k) {
                 queue.add(s1.getId());
