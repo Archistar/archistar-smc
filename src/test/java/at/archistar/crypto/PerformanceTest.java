@@ -1,14 +1,18 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.data.KrawczykShare.EncryptionAlgorithm;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
+
 import java.util.Arrays;
 import java.util.Collection;
+
 import static org.fest.assertions.api.Assertions.*;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -66,6 +70,7 @@ public class PerformanceTest {
            {secrets, new ShamirPSS(n, k, rng)},
            {secrets, new RabinIDS(n, k)},
            {secrets, new KrawczykCSS(n, k, rng)},
+           {secrets, new KrawczykCSS(n, k, rng, EncryptionAlgorithm.AES_GCM_256)},
            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng))},
            {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng)},
            {secrets, new CevallosUSRSS(5, 3, new ErasureDecoderFactory(), rng)}

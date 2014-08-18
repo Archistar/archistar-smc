@@ -34,7 +34,7 @@ import at.archistar.crypto.random.SHA1PRNG;
  * @version 2014-7-28
  */
 public class KrawczykCSS extends SecretSharing {
-    private static final EncryptionAlgorithm ALG = EncryptionAlgorithm.AES;
+    private EncryptionAlgorithm alg = EncryptionAlgorithm.AES;
     private static final int KEY_LENGTH = 128;
     
     private final SecretSharing shamir;
@@ -50,25 +50,40 @@ public class KrawczykCSS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure for the given parameters
      */
     public KrawczykCSS(int n, int k, RandomSource rng) throws WeakSecurityException {
+        this(n, k, rng, EncryptionAlgorithm.AES);
+    }
+
+    /**
+     * Constructor
+     * (Applying the default settings for the Shamir-RNG and the decoders: {@link SHA1PRNG} and {@link ErasureDecoder})
+     * 
+     * @param n the number of shares
+     * @param k the minimum number of shares required for reconstruction
+     * @param rng the RandomSource to be used for the underlying Shamir-scheme
+     * @throws WeakSecurityException thrown if this scheme is not secure for the given parameters
+     */
+    public KrawczykCSS(int n, int k, RandomSource rng, EncryptionAlgorithm alg) throws WeakSecurityException {
         super(n, k);
         
         shamir = new ShamirPSS(n, k, rng); // use a SharmirSecretSharing share generator to share the key and the content
         rs = new RabinIDS(n, k); // use RabinIDS for sharing Content 
+        this.alg = alg;
     }
 
+    
     @Override
     public Share[] share(byte[] data) {
         try {
             /* encrypt the data */
-            byte[] encKey = SymmetricEncHelper.genRandomSecretKey(ALG.getAlgString(), KEY_LENGTH);
-            byte[] encSource = SymmetricEncHelper.encrypt(ALG.getAlgString(), encKey, data);
+            byte[] encKey = SymmetricEncHelper.genRandomSecretKey(alg.getAlgString(), KEY_LENGTH);
+            byte[] encSource = SymmetricEncHelper.encrypt(alg.getAlgString(), encKey, data);
 
             /* share key and content */
             Share[] contentShares = rs.share(encSource); // since the content is encrypted the share does not have to be perfectly secure (-> Reed-Solomon-Code)
             Share[] keyShares = shamir.share(encKey);
 
             //Generate a new array of encrypted shares
-            return ShareHelper.createKrawczykShares((ShamirShare[]) keyShares, (ReedSolomonShare[]) contentShares, ALG);
+            return ShareHelper.createKrawczykShares((ShamirShare[]) keyShares, (ReedSolomonShare[]) contentShares, alg);
         } catch (CryptoException e) { 
             // encryption should actually never fail
             throw new ImpossibleException("sharing failed (" + e.getMessage() + ")");
@@ -86,7 +101,7 @@ public class KrawczykCSS extends SecretSharing {
             byte[] key = shamir.reconstruct(ShareHelper.extractKeyShares(kshares)); // reconstruct the key
             byte[] encShare = rs.reconstruct(ShareHelper.extractContentShares(kshares)); // reconstruct the encrypted share
 
-            return SymmetricEncHelper.decrypt(ALG.getAlgString(), key, encShare); // decrypt the encrypted data with the extracted key
+            return SymmetricEncHelper.decrypt(alg.getAlgString(), key, encShare); // decrypt the encrypted data with the extracted key
         } catch (CryptoException e) {
             throw new ReconstructionException();
         }
