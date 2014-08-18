@@ -70,7 +70,7 @@ public class PerformanceTest {
            {secrets, new ShamirPSS(n, k, rng)},
            {secrets, new RabinIDS(n, k)},
            {secrets, new KrawczykCSS(n, k, rng)},
-           {secrets, new KrawczykCSS(n, k, rng, EncryptionAlgorithm.AES_GCM_256)},
+           // {secrets, new KrawczykCSS(n, k, rng, EncryptionAlgorithm.AES_GCM_256)}, // this does not execute properly, algorithm not found
            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng))},
            {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng)},
            {secrets, new CevallosUSRSS(5, 3, new ErasureDecoderFactory(), rng)}
