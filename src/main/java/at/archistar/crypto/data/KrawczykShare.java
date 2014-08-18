@@ -20,7 +20,8 @@ public final class KrawczykShare extends BaseSerializableShare {
      * Provides a method to get the corresponding Java-crypto-parameter-String for a identifier.
      */
     public static enum EncryptionAlgorithm {
-        AES("AES/CBC/PKCS5Padding");
+        AES("AES/CBC/PKCS5Padding"),
+        AES_GCM_256("AES/GCM/NoPadding");
         
         private final String algString;
 
