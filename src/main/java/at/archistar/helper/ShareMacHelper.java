@@ -9,7 +9,6 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.random.RandomSource;
 
 /**
  * A helper-class for computing and validating MACs for {@link Share}s.
@@ -17,26 +16,25 @@ import at.archistar.crypto.random.RandomSource;
  * @author Elias Frantar
  * @version 2014-7-24
  */
-public class ShareMacHelper {
-    private Mac mac;
-    private RandomSource rng;
+public class ShareMacHelper implements MacHelper {
+    
+    private final Mac mac;
     
     /**
      * Constructor
      * 
      * @param algorithm the MAC algorithm to use (for example <i>SHA-256</i>)
-     * @param rng the random number generator to use for generating keys
      * @throws NoSuchAlgorithmException thrown if the given algorithm is not supported
      */
-    public ShareMacHelper(String algorithm, RandomSource rng) throws NoSuchAlgorithmException {
-        mac = Mac.getInstance(algorithm);
-        this.rng = rng;
+    public ShareMacHelper(String algorithm) throws NoSuchAlgorithmException {
+        this.mac = Mac.getInstance(algorithm);
     }
     
     /**
      * @see #computeMAC(Share, byte[], int)
      * Uses algorithms default MAC-length.
      */
+    @Override
     public byte[] computeMAC(Share share, byte[] key) throws InvalidKeyException {
         return computeMAC(share, key, mac.getMacLength());
     }
@@ -49,6 +47,7 @@ public class ShareMacHelper {
      * @return the message authentication code (tag or MAC) for this share
      * @throws InvalidKeyException thrown if an InvalidKeyException occurred
      */
+    @Override
     public byte[] computeMAC(Share share, byte[] key, int length) throws InvalidKeyException {
         Key k = new SecretKeySpec(key, mac.getAlgorithm());
         mac.init(k);
@@ -68,6 +67,7 @@ public class ShareMacHelper {
      * @param key the key to use for verification
      * @return true if verification was successful (the tags matched); false otherwise
      */
+    @Override
     public boolean verifyMAC(Share share, byte[] tag, byte[] key) {
         boolean valid = false;
         
@@ -77,16 +77,5 @@ public class ShareMacHelper {
         } catch (InvalidKeyException e) {}
         
         return valid;
-    }
-    
-    /**
-     * Generates a random MAC-key of specified length
-     * @param length the length of the key
-     * @return a newly-generated random MAC-key
-     */
-    public byte[] genSampleKey(int length) { // TODO: should we even use a RandomSource for this? (since generateByte does not return 0)
-        byte[] key = new byte[length];
-        this.rng.fillBytes(key);
-        return key;
     }
 }

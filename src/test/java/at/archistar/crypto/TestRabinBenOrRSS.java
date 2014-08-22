@@ -1,20 +1,20 @@
 package at.archistar.crypto;
 
-import java.util.Arrays;
-import java.util.Collections;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.fest.assertions.api.Assertions.*;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
+import at.archistar.helper.MacHelper;
 import at.archistar.helper.ShareMacHelper;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Collections;
+
+import static org.fest.assertions.api.Assertions.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Tests for {@link RabinBenOrRSS}
@@ -33,9 +33,9 @@ public class TestRabinBenOrRSS {
     public void setup() throws WeakSecurityException, NoSuchAlgorithmException {
 
         RandomSource rng = new FakeRandomSource();
-        ShareMacHelper mac = new ShareMacHelper("HMacSHA256", rng);
+        MacHelper mac = new ShareMacHelper("HMacSHA256");
 
-        algorithm = new RabinBenOrRSS(new ShamirPSS(8, 5, rng), mac);
+        algorithm = new RabinBenOrRSS(new ShamirPSS(8, 5, rng), mac, rng);
     }
 
     @After

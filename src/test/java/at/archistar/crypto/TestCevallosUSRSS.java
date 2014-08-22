@@ -32,7 +32,7 @@ public class TestCevallosUSRSS {
     
     @Before
     public void setup() throws WeakSecurityException, NoSuchAlgorithmException {
-        mac = new ShareMacHelper("HMacSHA256", rng);
+        mac = new ShareMacHelper("HMacSHA256");
         algorithm = new CevallosUSRSS(8, 4, decoderFactory, rng, mac);
     }
     

@@ -68,7 +68,7 @@ public class PerformanceTest {
         final int k = 3;
 
         RandomSource rng = new FakeRandomSource();
-        ShareMacHelper mac = new ShareMacHelper("HMacSHA256", rng);
+        ShareMacHelper mac = new ShareMacHelper("HMacSHA256");
         
         Object[][] data = new Object[][]{
            {secrets, new ShamirPSS(n, k, rng)},
@@ -76,7 +76,7 @@ public class PerformanceTest {
            {secrets, new KrawczykCSS(n, k, rng, new AESEncryptor())},
            {secrets, new KrawczykCSS(n, k, rng, new AESGCMEncryptor())},
            {secrets, new KrawczykCSS(n, k, rng, new ChaCha20Encryptor())},
-           {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng), mac)},
+           {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng), mac, rng)},
            {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng, mac)}
         };
 

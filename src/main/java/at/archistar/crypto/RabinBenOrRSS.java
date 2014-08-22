@@ -1,14 +1,14 @@
 package at.archistar.crypto;
 
-import java.security.InvalidKeyException;
-import java.util.Arrays;
-
-import at.archistar.crypto.data.VSSShare;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.VSSShare;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.helper.ShareMacHelper;
+import at.archistar.crypto.random.RandomSource;
+import at.archistar.helper.MacHelper;
+import java.security.InvalidKeyException;
+import java.util.Arrays;
 
 /**
  * <p>This class implements the <i>Rabin-Ben-Or Robust Secret-Sharing </i> scheme.</p>
@@ -27,7 +27,8 @@ public class RabinBenOrRSS extends SecretSharing {
     private static final int TAG_LENGTH = 32;
     
     private final SecretSharing sharing;
-    private final ShareMacHelper mac;
+    private final MacHelper mac;
+    private final RandomSource rng;
 
     /**
      * Constructor
@@ -36,10 +37,11 @@ public class RabinBenOrRSS extends SecretSharing {
      * @param mac the mac that will be used
      * @throws WeakSecurityException 
      */
-    public RabinBenOrRSS(SecretSharing sharing, ShareMacHelper mac) throws WeakSecurityException {
+    public RabinBenOrRSS(SecretSharing sharing, MacHelper mac, RandomSource rng) throws WeakSecurityException {
         super(sharing.getN(), sharing.getK());
         
         this.mac = mac;
+        this.rng = rng;
         
         if (sharing instanceof RabinBenOrRSS) {
             throw new IllegalArgumentException("the underlying scheme must not be itself");
@@ -60,7 +62,8 @@ public class RabinBenOrRSS extends SecretSharing {
         for (VSSShare share1 : rboshares) {
             for (VSSShare share2 : rboshares) {
                 try {
-                    byte[] key = mac.genSampleKey(KEY_LENGTH);
+                    byte[] key = new byte[KEY_LENGTH];
+                    this.rng.fillBytes(key);
                     byte[] tag = mac.computeMAC(share1.getShare(), key, TAG_LENGTH);
                     
                     share1.getMacs().put((byte) share2.getId(), tag);
