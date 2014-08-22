@@ -1,13 +1,13 @@
 package at.archistar.crypto;
 
-import at.archistar.crypto.data.KrawczykShare.EncryptionAlgorithm;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
-import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
-
+import at.archistar.crypto.symmetric.AESEncryptor;
+import at.archistar.crypto.symmetric.AESGCMEncryptor;
+import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -53,15 +53,14 @@ public class PerformanceTest {
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException {
 
-        byte[][][] secrets = new byte[1][][];
+        byte[][][] secrets = new byte[7][][];
         secrets[0] = createArray(4 * 1024);
-        /*
         secrets[1] = createArray(32 * 1024);
         secrets[2] = createArray(64 * 1024);
         secrets[3] = createArray(256 * 1024);
         secrets[4] = createArray(512 * 1024);
         secrets[5] = createArray(1024 * 1024);
-        secrets[6] = createArray(4096 * 1024);*/
+        secrets[6] = createArray(4096 * 1024);
 
         final int n = 4;
         final int k = 3;
@@ -70,11 +69,11 @@ public class PerformanceTest {
         Object[][] data = new Object[][]{
            {secrets, new ShamirPSS(n, k, rng)},
            {secrets, new RabinIDS(n, k)},
-           {secrets, new KrawczykCSS(n, k, rng)},
-           {secrets, new KrawczykCSS(n, k, rng, EncryptionAlgorithm.AES_GCM_256)}, // this does not execute properly, algorithm not found
+           {secrets, new KrawczykCSS(n, k, rng, new AESEncryptor())},
+           {secrets, new KrawczykCSS(n, k, rng, new AESGCMEncryptor())},
+           {secrets, new KrawczykCSS(n, k, rng, new ChaCha20Encryptor())},
            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng))},
-           {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng)},
-           {secrets, new CevallosUSRSS(5, 3, new ErasureDecoderFactory(), rng)}
+           {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng)}
         };
 
         return Arrays.asList(data);
