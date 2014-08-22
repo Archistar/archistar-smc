@@ -89,4 +89,21 @@ public final class ShamirShare extends BaseSerializableShare { // objects of thi
     /* TODO: security vs performance */
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public byte[] getY() { return y; }
+    
+        /**
+     * Extracts all i<sup>th</sup> y-values from the given Share[].
+     * 
+     * @param shares the shares to extract the y-values from
+     * @param i the index of the y-value to extract from each share
+     * @return an array with all i<sup>th</sup> y-values from the given shares (in same order as the given Share[])
+     */
+    public static int[] extractYVals(ShamirShare[] shares, int i) {
+        int[] y = new int[shares.length];
+        
+        for (int j = 0; j < y.length; j++) {
+            y[j] = ByteUtils.toUnsignedByte(shares[j].getY()[i]);
+        }
+        
+        return y;
+    }
 }

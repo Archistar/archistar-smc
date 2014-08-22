@@ -8,7 +8,6 @@ import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.random.SHA1PRNG;
-import at.archistar.helper.ShareHelper;
 import at.archistar.helper.ShareMacHelper;
 
 import java.security.InvalidKeyException;
@@ -72,7 +71,7 @@ public class CevallosUSRSS extends SecretSharing {
     public Share[] share(byte[] data) {
         keyTagLength = computeTagLength(data.length * 8, k, E); // keyLength equals tagLength
                 
-        VSSShare[] cshares = ShareHelper.createVSSShares(sharing.share(data), keyTagLength, keyTagLength);
+        VSSShare[] cshares = VSSShare.createVSSShares(sharing.share(data), keyTagLength, keyTagLength);
         
         /* compute and add the corresponding tags */
         for (VSSShare share1 : cshares) {

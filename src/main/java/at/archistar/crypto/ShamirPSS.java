@@ -1,5 +1,6 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.data.BaseShare;
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.Decoder;
@@ -12,7 +13,6 @@ import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.helper.ByteUtils;
-import at.archistar.helper.ShareHelper;
 
 /**
  * <p>This class implements the <i>Perfect-Secret-Sharing</i>-scheme (PSS) developed by Adi Shamir.</p>
@@ -61,7 +61,7 @@ public class ShamirPSS extends SecretSharing {
 
     @Override
     public Share[] share(byte[] data) {
-        ShamirShare shares[] = ShareHelper.createShamirShares(n, data.length);
+        ShamirShare shares[] = createShamirShares(n, data.length);
 
         /* calculate the x and y values for the shares */
         for (int i = 0; i < data.length; i++) {
@@ -84,11 +84,11 @@ public class ShamirPSS extends SecretSharing {
         ShamirShare[] sshares = safeCast(shares); // we need access to the inner fields
         
         byte[] result = new byte[sshares[0].getY().length];
-        int[] xVals = ShareHelper.extractXVals(sshares);
+        int[] xVals = BaseShare.extractXVals(sshares);
         
         Decoder decoder = decoderFactory.createDecoder(xVals, k);
         for (int i = 0; i < result.length; i++) { // reconstruct all individual parts of the secret
-            int[] yVals = ShareHelper.extractYVals(sshares, i);
+            int[] yVals = ShamirShare.extractYVals(sshares, i);
             
             try {
                 result[i] = (byte) decoder.decode(yVals, 0)[0];
@@ -132,6 +132,23 @@ public class ShamirPSS extends SecretSharing {
         
         for (int i = 0; i < shares.length; i++) {
             sshares[i] = (ShamirShare) shares[i];
+        }
+        
+        return sshares;
+    }
+       
+    /**
+     * Creates <i>n</i> ShamirShares with the given share-length.
+     * 
+     * @param n the number of ShamirShares to create
+     * @param shareLength the length of all shares
+     * @return an array with the created shares
+     */
+    public static ShamirShare[] createShamirShares(int n, int shareLength) {
+        ShamirShare[] sshares = new ShamirShare[n];
+        
+        for (int i = 0; i < n; i++) {
+            sshares[i] = new ShamirShare((byte) (i+1), new byte[shareLength]);
         }
         
         return sshares;

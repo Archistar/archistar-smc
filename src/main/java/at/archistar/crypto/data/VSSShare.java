@@ -174,4 +174,53 @@ public class VSSShare extends BaseSerializableShare {
     public Share getShare() { return share; }
     public Map<Byte, byte[]> getMacs() { return macs; }
     public Map<Byte, byte[]> getMacKeys() { return macKeys; }
+    
+   /**
+     * Creates VSSShares using the given shares as underlying ones.
+     * 
+     * @param shares the underlying shares
+     * @param tagLength the length of a single tag
+     * @param keyLength the length of a single MAC-key
+     * @return the created RabinBenOrShares
+     */
+    public static VSSShare[] createVSSShares(Share[] shares, int tagLength, int keyLength) {
+        VSSShare[] vssshares = new VSSShare[shares.length];
+        
+        for (int i = 0; i < shares.length; i++) {
+            /* initialize macs-Map */
+            Map<Byte, byte[]> tmpMacs = new HashMap<Byte, byte[]>();
+            for (Share tmpShare : shares) {
+                tmpMacs.put((byte) tmpShare.getId(), new byte[tagLength]);
+            }
+            /* initialize macKeys-Map */
+            Map<Byte, byte[]> tmpMacKeys = new HashMap<Byte, byte[]>();
+            for (Share tmpShare : shares) {
+                tmpMacKeys.put((byte) tmpShare.getId(), new byte[tagLength]);
+            }
+            
+            try {
+                vssshares[i] = new VSSShare(shares[i], tmpMacs, tmpMacKeys);
+            } catch (WeakSecurityException e) { // this should never happen
+                throw new ImpossibleException(e);
+            }
+        }
+        
+        return vssshares;
+    }
+    
+    /**
+     * Extracts all underlying shares from the given VSSShares
+     * @param shares the shares to extract from
+     * @return an array of the extracted underlying shares
+     */
+    public static Share[] extractUnderlyingShares(VSSShare[] shares) {
+        Share[] ushares = new Share[shares.length];
+        
+        for (int i = 0; i < shares.length; i++) {
+            ushares[i] = shares[i].getShare();
+        }
+        
+        return ushares;
+    }
+
 }

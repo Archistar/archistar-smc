@@ -1,5 +1,6 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.data.BaseShare;
 import at.archistar.crypto.data.ReedSolomonShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.Decoder;
@@ -11,7 +12,6 @@ import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.helper.ByteUtils;
-import at.archistar.helper.ShareHelper;
 import java.util.Arrays;
 
 /**
@@ -59,7 +59,7 @@ public class RabinIDS extends SecretSharing {
 
     @Override
     public Share[] share(byte[] data) {
-        ReedSolomonShare shares[] = ShareHelper.createReedSolomonShares(n, (data.length + k-1) / k, data.length);
+        ReedSolomonShare shares[] = RabinIDS.createReedSolomonShares(n, (data.length + k-1) / k, data.length);
 
         /* compute share values */
         int coeffs[] = new int[k];
@@ -98,7 +98,7 @@ public class RabinIDS extends SecretSharing {
         
         ReedSolomonShare[] rsshares = safeCast(shares); // we need access to the inner fields
             
-        int xValues[] = Arrays.copyOfRange(ShareHelper.extractXVals(rsshares), 0, k); // we only need k x-values for reconstruction
+        int xValues[] = Arrays.copyOfRange(BaseShare.extractXVals(rsshares), 0, k); // we only need k x-values for reconstruction
         byte result[] = new byte[rsshares[0].getOriginalLength()];
         
         int index = 0;
@@ -150,6 +150,23 @@ public class RabinIDS extends SecretSharing {
         
         for (int i = 0; i < shares.length; i++) {
             rsshares[i] = (ReedSolomonShare) shares[i];
+        }
+        
+        return rsshares;
+    }
+    
+    /**
+     * Creates <i>n</i> ReedSolomonShares with the given share- and original-length.
+     * 
+     * @param n the number of ReedSolomonShare to create
+     * @param shareLength the length of all shares
+     * @return an array with the created shares
+     */
+    public static ReedSolomonShare[] createReedSolomonShares(int n, int shareLength, int originalLength) {
+        ReedSolomonShare[] rsshares = new ReedSolomonShare[n];
+        
+        for (int i = 0; i < n; i++) {
+            rsshares[i] = new ReedSolomonShare((byte) (i+1), new byte[shareLength], originalLength);
         }
         
         return rsshares;

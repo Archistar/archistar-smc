@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
  * @author Elias Frantar
  * @version 2014-7-24
  */
-public abstract class BaseSerializableShare implements Share {
+public abstract class BaseSerializableShare extends BaseShare {
     public static final int VERSION = 1;
     
     public static final int HEADER_LENGTH = 10; // bytes

@@ -10,7 +10,6 @@ import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.SHA1PRNG;
-import at.archistar.helper.ShareHelper;
 import at.archistar.helper.ShareMacHelper;
 
 /**
@@ -60,7 +59,7 @@ public class RabinBenOrRSS extends SecretSharing {
 
     @Override
     public Share[] share(byte[] data) {
-        VSSShare[] rboshares = ShareHelper.createVSSShares(sharing.share(data), TAG_LENGTH, KEY_LENGTH);
+        VSSShare[] rboshares = VSSShare.createVSSShares(sharing.share(data), TAG_LENGTH, KEY_LENGTH);
         
         /* compute and add the corresponding tags */
         for (VSSShare share1 : rboshares) {
