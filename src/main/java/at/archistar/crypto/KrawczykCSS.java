@@ -10,7 +10,6 @@ import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.random.SHA1PRNG;
 import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.Encryptor;
 import java.io.IOException;

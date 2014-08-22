@@ -1,6 +1,5 @@
 package at.archistar.crypto;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
 
@@ -9,7 +8,6 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.random.SHA1PRNG;
 import at.archistar.helper.ShareMacHelper;
 
 /**
