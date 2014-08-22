@@ -1,8 +1,5 @@
 package at.archistar.crypto;
 
-import java.security.NoSuchAlgorithmException;
-
-import at.archistar.helper.SymmetricEncHelper;
 import at.archistar.crypto.data.KrawczykShare;
 import at.archistar.crypto.data.KrawczykShare.EncryptionAlgorithm;
 import at.archistar.crypto.data.ReedSolomonShare;
@@ -15,6 +12,22 @@ import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.random.SHA1PRNG;
+import java.security.GeneralSecurityException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Security;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * <p>This class implements the <i>Computational Secret Sharing</i> scheme developed by Krawczyk.</p>
@@ -27,7 +40,7 @@ import at.archistar.crypto.random.SHA1PRNG;
  * 
  * <p><b>NOTE:</b> This implementation uses <i>AES-128 in CBC-mode with PKCS5Padding</i> for encrypting the secret.</p>
  * 
- * @author Elias Frantar <i>(code rewritten, documentation added)</i>
+ * @author Elias Frantar
  * @author Andreas Happe <andreashappe@snikt.net>
  * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
  * @version 2014-7-28
@@ -38,6 +51,10 @@ public class KrawczykCSS extends SecretSharing {
     
     private final SecretSharing shamir;
     private final SecretSharing rs;
+    
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     /**
      * Constructor
@@ -75,8 +92,8 @@ public class KrawczykCSS extends SecretSharing {
     public Share[] share(byte[] data) {
         try {
             /* encrypt the data */
-            byte[] encKey = SymmetricEncHelper.genRandomSecretKey(alg.getAlgString(), KEY_LENGTH);
-            byte[] encSource = SymmetricEncHelper.encrypt(alg.getAlgString(), encKey, data);
+            byte[] encKey = genRandomSecretKey(alg.getAlgString(), KEY_LENGTH);
+            byte[] encSource =  crypt(Cipher.ENCRYPT_MODE, alg.getAlgString(), encKey, data);
 
             /* share key and content */
             Share[] contentShares = rs.share(encSource); // since the content is encrypted the share does not have to be perfectly secure (-> Reed-Solomon-Code)
@@ -90,7 +107,20 @@ public class KrawczykCSS extends SecretSharing {
         } catch (NoSuchAlgorithmException e) { 
             // encryption should actually never fail
             throw new ImpossibleException("sharing failed (" + e.getMessage() + ")");
-        } 
+        } catch (InvalidKeyException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidAlgorithmParameterException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalBlockSizeException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchPaddingException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (BadPaddingException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchProviderException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return new Share[0];
     }
 
     @Override
@@ -101,10 +131,25 @@ public class KrawczykCSS extends SecretSharing {
             byte[] key = shamir.reconstruct(extractKeyShares(kshares)); // reconstruct the key
             byte[] encShare = rs.reconstruct(extractContentShares(kshares)); // reconstruct the encrypted share
 
-            return SymmetricEncHelper.decrypt(alg.getAlgString(), key, encShare); // decrypt the encrypted data with the extracted key
+            return crypt(Cipher.DECRYPT_MODE, alg.getAlgString(), key, encShare);
         } catch (CryptoException e) {
             throw new ReconstructionException();
+        } catch (InvalidKeyException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidAlgorithmParameterException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalBlockSizeException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchPaddingException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (BadPaddingException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchProviderException ex) {
+            Logger.getLogger(KrawczykCSS.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return new byte[0];
     }
     
     /**
@@ -170,5 +215,37 @@ public class KrawczykCSS extends SecretSharing {
         }
         
         return rsshares;
+    }
+    
+        /**
+     * Generates a random secret key of specified length for the specified algorithm.
+     * 
+     * @param algorithm the algorithm to generate the key for (for example <i>"AES/CTR/PKCS5Padding"</i>)
+     * @param length the length of the key
+     * @return a randomly generated secret key of specified length
+     * @throws NoSuchAlgorithmException thrown if the specified algorithm is not supported
+     */
+    public static byte[] genRandomSecretKey(String algorithm, int length) throws NoSuchAlgorithmException {
+        KeyGenerator kgen = KeyGenerator.getInstance(algorithm.split("/")[0]);
+        return kgen.generateKey().getEncoded();
+    }
+    
+    /**
+     * Performs either encryption or decryption on the given data with the specified parameters.
+     * @see #encrypt(String, byte[], byte[])
+     * @see #decrypt(String, byte[], byte[])
+     */
+    private static byte[] crypt(int cipherMode, String algorithm, byte[] sKey, byte[] data)
+            throws CryptoException, InvalidKeyException, InvalidAlgorithmParameterException,
+                   NoSuchAlgorithmException, IllegalBlockSizeException,
+                   NoSuchPaddingException, BadPaddingException,
+                   NoSuchProviderException {
+        
+        SecretKeySpec sKeySpec = new SecretKeySpec(sKey, algorithm.split("/")[0]);
+        
+        /* always use bouncy castle provider */
+        Cipher cipher = Cipher.getInstance(algorithm, "BC");
+        cipher.init(cipherMode, sKeySpec, new IvParameterSpec(sKey));
+        return cipher.doFinal(data);
     }
 }

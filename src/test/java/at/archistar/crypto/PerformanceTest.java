@@ -53,14 +53,15 @@ public class PerformanceTest {
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException {
 
-        byte[][][] secrets = new byte[7][][];
+        byte[][][] secrets = new byte[1][][];
         secrets[0] = createArray(4 * 1024);
+        /*
         secrets[1] = createArray(32 * 1024);
         secrets[2] = createArray(64 * 1024);
         secrets[3] = createArray(256 * 1024);
         secrets[4] = createArray(512 * 1024);
         secrets[5] = createArray(1024 * 1024);
-        secrets[6] = createArray(4096 * 1024);
+        secrets[6] = createArray(4096 * 1024);*/
 
         final int n = 4;
         final int k = 3;
@@ -70,7 +71,7 @@ public class PerformanceTest {
            {secrets, new ShamirPSS(n, k, rng)},
            {secrets, new RabinIDS(n, k)},
            {secrets, new KrawczykCSS(n, k, rng)},
-           // {secrets, new KrawczykCSS(n, k, rng, EncryptionAlgorithm.AES_GCM_256)}, // this does not execute properly, algorithm not found
+           {secrets, new KrawczykCSS(n, k, rng, EncryptionAlgorithm.AES_GCM_256)}, // this does not execute properly, algorithm not found
            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng))},
            {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng)},
            {secrets, new CevallosUSRSS(5, 3, new ErasureDecoderFactory(), rng)}
@@ -87,7 +88,7 @@ public class PerformanceTest {
     @Test
     public void testPerformance() throws Exception {
 
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < input.length; i++) {
             double sumShare = 0;
             double sumCombine = 0;
 
