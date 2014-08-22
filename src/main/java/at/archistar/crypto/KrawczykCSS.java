@@ -81,11 +81,7 @@ public class KrawczykCSS extends SecretSharing {
         try {
             /* encrypt the data */
             byte[] encKey = new byte[cryptor.getKeyLength()];
-            
-            for (int i = 0; i < encKey.length; i++) {
-                encKey[i] = (byte)this.rng.generateByte();
-            }
-            
+            this.rng.fillBytes(encKey);
             byte[] encSource =  cryptor.encrypt(data, encKey);
 
             /* share key and content */

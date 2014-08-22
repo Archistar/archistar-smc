@@ -12,4 +12,18 @@ public class FakeRandomSource implements RandomSource {
     public int generateByte() {
         return 4;
     }
+    
+    @Override
+    public void fillBytes(byte[] toBeFilled) {
+        for (int i = 0; i < toBeFilled.length; i++) {
+            toBeFilled[i] = (byte)generateByte();
+        }
+    }
+    
+    @Override
+    public void fillBytesAsInts(int[] toBeFilled) {
+        for (int i = 0; i < toBeFilled.length; i++) {
+            toBeFilled[i] = generateByte();
+        }
+    }
 }

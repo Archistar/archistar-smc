@@ -56,10 +56,7 @@ public class TestBerlekampWelchDecoder {
      */
     private void genRandomTest(int x[], int y[], int expected[], int coeffs, int n, int f) {
         RandomSource rng = new SHA1PRNG();
-
-        for (int i = 0; i < expected.length; i++) {
-            expected[i] = rng.generateByte();
-        }
+        rng.fillBytesAsInts(expected);
 
         PolynomialGF2mSmallM poly = new PolynomialGF2mSmallM(new GF2mField(8, 0x11d), expected);
 

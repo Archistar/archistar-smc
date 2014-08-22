@@ -111,12 +111,8 @@ public class ShamirPSS extends SecretSharing {
     private GF256Polynomial createShamirPolynomial(int secret, int degree) {
         int[] coeffs = new int[degree + 1];
         
+        this.rng.fillBytesAsInts(coeffs);
         coeffs[0] = secret;
-        
-        for (int i = 1; i <= degree; i++) {
-            coeffs[i] = rng.generateByte();
-        }
-        
         return new GF256Polynomial(coeffs);
     }
 
