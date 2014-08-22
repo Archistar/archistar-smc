@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: de.flexiprovider:flexiprovider-core:1.7p6">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/de/flexiprovider/flexiprovider-core/1.7p6/flexiprovider-core-1.7p6.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/de/flexiprovider/flexiprovider-core/1.7p6/flexiprovider-core-1.7p6-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/de/flexiprovider/flexiprovider-core/1.7p6/flexiprovider-core-1.7p6-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
