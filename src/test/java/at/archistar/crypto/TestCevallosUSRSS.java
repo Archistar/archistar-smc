@@ -5,9 +5,10 @@ import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.mac.MacHelper;
+import at.archistar.crypto.mac.ShortenedMacHelper;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.helper.ShareMacHelper;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,11 +29,11 @@ public class TestCevallosUSRSS {
     private static final RandomSource rng = new FakeRandomSource();
     //private static final DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
     private static final DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
-    private ShareMacHelper mac;
+    private MacHelper mac;
     
     @Before
     public void setup() throws WeakSecurityException, NoSuchAlgorithmException {
-        mac = new ShareMacHelper("HMacSHA256");
+        mac = new ShortenedMacHelper("HMacSHA256", 4, CevallosUSRSS.E);
         algorithm = new CevallosUSRSS(8, 4, decoderFactory, rng, mac);
     }
     

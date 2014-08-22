@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-import at.archistar.helper.ByteUtils;
 
 /**
  * Represents a share for {@link RabinIDS}.

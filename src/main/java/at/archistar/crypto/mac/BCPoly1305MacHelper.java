@@ -1,22 +1,20 @@
-package at.archistar.helper;
+package at.archistar.crypto.mac;
 
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-
-import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-
-import at.archistar.crypto.data.Share;
+import org.bouncycastle.crypto.Mac;
+import org.bouncycastle.crypto.generators.Poly1305KeyGenerator;
+import org.bouncycastle.crypto.macs.Poly1305;
+import org.bouncycastle.crypto.params.KeyParameter;
 
 /**
- * A helper-class for computing and validating MACs for {@link Share}s.
  * 
- * @author Elias Frantar
- * @version 2014-7-24
+ * @author andy
  */
-public class ShareMacHelper implements MacHelper {
+public class BCPoly1305MacHelper implements MacHelper {
     
     private final Mac mac;
     
@@ -26,36 +24,29 @@ public class ShareMacHelper implements MacHelper {
      * @param algorithm the MAC algorithm to use (for example <i>SHA-256</i>)
      * @throws NoSuchAlgorithmException thrown if the given algorithm is not supported
      */
-    public ShareMacHelper(String algorithm) throws NoSuchAlgorithmException {
-        this.mac = Mac.getInstance(algorithm);
+    public BCPoly1305MacHelper() throws NoSuchAlgorithmException {
+        this.mac = new Poly1305();
     }
     
-    /**
-     * @see #computeMAC(Share, byte[], int)
-     * Uses algorithms default MAC-length.
-     */
-    @Override
-    public byte[] computeMAC(Share share, byte[] key) throws InvalidKeyException {
-        return computeMAC(share, key, mac.getMacLength());
-    }
     /**
      * Computes the MAC of the specified length for the given share with the given key.
      * 
      * @param share the share to create the MAC for
      * @param key the key to use for computing the MAC
-     * @param length the length of the returned tag
      * @return the message authentication code (tag or MAC) for this share
      * @throws InvalidKeyException thrown if an InvalidKeyException occurred
      */
     @Override
-    public byte[] computeMAC(Share share, byte[] key, int length) throws InvalidKeyException {
-        Key k = new SecretKeySpec(key, mac.getAlgorithm());
-        mac.init(k);
-
-        /* compute mac of serialized share */
-        mac.update(share.serialize());
-
-        return Arrays.copyOfRange(mac.doFinal(), 0, length); // return tag
+    public byte[] computeMAC(byte[] data, byte[] key) throws InvalidKeyException {
+        
+        byte[] result = new byte[mac.getMacSize()];
+        
+        Poly1305KeyGenerator.clamp(key);
+        
+        mac.init(new KeyParameter(key));
+        mac.update(data, 0, data.length);
+        mac.doFinal(result, 0);
+        return result;
     }
     
     /**
@@ -68,11 +59,13 @@ public class ShareMacHelper implements MacHelper {
      * @return true if verification was successful (the tags matched); false otherwise
      */
     @Override
-    public boolean verifyMAC(Share share, byte[] tag, byte[] key) {
+    public boolean verifyMAC(byte[] data, byte[] tag, byte[] key) {
         boolean valid = false;
         
+        Poly1305KeyGenerator.clamp(key);
+        
         try {
-            byte[] newTag = computeMAC(share, key, tag.length); // compute tag for the given parameters
+            byte[] newTag = computeMAC(data, key); // compute tag for the given parameters
             valid = Arrays.equals(tag, newTag); // compare with original tag
         } catch (InvalidKeyException e) {}
         

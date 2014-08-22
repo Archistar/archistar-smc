@@ -6,7 +6,7 @@ import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.helper.MacHelper;
+import at.archistar.crypto.mac.MacHelper;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
 
@@ -64,7 +64,8 @@ public class RabinBenOrRSS extends SecretSharing {
                 try {
                     byte[] key = new byte[KEY_LENGTH];
                     this.rng.fillBytes(key);
-                    byte[] tag = mac.computeMAC(share1.getShare(), key, TAG_LENGTH);
+                    byte[] tag = mac.computeMAC(share1.getShare().serialize(), key);
+                    assert(TAG_LENGTH == tag.length);
                     
                     share1.getMacs().put((byte) share2.getId(), tag);
                     share2.getMacKeys().put((byte) share1.getId(), key);
@@ -87,7 +88,7 @@ public class RabinBenOrRSS extends SecretSharing {
             int accepts = 0; // number of participants accepting i
             for (VSSShare rboshare: rboshares) { // go through all shares
                 // TODO: split this up to make it more readable
-                accepts += (mac.verifyMAC(rboshares[i].getShare(), rboshares[i].getMacs().get((byte) rboshare.getId()),
+                accepts += (mac.verifyMAC(rboshares[i].getShare().serialize(), rboshares[i].getMacs().get((byte) rboshare.getId()),
                                                         rboshare.getMacKeys().get((byte) rboshares[i].getId()))
                               ) ? 1 : 0; // verify the mac with the corresponding key for each share
             }

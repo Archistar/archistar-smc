@@ -7,7 +7,7 @@ import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.helper.MacHelper;
+import at.archistar.crypto.mac.MacHelper;
 import java.security.InvalidKeyException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -28,7 +28,7 @@ import java.util.Queue;
  * @version 2014-7-29
  */
 public class CevallosUSRSS extends SecretSharing {
-    private static final int E = 128; // security constant for computing the tag length; means 128 bit
+    public static final int E = 128; // security constant for computing the tag length; means 128 bit
     
     private int keyTagLength;
     
@@ -72,7 +72,8 @@ public class CevallosUSRSS extends SecretSharing {
                 try {
                     byte[] key = new byte[keyTagLength];
                     this.rng.fillBytes(key);
-                    byte[] tag = mac.computeMAC(share1.getShare(), key, keyTagLength);
+                    byte[] tag = mac.computeMAC(share1.getShare().serialize(), key);
+                    assert(tag.length == keyTagLength);
                     
                     share1.getMacs().put((byte) share2.getId(), tag);
                     share2.getMacKeys().put((byte) share1.getId(), key);
@@ -98,7 +99,7 @@ public class CevallosUSRSS extends SecretSharing {
         for (VSSShare s1 : cshares) {
             for (VSSShare s2 : cshares) {
                 accepts[s1.getId()][s2.getId()] = mac.verifyMAC(
-                            s1.getShare(), s1.getMacs().get((byte) s2.getId()),
+                            s1.getShare().serialize(), s1.getMacs().get((byte) s2.getId()),
                             s2.getMacKeys().get((byte) s1.getId()));
                 a[s1.getId()] += accepts[s1.getId()][s2.getId()] ? 1 : 0;
             }
@@ -158,7 +159,7 @@ public class CevallosUSRSS extends SecretSharing {
      * @param e the security constant in bit
      * @return the amount of bytes the MAC-tags should have
      */
-    private int computeTagLength(int m, int k, int e) {
+    public static int computeTagLength(int m, int k, int e) {
         return (log2(k) + log2(m) + 2 / k * e + log2(e)) / 8; // result in bytes
     }
     
@@ -168,7 +169,7 @@ public class CevallosUSRSS extends SecretSharing {
      * @param n the int to compute the logarithm for
      * @return the integer logarithm (whole number -> floor()) of the given number
      */
-    private int log2(int n){
+    private static int log2(int n){
         if (n <= 0) {
             throw new IllegalArgumentException();
         }

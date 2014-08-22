@@ -12,7 +12,7 @@ import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.helper.ByteUtils;
+import at.archistar.crypto.data.ByteUtils;
 
 /**
  * <p>This class implements the <i>Perfect-Secret-Sharing</i>-scheme (PSS) developed by Adi Shamir.</p>

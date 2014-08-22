@@ -8,7 +8,8 @@ import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.AESGCMEncryptor;
 import at.archistar.crypto.symmetric.ChaCha20Encryptor;
-import at.archistar.helper.ShareMacHelper;
+import at.archistar.crypto.mac.ShareMacHelper;
+import at.archistar.crypto.mac.ShortenedMacHelper;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -77,7 +78,7 @@ public class PerformanceTest {
            {secrets, new KrawczykCSS(n, k, rng, new AESGCMEncryptor())},
            {secrets, new KrawczykCSS(n, k, rng, new ChaCha20Encryptor())},
            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng), mac, rng)},
-           {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng, mac)}
+           {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng, new ShortenedMacHelper("HMacSHA256", 3, CevallosUSRSS.E))}
         };
 
         return Arrays.asList(data);

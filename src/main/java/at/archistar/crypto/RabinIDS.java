@@ -11,7 +11,7 @@ import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
-import at.archistar.helper.ByteUtils;
+import at.archistar.crypto.data.ByteUtils;
 import java.util.Arrays;
 
 /**
