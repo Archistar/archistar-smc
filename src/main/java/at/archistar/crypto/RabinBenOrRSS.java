@@ -1,6 +1,5 @@
 package at.archistar.crypto;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
 
@@ -9,8 +8,6 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.random.SHA1PRNG;
-import at.archistar.helper.ShareHelper;
 import at.archistar.helper.ShareMacHelper;
 
 /**
@@ -20,27 +17,29 @@ import at.archistar.helper.ShareMacHelper;
  * see: <a href="http://www.cse.huji.ac.il/course/2003/ns/Papers/RB89.pdf">http://www.cse.huji.ac.il/course/2003/ns/Papers/RB89.pdf</a></p>
  * 
  * 
- * @author Elias Frantar <i>(code refactored, documentation added)</i>
+ * @author Elias Frantar
  * @author Andreas Happe <andreashappe@snikt.net>
  * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
  * @version 2014-7-24
  */
 public class RabinBenOrRSS extends SecretSharing {
-    private static final String MAC = "HMacSHA256";
     private static final int KEY_LENGTH = 16;
     private static final int TAG_LENGTH = 32;
     
-    private SecretSharing sharing;
-    private ShareMacHelper mac;
+    private final SecretSharing sharing;
+    private final ShareMacHelper mac;
 
     /**
      * Constructor
      * 
      * @param sharing the Secret-Sharing algorithm to use as a base for this scheme (must not be itself!)
+     * @param mac the mac that will be used
      * @throws WeakSecurityException 
      */
-    public RabinBenOrRSS(SecretSharing sharing) throws WeakSecurityException {
+    public RabinBenOrRSS(SecretSharing sharing, ShareMacHelper mac) throws WeakSecurityException {
         super(sharing.getN(), sharing.getK());
+        
+        this.mac = mac;
         
         if (sharing instanceof RabinBenOrRSS) {
             throw new IllegalArgumentException("the underlying scheme must not be itself");
@@ -51,16 +50,11 @@ public class RabinBenOrRSS extends SecretSharing {
         }
         
         this.sharing = sharing;
-        try { 
-            this.mac = new ShareMacHelper(MAC, new SHA1PRNG());
-        } catch (NoSuchAlgorithmException e) { // this should never happen
-            throw new ImpossibleException(e);
-        }
     }
 
     @Override
     public Share[] share(byte[] data) {
-        VSSShare[] rboshares = ShareHelper.createVSSShares(sharing.share(data), TAG_LENGTH, KEY_LENGTH);
+        VSSShare[] rboshares = VSSShare.createVSSShares(sharing.share(data), TAG_LENGTH, KEY_LENGTH);
         
         /* compute and add the corresponding tags */
         for (VSSShare share1 : rboshares) {

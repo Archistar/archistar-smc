@@ -1,0 +1,60 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package at.archistar.crypto.symmetric;
+
+import at.archistar.crypto.exceptions.ImpossibleException;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Security;
+import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.engines.ChaChaEngine;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.crypto.params.ParametersWithIV;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+/**
+ * basic AES encryption
+ * @author andy
+ */
+public class ChaCha20Encryptor implements Encryptor {
+
+    private final byte randomIvBytes[] = {0, 1, 2, 3, 4, 5, 6, 7};
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
+    
+    @Override
+    public byte[] encrypt(byte[] data, byte[] randomKeyBytes) throws IOException, InvalidKeyException,
+            InvalidAlgorithmParameterException, InvalidCipherTextException, ImpossibleException {
+
+        ChaChaEngine cipher = new ChaChaEngine();
+        cipher.init(true, new ParametersWithIV(new KeyParameter(randomKeyBytes), randomIvBytes));
+        
+        byte[] result = new byte[data.length];
+        cipher.processBytes(data, 0, data.length, result, 0);
+        return result;
+    }
+
+    @Override
+    public byte[] decrypt(byte[] data, byte[] randomKeyBytes)
+            throws InvalidKeyException, InvalidAlgorithmParameterException, IOException, ImpossibleException,
+            IllegalStateException, InvalidCipherTextException {
+        
+        ChaChaEngine cipher = new ChaChaEngine();
+        cipher.init(false, new ParametersWithIV(new KeyParameter(randomKeyBytes), randomIvBytes));
+        
+        byte[] result = new byte[data.length];
+        cipher.processBytes(data, 0, data.length, result, 0);
+        return result;
+    }
+
+    @Override
+    public int getKeyLength() {
+        return 32;
+    }
+}

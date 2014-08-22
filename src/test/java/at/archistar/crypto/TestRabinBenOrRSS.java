@@ -8,37 +8,43 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.fest.assertions.api.Assertions.*;
-import at.archistar.crypto.RabinBenOrRSS;
-import at.archistar.crypto.SecretSharing;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
+import at.archistar.crypto.random.RandomSource;
+import at.archistar.helper.ShareMacHelper;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Tests for {@link RabinBenOrRSS}
- * 
+ *
  * @author Elias Frantar <i>(added additional test-cases)</i>
  * @author Andreas Happe <andreashappe@snikt.net>
  * @version 2014-7-21
  */
 public class TestRabinBenOrRSS {
-	byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-	private SecretSharing algorithm;
-	
-	/* setup and tear-down */
-	@Before
-	public void setup() throws WeakSecurityException {
-		algorithm = new RabinBenOrRSS(new ShamirPSS(8, 5, new FakeRandomSource()));
-	}
-	@After
-	public void tearDown() {
-		algorithm = null;
-	}
 
-	/* tests */
-	
-	/* should succeed reconstructing */
+    byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    private SecretSharing algorithm;
+
+    /* setup and tear-down */
+    @Before
+    public void setup() throws WeakSecurityException, NoSuchAlgorithmException {
+
+        RandomSource rng = new FakeRandomSource();
+        ShareMacHelper mac = new ShareMacHelper("HMacSHA256", rng);
+
+        algorithm = new RabinBenOrRSS(new ShamirPSS(8, 5, rng), mac);
+    }
+
+    @After
+    public void tearDown() {
+        algorithm = null;
+    }
+
+    /* tests */
+    /* should succeed reconstructing */
     @Test
     public void simpleRoundTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
@@ -47,7 +53,7 @@ public class TestRabinBenOrRSS {
         byte reconstructedData[] = algorithm.reconstruct(shares);
         assertThat(reconstructedData).isEqualTo(data);
     }
-    
+
     @Test
     public void notAllSharesTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
@@ -56,22 +62,22 @@ public class TestRabinBenOrRSS {
         byte reconstructedData[] = algorithm.reconstruct(shares1);
         assertThat(reconstructedData).isEqualTo(data);
     }
+
     @Test
     public void shuffledSharesTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
         Collections.shuffle(Arrays.asList(shares));
-        
+
         byte reconstructedData[] = algorithm.reconstruct(shares);
         assertThat(reconstructedData).isEqualTo(data);
     }
-    
+
     /* should fail reconstructing */
-    @Test(expected=ReconstructionException.class)
+    @Test(expected = ReconstructionException.class)
     public void notEnoughSharesTest() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
         Share[] shares1 = Arrays.copyOfRange(shares, 0, 2);
-        
-        @SuppressWarnings("unused")
-        byte reconstructedData[] = algorithm.reconstruct(shares1);
+
+        algorithm.reconstruct(shares1);
     }
 }

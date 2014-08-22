@@ -88,4 +88,18 @@ public class StreamPRNG implements RandomSource {
     public String toString() { // just required for testing
         return super.toString() + " (" + cipher.getAlgorithm() + ")";
     }
+    
+    @Override
+    public void fillBytes(byte[] toBeFilled) {
+        for (int i = 0; i < toBeFilled.length; i++) {
+            toBeFilled[i] = (byte)generateByte();
+        }
+    }
+    
+    @Override
+    public void fillBytesAsInts(int[] toBeFilled) {
+        for (int i = 0; i < toBeFilled.length; i++) {
+            toBeFilled[i] = generateByte();
+        }
+    }
 }

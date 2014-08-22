@@ -44,4 +44,18 @@ public class SHA1PRNG implements RandomSource {
         
         return ByteUtils.toUnsignedByte(bytes[0]);
     }
+    
+    @Override
+    public void fillBytes(byte[] toBeFilled) {
+        for (int i = 0; i < toBeFilled.length; i++) {
+            toBeFilled[i] = (byte)generateByte();
+        }
+    }
+    
+    @Override
+    public void fillBytesAsInts(int[] toBeFilled) {
+        for (int i = 0; i < toBeFilled.length; i++) {
+            toBeFilled[i] = generateByte();
+        }
+    }
 }

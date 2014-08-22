@@ -86,11 +86,7 @@ public class ShareMacHelper {
      */
     public byte[] genSampleKey(int length) { // TODO: should we even use a RandomSource for this? (since generateByte does not return 0)
         byte[] key = new byte[length];
-        
-        for (int i = 0; i < length; i++) {
-            key[i] = (byte)(rng.generateByte() & 0xFF);
-        }
-        
+        this.rng.fillBytes(key);
         return key;
     }
 }

@@ -7,12 +7,9 @@ import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.random.SHA1PRNG;
-import at.archistar.helper.ShareHelper;
 import at.archistar.helper.ShareMacHelper;
 
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +29,6 @@ import java.util.Queue;
  * @version 2014-7-29
  */
 public class CevallosUSRSS extends SecretSharing {
-    private static final String MAC = "HMacSHA512";
     private static final int E = 128; // security constant for computing the tag length; means 128 bit
     
     private int keyTagLength;
@@ -48,9 +44,10 @@ public class CevallosUSRSS extends SecretSharing {
      *          must be in range: <i>n/3 <= k-1 < n/2</i> ({@link ImpossibleException} if thrown if that constraint is violated)
      * @param rng the source of randomness to be used
      * @param decoderFactory the decoder to be used
+     * @param mac the mac to be used
      * @throws WeakSecurityException thrown if this scheme is not secure for the given parameters
      */
-    public CevallosUSRSS(int n, int k, DecoderFactory decoderFactory, RandomSource rng) throws WeakSecurityException {
+    public CevallosUSRSS(int n, int k, DecoderFactory decoderFactory, RandomSource rng, ShareMacHelper mac) throws WeakSecurityException {
         super(n, k);
         
         if (!((k - 1) * 3 >= n && (k - 1) * 2 < n)) {
@@ -58,21 +55,15 @@ public class CevallosUSRSS extends SecretSharing {
         }
         
         /* this scheme requires ShamirPSS */
-        sharing = new ShamirPSS(n, k, rng, decoderFactory);
-        
-        try {
-            // we are using HMacSHA256 at the moment
-            mac = new ShareMacHelper(MAC, new SHA1PRNG());
-        } catch (NoSuchAlgorithmException e) {
-            throw new ImpossibleException("algorithm unknown?");
-        }
+        this.sharing = new ShamirPSS(n, k, rng, decoderFactory);
+        this.mac = mac;
     }
     
     @Override
     public Share[] share(byte[] data) {
         keyTagLength = computeTagLength(data.length * 8, k, E); // keyLength equals tagLength
                 
-        VSSShare[] cshares = ShareHelper.createVSSShares(sharing.share(data), keyTagLength, keyTagLength);
+        VSSShare[] cshares = VSSShare.createVSSShares(sharing.share(data), keyTagLength, keyTagLength);
         
         /* compute and add the corresponding tags */
         for (VSSShare share1 : cshares) {

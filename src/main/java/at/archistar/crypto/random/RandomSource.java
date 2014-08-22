@@ -16,4 +16,7 @@ public interface RandomSource {
      */
     public int generateByte(); // return int because there are no unsigned bytes in java
     
+    public void fillBytes(byte[] toBeFilled);
+
+    public void fillBytesAsInts(int[] toBeFilled);
 }

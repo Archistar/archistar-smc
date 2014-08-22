@@ -8,8 +8,8 @@ public class UnsolvableException extends Exception {
 
     private final String errorMsg;
     
-    UnsolvableException(String erasuredecoder_cannot_fix_errors) {
-        this.errorMsg = erasuredecoder_cannot_fix_errors;
+    UnsolvableException(String msg) {
+        this.errorMsg = msg;
     }
     
     UnsolvableException() {

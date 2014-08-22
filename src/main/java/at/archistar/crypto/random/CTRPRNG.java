@@ -77,4 +77,19 @@ public class CTRPRNG implements RandomSource {
         
         return ByteUtils.toUnsignedByte(b);
     }
+
+    @Override
+    public void fillBytes(byte[] toBeFilled) {
+        for (int i = 0; i < toBeFilled.length; i++) {
+            toBeFilled[i] = (byte)generateByte();
+        }
+    }
+    
+    @Override
+    public void fillBytesAsInts(int[] toBeFilled) {
+        for (int i = 0; i < toBeFilled.length; i++) {
+            toBeFilled[i] = generateByte();
+        }
+    }
+
 }
