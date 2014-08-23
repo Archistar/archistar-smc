@@ -1,5 +1,47 @@
-Version 0.1 (planned)
-#####################
+Version 0.1
+###########
+
+Andreas Happe (39):
+      remove some compile warnings
+      run code through netbeans source formatter
+      Merge pull request #6 from efrantar-tgm/math
+      Merge pull request #8 from efrantar-tgm/test
+      Merge pull request #7 from efrantar-tgm/random
+      Merge pull request #9 from efrantar-tgm/exceptions
+      Merge pull request #10 from efrantar-tgm/shares
+      Merge pull request #11 from efrantar-tgm/decoder
+      Merge pull request #13 from efrantar-tgm/code_improvement
+      Merge pull request #14 from gye-tgm/master
+      Update .travis.yml
+      Update .travis.yml
+      Merge pull request #15 from gye-tgm/cevallos
+      add and enforce checkstyle
+      add and enforce findbugs in compile-phase
+      bump findbugs version, should work with java8 now
+      switch Decoder to a factory pattern
+      start on refactoring testcases
+      Decoder: throw exception instead of returning 0 if not solvable
+      Merge branch 'master' into testcases
+      fix: errors that I've introduced with the factory pattern
+      Merge pull request #16 from gye-tgm/master
+      move ShareHelper into Shares and Algorithms
+      bump bouncy castle from 1.46 to 1.51
+      WIP: actually use bouncycastle
+      chg: refactor symmetric crypto
+      chg: add rng.fillBytes
+      fix: rename variable to quieten formatting warning
+      test cases should use the same MAC/rng
+      unify RandomSource usage and introduce BCDigestRandom
+      introduce MacHelper interface and clean-up API
+      overwork MAC subsystem
+      let helpers tell the needed keysize; improve debug output
+      add an initial Changelog
+      update Changelog
+      update readme.md with performance numbers
+      move documentation into docs/
+      Add more algorithms to PerformanceTest
+      bump pom.xml Version to 0.1
+
 
 Elias Frantar (39):
       removed dependency from GF256's gf256
@@ -41,42 +83,6 @@ Elias Frantar (39):
       fixed minor formatting errors
       readded checkForZeros()
       implemented CevallosUSRSS
-
-Andreas Happe (34):
-      remove some compile warnings
-      run code through netbeans source formatter
-      Merge pull request #6 from efrantar-tgm/math
-      Merge pull request #8 from efrantar-tgm/test
-      Merge pull request #7 from efrantar-tgm/random
-      Merge pull request #9 from efrantar-tgm/exceptions
-      Merge pull request #10 from efrantar-tgm/shares
-      Merge pull request #11 from efrantar-tgm/decoder
-      Merge pull request #13 from efrantar-tgm/code_improvement
-      Merge pull request #14 from gye-tgm/master
-      Update .travis.yml
-      Update .travis.yml
-      Merge pull request #15 from gye-tgm/cevallos
-      add and enforce checkstyle
-      add and enforce findbugs in compile-phase
-      bump findbugs version, should work with java8 now
-      switch Decoder to a factory pattern
-      start on refactoring testcases
-      Decoder: throw exception instead of returning 0 if not solvable
-      Merge branch 'master' into testcases
-      fix: errors that I've introduced with the factory pattern
-      Merge pull request #16 from gye-tgm/master
-      move ShareHelper into Shares and Algorithms
-      bump bouncy castle from 1.46 to 1.51
-      WIP: actually use bouncycastle
-      chg: refactor symmetric crypto
-      chg: add rng.fillBytes
-      fix: rename variable to quieten formatting warning
-      test cases should use the same MAC/rng
-      unify RandomSource usage and introduce BCDigestRandom
-      introduce MacHelper interface and clean-up API
-      overwork MAC subsystem
-      let helpers tell the needed keysize; improve debug output
-      add an initial Changelog
 
 Gary Ye (10):
       Two logical errors: the points were not distinct and the number of faulty points can be less than wanted. Fixed this by generating random and distinct integers with a helper method.
