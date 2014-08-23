@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>at.archistar</groupId>
     <artifactId>archistar-smc</artifactId>
-    <version>0.1</version>
+    <version>0.2-wip</version>
     <name>archistar-smc</name>
     <description>Secure multi-party computation</description>
     <properties>
