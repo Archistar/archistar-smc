@@ -1,0 +1,48 @@
+Version 0.0.3
+#############
+
+Andreas Happe (14):
+      update readme.md
+      fix: use AES with padding
+      chg: improve ShareSerializer
+      add simple Shamir Secret Sharing to documentation
+      fix: github does not understand markdown tables..
+      add a comment about subtraction within GF(2^8)
+      introduce ImpossibleException.
+      add links to finite field arithmetic
+      Merge pull request #4 from cyzhao/master
+      update performance test
+      chg: also output bandwith numbers for performance test
+      fix: allow 0^k for RabinIDS as source data
+      fix: correct identation and remove unused variable
+      chg: bump version to 0.0.3
+
+Charles Zhao (2):
+      Downgraded java version to 1.6 for broader audience. Updated fest-assert-core dependency to test scope.
+      Removed accidental checkin of eclipse project files .
+
+
+Version 0.0.2
+#############
+
+Andreas Happe (2):
+      add travis configuration
+      new snapshot version
+
+
+Version 0.0.1
+#############
+
+Andreas Happe (1):
+      add initial crypto algorithms
+
+Thomas Lorünser (1):
+      Initial commit
+
+
+Version 0.0.0
+#############
+
+Franca-Sofia Fehrenbach wrote an initial prototype. It was not incorporated
+into the current software project in its then form ao I am adding this so
+that her contributions are not forgotten.
