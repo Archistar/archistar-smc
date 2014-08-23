@@ -171,4 +171,9 @@ public class RabinIDS extends SecretSharing {
         
         return rsshares;
     }
+    
+    @Override
+    public String toString() {
+        return "RabinIDS(" + n + "/" + k + ")";
+    }
 }

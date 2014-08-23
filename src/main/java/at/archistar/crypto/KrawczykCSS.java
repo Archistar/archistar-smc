@@ -186,4 +186,9 @@ public class KrawczykCSS extends SecretSharing {
         
         return rsshares;
     }
+    
+    @Override
+    public String toString() {
+        return "KrawczzkCSS(" + n + "/" + k + ", " + cryptor + ")";
+    }
 }

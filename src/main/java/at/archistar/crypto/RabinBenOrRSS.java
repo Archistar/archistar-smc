@@ -23,7 +23,9 @@ import java.util.Arrays;
  * @version 2014-7-24
  */
 public class RabinBenOrRSS extends SecretSharing {
-    private static final int KEY_LENGTH = 16;
+    
+    /* TODO: why do we need those two? */
+    private static final int KEY_LENGTH = 32;
     private static final int TAG_LENGTH = 32;
     
     private final SecretSharing sharing;
@@ -62,10 +64,9 @@ public class RabinBenOrRSS extends SecretSharing {
         for (VSSShare share1 : rboshares) {
             for (VSSShare share2 : rboshares) {
                 try {
-                    byte[] key = new byte[KEY_LENGTH];
+                    byte[] key = new byte[this.mac.keySize()];
                     this.rng.fillBytes(key);
-                    byte[] tag = mac.computeMAC(share1.getShare().serialize(), key);
-                    assert(TAG_LENGTH == tag.length);
+                    byte[] tag = this.mac.computeMAC(share1.getShare().serialize(), key);
                     
                     share1.getMacs().put((byte) share2.getId(), tag);
                     share2.getMacKeys().put((byte) share1.getId(), key);
@@ -120,5 +121,10 @@ public class RabinBenOrRSS extends SecretSharing {
         }
         
         return rboshares;
+    }
+    
+        @Override
+    public String toString() {
+        return "RabinBenOr(" + sharing + ", " + mac + ")";
     }
 }

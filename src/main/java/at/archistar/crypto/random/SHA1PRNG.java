@@ -33,8 +33,7 @@ public class SHA1PRNG implements RandomSource {
         rng.nextBoolean(); // force the rng to seed itself
     }
     
-    @Override
-    public int generateByte() {
+    private int generateByte() {
         /* this whole procedure is 2x as fast as nextInt(255) + 1 */
         byte[] bytes = new byte[1];
         

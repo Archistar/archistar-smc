@@ -36,10 +36,13 @@ public class TestBerlekampWelchDecoder {
         for (int i = 0; i < r; i++) {
             num[i] = i;
         }
+        
+        int tmpBytes[] = new int[1];
 
         // Use Fisher-Yates algorithm to shuffle this array. 
         for (int i = num.length - 1; i >= 1; i--) {
-            int j = rng.generateByte() % i;
+            rng.fillBytesAsInts(tmpBytes);
+            int j = tmpBytes[0] % i;
             int tmp = num[i];
             num[i] = num[j];
             num[j] = tmp;

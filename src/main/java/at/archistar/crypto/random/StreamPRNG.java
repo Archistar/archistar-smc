@@ -72,8 +72,7 @@ public class StreamPRNG implements RandomSource {
         counter = 0;
     }
 
-    @Override
-    public int generateByte() {
+    private int generateByte() {
         byte b;
         do {
             if (counter > cache.length - 1) {

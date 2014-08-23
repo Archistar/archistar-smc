@@ -149,4 +149,9 @@ public class ShamirPSS extends SecretSharing {
         
         return sshares;
     }
+    
+    @Override
+    public String toString() {
+        return "ShamirPSS(" + n + "/" + k + ")";
+    }
 }

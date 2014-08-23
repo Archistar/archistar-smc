@@ -1,10 +1,8 @@
 package at.archistar.crypto.mac;
 
 import java.security.InvalidKeyException;
-import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import javax.crypto.spec.SecretKeySpec;
 import org.bouncycastle.crypto.Mac;
 import org.bouncycastle.crypto.generators.Poly1305KeyGenerator;
 import org.bouncycastle.crypto.macs.Poly1305;
@@ -21,7 +19,6 @@ public class BCPoly1305MacHelper implements MacHelper {
     /**
      * Constructor
      * 
-     * @param algorithm the MAC algorithm to use (for example <i>SHA-256</i>)
      * @throws NoSuchAlgorithmException thrown if the given algorithm is not supported
      */
     public BCPoly1305MacHelper() throws NoSuchAlgorithmException {
@@ -31,7 +28,7 @@ public class BCPoly1305MacHelper implements MacHelper {
     /**
      * Computes the MAC of the specified length for the given share with the given key.
      * 
-     * @param share the share to create the MAC for
+     * @param data the data to create the MAC for
      * @param key the key to use for computing the MAC
      * @return the message authentication code (tag or MAC) for this share
      * @throws InvalidKeyException thrown if an InvalidKeyException occurred
@@ -53,7 +50,7 @@ public class BCPoly1305MacHelper implements MacHelper {
      * Verifies the given MAC.<br>
      * (recomputes the tag from share and key and compares it with the given tag)
      * 
-     * @param share the share to verify the MAC for
+     * @param data the data to verify the MAC for
      * @param tag the tag to verify
      * @param key the key to use for verification
      * @return true if verification was successful (the tags matched); false otherwise
@@ -70,5 +67,15 @@ public class BCPoly1305MacHelper implements MacHelper {
         } catch (InvalidKeyException e) {}
         
         return valid;
+    }
+
+    @Override
+    public int keySize() {
+        return 32;
+    }
+    
+    @Override
+    public String toString() {
+        return "Poly1304MacHelper()";
     }
 }

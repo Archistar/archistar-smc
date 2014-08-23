@@ -30,8 +30,6 @@ import java.util.Queue;
 public class CevallosUSRSS extends SecretSharing {
     public static final int E = 128; // security constant for computing the tag length; means 128 bit
     
-    private int keyTagLength;
-    
     private final SecretSharing sharing;
     private final MacHelper mac;
     private final RandomSource rng;
@@ -62,7 +60,7 @@ public class CevallosUSRSS extends SecretSharing {
     
     @Override
     public Share[] share(byte[] data) {
-        keyTagLength = computeTagLength(data.length * 8, k, E); // keyLength equals tagLength
+        int keyTagLength = computeTagLength(data.length * 8, k, E); // keyLength equals tagLength
                 
         VSSShare[] cshares = VSSShare.createVSSShares(sharing.share(data), keyTagLength, keyTagLength);
         
@@ -70,7 +68,7 @@ public class CevallosUSRSS extends SecretSharing {
         for (VSSShare share1 : cshares) {
             for (VSSShare share2 : cshares) {
                 try {
-                    byte[] key = new byte[keyTagLength];
+                    byte[] key = new byte[mac.keySize()];
                     this.rng.fillBytes(key);
                     byte[] tag = mac.computeMAC(share1.getShare().serialize(), key);
                     assert(tag.length == keyTagLength);
@@ -175,5 +173,10 @@ public class CevallosUSRSS extends SecretSharing {
         }
         
         return 31 - Integer.numberOfLeadingZeros(n);
+    }
+    
+    @Override
+    public String toString() {
+        return "CevallosUSRSS(" + sharing + ", " + mac + ")";
     }
 }

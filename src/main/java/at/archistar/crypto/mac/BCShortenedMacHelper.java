@@ -1,57 +1,56 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
 package at.archistar.crypto.mac;
 
+import at.archistar.crypto.CevallosUSRSS;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import org.bouncycastle.crypto.Mac;
-import org.bouncycastle.crypto.params.KeyParameter;
 
 /**
- * 
+ *
  * @author andy
  */
-public class BCMacHelper implements MacHelper {
+public class BCShortenedMacHelper implements MacHelper {
     
-    private final Mac mac;
+    private final MacHelper mac;
     
-    /** TODO: cannot I gather this from the BC API? */
-    private final int keySize;
+    private final int k;
+    private final int e;
     
     /**
      * Constructor
      * 
-     * @param algorithm the MAC algorithm to use (for example <i>SHA-256</i>)
+     * @param mac the MAC algorithm to use (for example <i>SHA-256</i>)
      * @throws NoSuchAlgorithmException thrown if the given algorithm is not supported
      */
-    public BCMacHelper(Mac mac, int keySize) throws NoSuchAlgorithmException {
+    public BCShortenedMacHelper(MacHelper mac, int k, int e) throws NoSuchAlgorithmException {
         this.mac = mac;
-        this.keySize = keySize;
+        this.k = k;
+        this.e = e;
     }
     
     /**
-     * Computes the MAC of the specified length for the given share with the given key.
-     * 
-     * @param share the share to create the MAC for
-     * @param key the key to use for computing the MAC
-     * @return the message authentication code (tag or MAC) for this share
-     * @throws InvalidKeyException thrown if an InvalidKeyException occurred
+     * @see #computeMAC(Share, byte[], int)
+     * Uses algorithms default MAC-length.
      */
     @Override
     public byte[] computeMAC(byte[] data, byte[] key) throws InvalidKeyException {
         
-        byte[] result = new byte[mac.getMacSize()];
-        
-        mac.init(new KeyParameter(key));
-        mac.update(data, 0, data.length);
-        mac.doFinal(result, 0);
-        return result;
+        byte[] result = mac.computeMAC(data, key);
+        int length = CevallosUSRSS.computeTagLength(data.length*8, k, e);
+        return Arrays.copyOfRange(result, 0, length);
     }
     
     /**
      * Verifies the given MAC.<br>
      * (recomputes the tag from share and key and compares it with the given tag)
      * 
-     * @param data the share to verify the MAC for
+     * @param data the data to verify the MAC for
      * @param tag the tag to verify
      * @param key the key to use for verification
      * @return true if verification was successful (the tags matched); false otherwise
@@ -70,11 +69,11 @@ public class BCMacHelper implements MacHelper {
 
     @Override
     public int keySize() {
-        return this.keySize;
+        return this.mac.keySize();
     }
     
     @Override
     public String toString() {
-        return "BCMacHelper(" + this.mac.getAlgorithmName() + ")";
+        return "BCShortenedMacHelper(" + this.mac  + ")";
     }
 }

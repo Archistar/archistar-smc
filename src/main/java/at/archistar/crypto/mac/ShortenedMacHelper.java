@@ -73,4 +73,14 @@ public class ShortenedMacHelper implements MacHelper {
         
         return valid;
     }
+
+    @Override
+    public int keySize() {
+        return 32;
+    }
+    
+    @Override
+    public String toString() {
+        return "ShortenedMacHelper(" + this.mac.getAlgorithm()  + ")";
+    }
 }

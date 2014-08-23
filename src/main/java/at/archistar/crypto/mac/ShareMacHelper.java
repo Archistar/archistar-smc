@@ -69,4 +69,14 @@ public class ShareMacHelper implements MacHelper {
         
         return valid;
     }
+
+    @Override
+    public int keySize() {
+        return 32;
+    }
+    
+    @Override
+    public String toString() {
+        return "ShareMacHelper(" + this.mac.getAlgorithm()  + ")";
+    }
 }

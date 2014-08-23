@@ -66,8 +66,7 @@ public class CTRPRNG implements RandomSource {
         }
     }
 
-    @Override
-    public int generateByte() {
+    private int generateByte() {
         byte b;
         do {
             if (counter > cache.length - 1) {

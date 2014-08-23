@@ -22,21 +22,17 @@ public class BCDigestRandomSource implements RandomSource {
     }
 
     @Override
-    public int generateByte() {
-        byte tmp[] = new byte[1];
-        this.drng.nextBytes(tmp);
-        return tmp[0] % 256;
-    }
-
-    @Override
     public void fillBytes(byte[] toBeFilled) {
         this.drng.nextBytes(toBeFilled);
     }
 
     @Override
     public void fillBytesAsInts(int[] toBeFilled) {
+        byte[] result = new byte[toBeFilled.length];
+        fillBytes(result);
+        
         for (int i = 0; i < toBeFilled.length; i++) {
-            toBeFilled[i] = generateByte();
+            toBeFilled[i] = result[i] % 256;
         }
     }
     

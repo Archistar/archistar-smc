@@ -2,14 +2,14 @@ package at.archistar.crypto.mac;
 
 import at.archistar.crypto.CevallosUSRSS;
 import at.archistar.crypto.exceptions.CryptoException;
-import at.archistar.crypto.random.StreamPRNG;
+import at.archistar.crypto.random.FakeRandomSource;
+import at.archistar.crypto.random.RandomSource;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.macs.HMac;
-import org.bouncycastle.crypto.macs.Poly1305;
 import org.bouncycastle.crypto.macs.SipHash;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,9 +32,8 @@ public class MacPerformanceTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() throws CryptoException, NoSuchAlgorithmException {
-        
                 
-        StreamPRNG rng = new StreamPRNG(StreamPRNG.HC128);
+        RandomSource rng = new FakeRandomSource();
 
         byte[] key = new byte[32];
         byte[] data = new byte[1024*1024];
@@ -52,8 +51,8 @@ public class MacPerformanceTest {
         
         Object[][] params = new Object[][]{
             {key, data, new ShareMacHelper("HMacSHA256")},
-            {key, data, new BCMacHelper(new HMac(new SHA256Digest())) },
-            {sipKey, data, new BCMacHelper(new SipHash()) },
+            {key, data, new BCMacHelper(new HMac(new SHA256Digest()), key.length) },
+            {sipKey, data, new BCMacHelper(new SipHash(), sipKey.length) },
             {key, data, new BCPoly1305MacHelper() },
             {theKey, data, new ShortenedMacHelper("HMacSHA256", 3, CevallosUSRSS.E) }
         };
