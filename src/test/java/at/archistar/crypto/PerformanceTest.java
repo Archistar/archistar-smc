@@ -3,16 +3,22 @@ package at.archistar.crypto;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.mac.BCMacHelper;
+import at.archistar.crypto.mac.BCPoly1305MacHelper;
+import at.archistar.crypto.mac.BCShortenedMacHelper;
+import at.archistar.crypto.mac.ShareMacHelper;
+import at.archistar.crypto.mac.ShortenedMacHelper;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.AESGCMEncryptor;
 import at.archistar.crypto.symmetric.ChaCha20Encryptor;
-import at.archistar.crypto.mac.ShareMacHelper;
-import at.archistar.crypto.mac.ShortenedMacHelper;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
+import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.macs.HMac;
+import org.bouncycastle.crypto.macs.SipHash;
 
 import static org.fest.assertions.api.Assertions.*;
 
@@ -35,7 +41,7 @@ public class PerformanceTest {
     private final byte[][][] input;
     private final SecretSharing algorithm;
     private static final int size = 20 * 1024 * 1024;
-
+    
     /**
      * Creates a byte[] of the given size, with all values set to 42.
      * @param elementSize the size of the array
@@ -55,15 +61,17 @@ public class PerformanceTest {
 
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
+        
+        System.err.println("Data-Size per Test: " + size/1024/1024 + "MByte");
 
-        byte[][][] secrets = new byte[1][][];
-        secrets[0] = createArray(256 * 1024);
-        /*secrets[1] = createArray(32 * 1024);
+        byte[][][] secrets = new byte[7][][];
+        secrets[0] = createArray(4 * 1024);
+        secrets[1] = createArray(32 * 1024);
         secrets[2] = createArray(64 * 1024);
         secrets[3] = createArray(256 * 1024);
         secrets[4] = createArray(512 * 1024);
         secrets[5] = createArray(1024 * 1024);
-        secrets[6] = createArray(4096 * 1024);*/
+        secrets[6] = createArray(4096 * 1024);
 
         final int n = 4;
         final int k = 3;
@@ -78,7 +86,12 @@ public class PerformanceTest {
            {secrets, new KrawczykCSS(n, k, rng, new AESGCMEncryptor())},
            {secrets, new KrawczykCSS(n, k, rng, new ChaCha20Encryptor())},
            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng), mac, rng)},
-           {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng, new ShortenedMacHelper("HMacSHA256", 3, CevallosUSRSS.E))}
+           {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng, new ChaCha20Encryptor()), mac, rng)},
+           {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng), new BCPoly1305MacHelper(), rng)},
+           {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng, new ChaCha20Encryptor()), new BCPoly1305MacHelper(), rng)},
+           {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng, new ShortenedMacHelper("HMacSHA256", 3, CevallosUSRSS.E))},
+           {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng, new BCShortenedMacHelper(new BCPoly1305MacHelper(), 3, CevallosUSRSS.E))},
+           {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng, new BCShortenedMacHelper(new BCMacHelper(new SipHash(2, 4), 16), 3, CevallosUSRSS.E))}
         };
 
         return Arrays.asList(data);
@@ -110,7 +123,7 @@ public class PerformanceTest {
                 /* test that the reconstructed stuff is the same as the original one */
                 assertThat(reconstructed).isEqualTo(data);
             }
-            System.err.format("Performance(%d) of %s: share: %.3fkb/sec, combine: %.2fkb/sec\n", i, this.algorithm, (size / 1024) / (sumShare / 1000.0), (size / 1024) / (sumCombine / 1000.0));
+            System.err.format("Performance(%dkB file size) of %s: share: %.3fkByte/sec, combine: %.2fkByte/sec\n", this.input[i][0].length/1024, this.algorithm, (size / 1024) / (sumShare / 1000.0), (size / 1024) / (sumCombine / 1000.0));
         }
     }
 }
