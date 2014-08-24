@@ -2,7 +2,7 @@ package at.archistar.crypto.data;
 
 import java.nio.ByteBuffer;
 
-import at.archistar.crypto.KrawczykCSS;
+import at.archistar.crypto.secretsharing.KrawczykCSS;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 

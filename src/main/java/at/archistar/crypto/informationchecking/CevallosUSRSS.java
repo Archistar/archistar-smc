@@ -1,9 +1,8 @@
-package at.archistar.crypto;
+package at.archistar.crypto.informationchecking;
 
+import at.archistar.crypto.secretsharing.SecretSharing;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.VSSShare;
-import at.archistar.crypto.decode.DecoderFactory;
-import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.mac.MacHelper;
@@ -37,7 +36,7 @@ public class CevallosUSRSS extends RabinBenOrRSS {
     public CevallosUSRSS(SecretSharing sharing, MacHelper mac, RandomSource rng) throws WeakSecurityException {
         super(sharing, mac, rng);
         
-        if (!((sharing.k - 1) * 3 >= sharing.n && (sharing.k - 1) * 2 < sharing.n)) {
+        if (!((sharing.getK() - 1) * 3 >= sharing.getN() && (sharing.getK() - 1) * 2 < sharing.getN())) {
             throw new WeakSecurityException("this scheme only works when n/3 <= t < n/2 (where t = k-1)");
         }
         

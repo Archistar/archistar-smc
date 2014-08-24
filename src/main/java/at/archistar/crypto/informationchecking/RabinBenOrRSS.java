@@ -1,5 +1,6 @@
-package at.archistar.crypto;
+package at.archistar.crypto.informationchecking;
 
+import at.archistar.crypto.secretsharing.SecretSharing;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.VSSShare;
 import at.archistar.crypto.exceptions.ImpossibleException;

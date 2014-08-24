@@ -1,6 +1,6 @@
 package at.archistar.crypto.mac;
 
-import at.archistar.crypto.CevallosUSRSS;
+import at.archistar.crypto.informationchecking.CevallosUSRSS;
 import at.archistar.crypto.exceptions.CryptoException;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;

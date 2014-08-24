@@ -1,5 +1,8 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.secretsharing.SecretSharing;
+import at.archistar.crypto.secretsharing.ShamirPSS;
+import at.archistar.crypto.informationchecking.CevallosUSRSS;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
 import at.archistar.crypto.decode.DecoderFactory;

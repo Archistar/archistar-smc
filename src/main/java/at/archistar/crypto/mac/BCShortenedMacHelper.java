@@ -6,7 +6,7 @@
 
 package at.archistar.crypto.mac;
 
-import at.archistar.crypto.CevallosUSRSS;
+import at.archistar.crypto.informationchecking.CevallosUSRSS;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;

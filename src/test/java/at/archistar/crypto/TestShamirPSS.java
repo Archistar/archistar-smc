@@ -9,8 +9,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import at.archistar.crypto.SecretSharing;
-import at.archistar.crypto.ShamirPSS;
+import at.archistar.crypto.secretsharing.SecretSharing;
+import at.archistar.crypto.secretsharing.ShamirPSS;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;

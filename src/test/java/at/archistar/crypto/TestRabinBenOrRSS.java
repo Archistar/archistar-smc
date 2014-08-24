@@ -1,5 +1,8 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.secretsharing.SecretSharing;
+import at.archistar.crypto.secretsharing.ShamirPSS;
+import at.archistar.crypto.informationchecking.RabinBenOrRSS;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;

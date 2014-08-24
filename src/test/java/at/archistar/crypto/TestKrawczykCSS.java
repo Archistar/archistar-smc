@@ -1,5 +1,7 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.secretsharing.KrawczykCSS;
+import at.archistar.crypto.secretsharing.SecretSharing;
 import java.util.Arrays;
 import java.util.Collections;
 

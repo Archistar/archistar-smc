@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import at.archistar.crypto.CevallosUSRSS;
+import at.archistar.crypto.informationchecking.CevallosUSRSS;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 

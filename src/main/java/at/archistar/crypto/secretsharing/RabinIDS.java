@@ -1,4 +1,4 @@
-package at.archistar.crypto;
+package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.BaseShare;
 import at.archistar.crypto.data.ReedSolomonShare;
