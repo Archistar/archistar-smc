@@ -5,6 +5,7 @@ import at.archistar.crypto.data.KrawczykShare.EncryptionAlgorithm;
 import at.archistar.crypto.data.ReedSolomonShare;
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
@@ -71,6 +72,25 @@ public class KrawczykCSS extends SecretSharing {
         
         this.shamir = new ShamirPSS(n, k, rng); // use a SharmirSecretSharing share generator to share the key and the content
         this.rs = new RabinIDS(n, k); // use RabinIDS for sharing Content 
+        this.cryptor = cryptor;
+        this.rng = rng;
+    }
+    
+        /**
+     * Constructor
+     * (Applying the default settings for the Shamir-RNG and the decoders: {@link SHA1PRNG} and {@link ErasureDecoder})
+     * 
+     * @param n the number of shares
+     * @param k the minimum number of shares required for reconstruction
+     * @param rng the RandomSource to be used for the underlying Shamir-scheme
+     * @param cryptor the to be used encryption algorithms
+     * @throws WeakSecurityException thrown if this scheme is not secure for the given parameters
+     */
+    public KrawczykCSS(int n, int k, RandomSource rng, Encryptor cryptor, DecoderFactory decFactory) throws WeakSecurityException {
+        super(n, k);
+        
+        this.shamir = new ShamirPSS(n, k, rng, decFactory); // use a SharmirSecretSharing share generator to share the key and the content
+        this.rs = new RabinIDS(n, k, decFactory); // use RabinIDS for sharing Content 
         this.cryptor = cryptor;
         this.rng = rng;
     }

@@ -15,12 +15,6 @@ import java.util.Arrays;
  * 
  * <p>For a detailed description of the scheme, 
  * see: <a href="http://www.cse.huji.ac.il/course/2003/ns/Papers/RB89.pdf">http://www.cse.huji.ac.il/course/2003/ns/Papers/RB89.pdf</a></p>
- * 
- * 
- * @author Elias Frantar
- * @author Andreas Happe <andreashappe@snikt.net>
- * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
- * @version 2014-7-24
  */
 public class RabinBenOrRSS extends SecretSharing {
     
@@ -48,18 +42,16 @@ public class RabinBenOrRSS extends SecretSharing {
         if (sharing instanceof RabinBenOrRSS) {
             throw new IllegalArgumentException("the underlying scheme must not be itself");
         }
-
+/*
         if (sharing instanceof RabinIDS) {
             throw new ImpossibleException("Reed-Solomon-Code is not secure!");
         }
+        */
         
         this.sharing = sharing;
     }
-
-    @Override
-    public Share[] share(byte[] data) {
-        VSSShare[] rboshares = VSSShare.createVSSShares(sharing.share(data), TAG_LENGTH, KEY_LENGTH);
-        
+    
+    protected void createTags(VSSShare[] rboshares) {
         /* compute and add the corresponding tags */
         for (VSSShare share1 : rboshares) {
             for (VSSShare share2 : rboshares) {
@@ -74,14 +66,17 @@ public class RabinBenOrRSS extends SecretSharing {
                     throw new ImpossibleException("this cannot happen");
                 }
             }
-        }
-        
-        return rboshares;
+        }        
     }
 
     @Override
-    public byte[] reconstruct(Share[] shares) throws ReconstructionException {
-        VSSShare[] rboshares = safeCast(shares); // we need access to it's inner fields
+    public Share[] share(byte[] data) {
+        VSSShare[] rboshares = VSSShare.createVSSShares(sharing.share(data), TAG_LENGTH, KEY_LENGTH);
+        this.createTags(rboshares);
+        return rboshares;
+    }
+    
+    protected Share[] checkShares(VSSShare[] rboshares) {
         Share[] valid = new Share[rboshares.length];
         int counter = 0;
         
@@ -98,9 +93,16 @@ public class RabinBenOrRSS extends SecretSharing {
                 valid[counter++] = rboshares[i].getShare();
             }
         }
+        return Arrays.copyOfRange(valid, 0, counter);
+    }
+
+    @Override
+    public byte[] reconstruct(Share[] shares) throws ReconstructionException {
+        VSSShare[] rboshares = safeCast(shares); // we need access to it's inner fields
         
-        if (counter >= k) {
-            return sharing.reconstruct(Arrays.copyOfRange(valid, 0, counter));
+        Share[] valid = this.checkShares(rboshares);
+        if (valid.length >= k) {
+            return sharing.reconstruct(valid);
         }
         
         throw new ReconstructionException(); // if there weren't enough valid shares
@@ -113,7 +115,7 @@ public class RabinBenOrRSS extends SecretSharing {
      * @return the given Share[] as RabinBenOrShare[]
      * @throws ClassCastException if the Share[] did not (only) contain RabinBenOrShares
      */
-    private VSSShare[] safeCast(Share[] shares) {
+    protected VSSShare[] safeCast(Share[] shares) {
         VSSShare[] rboshares = new VSSShare[shares.length];
         
         for (int i = 0; i < shares.length; i++) {

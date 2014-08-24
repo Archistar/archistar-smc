@@ -86,9 +86,12 @@ public class PerformanceTest {
            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng, new ChaCha20Encryptor()), mac, rng)},
            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng), new BCPoly1305MacHelper(), rng)},
            {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng, new ChaCha20Encryptor()), new BCPoly1305MacHelper(), rng)},
-           {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng, new ShortenedMacHelper("HMacSHA256", 3, CevallosUSRSS.E))},
-           {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng, new BCShortenedMacHelper(new BCPoly1305MacHelper(), 3, CevallosUSRSS.E))},
-           {secrets, new CevallosUSRSS(5, 3, new BerlekampWelchDecoderFactory(), rng, new BCShortenedMacHelper(new BCMacHelper(new SipHash(2, 4), 16), 3, CevallosUSRSS.E))}
+           {secrets, new CevallosUSRSS(new ShamirPSS(5, 3, rng, new BerlekampWelchDecoderFactory()),
+                                       new ShortenedMacHelper("HMacSHA256", 3, CevallosUSRSS.E),
+                                       rng)},
+           {secrets, new CevallosUSRSS(new KrawczykCSS(5, 3, rng, new AESEncryptor(), new BerlekampWelchDecoderFactory()),
+                                       new ShortenedMacHelper("HMacSHA256", 3, CevallosUSRSS.E),
+                                       rng)},
         };
 
         return Arrays.asList(data);
