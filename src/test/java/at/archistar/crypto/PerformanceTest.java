@@ -64,14 +64,11 @@ public class PerformanceTest {
         
         System.err.println("Data-Size per Test: " + size/1024/1024 + "MByte");
 
-        byte[][][] secrets = new byte[7][][];
-        secrets[0] = createArray(4 * 1024);
-        secrets[1] = createArray(32 * 1024);
-        secrets[2] = createArray(64 * 1024);
-        secrets[3] = createArray(256 * 1024);
-        secrets[4] = createArray(512 * 1024);
-        secrets[5] = createArray(1024 * 1024);
-        secrets[6] = createArray(4096 * 1024);
+        byte[][][] secrets = new byte[4][][];
+        secrets[0] = createArray(4 * 1024);       // typical file system block size
+        secrets[1] = createArray(128 * 1024);     // documents
+        secrets[2] = createArray(512 * 1024);     // documents, pictures (jpegs)
+        secrets[3] = createArray(4096 * 1024);    // audio, high-quality pictures
 
         final int n = 4;
         final int k = 3;
