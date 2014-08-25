@@ -12,3 +12,7 @@ target/
 .classpath
 .project
 .settings
+
+bin/
+.idea/
+*.iml
