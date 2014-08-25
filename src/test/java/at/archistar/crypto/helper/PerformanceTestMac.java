@@ -55,7 +55,6 @@ public class PerformanceTestMac {
         verifyTime = -System.currentTimeMillis();
         macHelper.verifyMAC(hashData, tag, key);
         verifyTime += System.currentTimeMillis();
-        // computed y bytes in x milli seconds, what is kb / sec?
         System.out.printf("Mac algorithm %s (%d ms and %d ms passed): compute %.3fkb/sec verify %.3fkb/sec",
                 macAlgorithmName,computeTime, verifyTime,
                 (size / 1024.0) / (computeTime / 1000.0), (size / 1024.0) / (verifyTime / 1000.0));
