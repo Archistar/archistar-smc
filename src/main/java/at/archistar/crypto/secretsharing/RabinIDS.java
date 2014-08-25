@@ -1,4 +1,4 @@
-package at.archistar.crypto;
+package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.BaseShare;
 import at.archistar.crypto.data.ReedSolomonShare;
@@ -11,7 +11,7 @@ import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
-import at.archistar.helper.ByteUtils;
+import at.archistar.crypto.data.ByteUtils;
 import java.util.Arrays;
 
 /**
@@ -170,5 +170,10 @@ public class RabinIDS extends SecretSharing {
         }
         
         return rsshares;
+    }
+    
+    @Override
+    public String toString() {
+        return "RabinIDS(" + n + "/" + k + ")";
     }
 }

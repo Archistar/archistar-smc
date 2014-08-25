@@ -9,21 +9,16 @@ package at.archistar.crypto.random;
 public class FakeRandomSource implements RandomSource {
 
     @Override
-    public int generateByte() {
-        return 4;
-    }
-    
-    @Override
     public void fillBytes(byte[] toBeFilled) {
         for (int i = 0; i < toBeFilled.length; i++) {
-            toBeFilled[i] = (byte)generateByte();
+            toBeFilled[i] = (byte)4;
         }
     }
     
     @Override
     public void fillBytesAsInts(int[] toBeFilled) {
         for (int i = 0; i < toBeFilled.length; i++) {
-            toBeFilled[i] = generateByte();
+            toBeFilled[i] = 4;
         }
     }
 }

@@ -40,17 +40,6 @@ public class RNGPerformanceTest {
     }
 
     @Test
-    public void testPerformanceByte() {
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < 1024 * 1024 * 500; i++) {
-            rng.generateByte();
-        }
-        long end = System.currentTimeMillis();
-
-        System.out.println(rng.toString() + ": 500MB in " + (end - start) + "ms");
-    }
-
-    @Test
     public void testPerformanceArray() {
         byte[] toBeFilled = new byte[1024 * 1024];
 
@@ -61,5 +50,18 @@ public class RNGPerformanceTest {
         long end = System.currentTimeMillis();
 
         System.out.println(rng.toString() + " (array): 500MB a 1 MB in " + (end - start) + "ms");
+    }
+    
+    @Test
+    public void testPerformanceArrayInt() {
+        int[] toBeFilled = new int[1024 * 1024];
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 500; i++) {
+            rng.fillBytesAsInts(toBeFilled);
+        }
+        long end = System.currentTimeMillis();
+
+        System.out.println(rng.toString() + " (array): 500MB a 1 MB as Int in " + (end - start) + "ms");
     }
 }

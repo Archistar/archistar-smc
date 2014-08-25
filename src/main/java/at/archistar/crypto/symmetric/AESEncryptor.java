@@ -62,4 +62,9 @@ public class AESEncryptor implements Encryptor {
     public int getKeyLength() {
         return 32;
     }
+    
+    @Override
+    public String toString() {
+        return "AESCryptor(CBC)";
+    }
 }

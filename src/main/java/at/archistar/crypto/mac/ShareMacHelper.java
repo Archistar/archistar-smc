@@ -1,4 +1,4 @@
-package at.archistar.helper;
+package at.archistar.crypto.mac;
 
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -9,7 +9,6 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.random.RandomSource;
 
 /**
  * A helper-class for computing and validating MACs for {@link Share}s.
@@ -17,46 +16,37 @@ import at.archistar.crypto.random.RandomSource;
  * @author Elias Frantar
  * @version 2014-7-24
  */
-public class ShareMacHelper {
-    private Mac mac;
-    private RandomSource rng;
+public class ShareMacHelper implements MacHelper {
+    
+    private final Mac mac;
     
     /**
      * Constructor
      * 
      * @param algorithm the MAC algorithm to use (for example <i>SHA-256</i>)
-     * @param rng the random number generator to use for generating keys
      * @throws NoSuchAlgorithmException thrown if the given algorithm is not supported
      */
-    public ShareMacHelper(String algorithm, RandomSource rng) throws NoSuchAlgorithmException {
-        mac = Mac.getInstance(algorithm);
-        this.rng = rng;
+    public ShareMacHelper(String algorithm) throws NoSuchAlgorithmException {
+        this.mac = Mac.getInstance(algorithm);
     }
     
-    /**
-     * @see #computeMAC(Share, byte[], int)
-     * Uses algorithms default MAC-length.
-     */
-    public byte[] computeMAC(Share share, byte[] key) throws InvalidKeyException {
-        return computeMAC(share, key, mac.getMacLength());
-    }
     /**
      * Computes the MAC of the specified length for the given share with the given key.
      * 
      * @param share the share to create the MAC for
      * @param key the key to use for computing the MAC
-     * @param length the length of the returned tag
      * @return the message authentication code (tag or MAC) for this share
      * @throws InvalidKeyException thrown if an InvalidKeyException occurred
      */
-    public byte[] computeMAC(Share share, byte[] key, int length) throws InvalidKeyException {
+    @Override
+    public byte[] computeMAC(byte[] data, byte[] key) throws InvalidKeyException {
         Key k = new SecretKeySpec(key, mac.getAlgorithm());
         mac.init(k);
 
         /* compute mac of serialized share */
-        mac.update(share.serialize());
-
-        return Arrays.copyOfRange(mac.doFinal(), 0, length); // return tag
+        mac.update(data);
+        
+        return mac.doFinal();
     }
     
     /**
@@ -68,25 +58,25 @@ public class ShareMacHelper {
      * @param key the key to use for verification
      * @return true if verification was successful (the tags matched); false otherwise
      */
-    public boolean verifyMAC(Share share, byte[] tag, byte[] key) {
+    @Override
+    public boolean verifyMAC(byte[] data, byte[] tag, byte[] key) {
         boolean valid = false;
         
         try {
-            byte[] newTag = computeMAC(share, key, tag.length); // compute tag for the given parameters
+            byte[] newTag = computeMAC(data, key); // compute tag for the given parameters
             valid = Arrays.equals(tag, newTag); // compare with original tag
         } catch (InvalidKeyException e) {}
         
         return valid;
     }
+
+    @Override
+    public int keySize() {
+        return 32;
+    }
     
-    /**
-     * Generates a random MAC-key of specified length
-     * @param length the length of the key
-     * @return a newly-generated random MAC-key
-     */
-    public byte[] genSampleKey(int length) { // TODO: should we even use a RandomSource for this? (since generateByte does not return 0)
-        byte[] key = new byte[length];
-        this.rng.fillBytes(key);
-        return key;
+    @Override
+    public String toString() {
+        return "ShareMacHelper(" + this.mac.getAlgorithm()  + ")";
     }
 }

@@ -4,7 +4,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 import at.archistar.crypto.exceptions.ImpossibleException;
-import at.archistar.helper.ByteUtils;
+import at.archistar.crypto.data.ByteUtils;
 
 /**
  * A wrapper class for the internal java SHA1-PRNG (also used in Java's {@link SecureRandom}).
@@ -33,8 +33,7 @@ public class SHA1PRNG implements RandomSource {
         rng.nextBoolean(); // force the rng to seed itself
     }
     
-    @Override
-    public int generateByte() {
+    private int generateByte() {
         /* this whole procedure is 2x as fast as nextInt(255) + 1 */
         byte[] bytes = new byte[1];
         

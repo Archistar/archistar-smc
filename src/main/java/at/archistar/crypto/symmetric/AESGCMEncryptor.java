@@ -64,5 +64,9 @@ public class AESGCMEncryptor implements Encryptor {
     public int getKeyLength() {
         return 32;
     }
-
+    
+    @Override
+    public String toString() {
+        return "AESGCMCryptor()";
+    }
 }

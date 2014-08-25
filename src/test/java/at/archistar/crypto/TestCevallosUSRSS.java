@@ -1,13 +1,17 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.secretsharing.SecretSharing;
+import at.archistar.crypto.secretsharing.ShamirPSS;
+import at.archistar.crypto.informationchecking.CevallosUSRSS;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.mac.MacHelper;
+import at.archistar.crypto.mac.ShortenedMacHelper;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.helper.ShareMacHelper;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,12 +32,12 @@ public class TestCevallosUSRSS {
     private static final RandomSource rng = new FakeRandomSource();
     //private static final DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
     private static final DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
-    private ShareMacHelper mac;
+    private MacHelper mac;
     
     @Before
     public void setup() throws WeakSecurityException, NoSuchAlgorithmException {
-        mac = new ShareMacHelper("HMacSHA256", rng);
-        algorithm = new CevallosUSRSS(8, 4, decoderFactory, rng, mac);
+        mac = new ShortenedMacHelper("HMacSHA256", 4, CevallosUSRSS.E);
+        algorithm = new CevallosUSRSS(new ShamirPSS(8, 4, rng, decoderFactory), mac, rng);
     }
     
     @After
@@ -54,28 +58,28 @@ public class TestCevallosUSRSS {
     public void tGoodRangeLowerBoundGoodTest() throws WeakSecurityException{
     	int n = 11;
     	int t = 4;
-        new CevallosUSRSS(n, t + 1, decoderFactory, rng, mac); // very close above the lower bound n/3
+        new CevallosUSRSS(new ShamirPSS(n, t + 1, rng, decoderFactory), mac, rng); // very close above the lower bound n/3
     }
     
     @Test(expected=WeakSecurityException.class)
     public void tGoodRangeLowerBoundFailTest() throws WeakSecurityException{
     	int n = 11;
     	int t = 3;
-        new CevallosUSRSS(n, t + 1, decoderFactory, rng, mac); // very close below the lower bound n/3
+        new CevallosUSRSS(new ShamirPSS(n, t + 1, rng, decoderFactory), mac, rng); // very close below the lower bound n/3
     }
     
     @Test
     public void tRangeUpperBoundLimitGoodTest() throws WeakSecurityException{
     	int n = 11;
     	int t = 5;
-        new CevallosUSRSS(n, t + 1, decoderFactory, rng, mac); // here t is close to the upper bound but still in the good range
+        new CevallosUSRSS(new ShamirPSS(n, t + 1, rng, decoderFactory), mac, rng); // here t is close to the upper bound but still in the good range
     }
     
     @Test(expected=WeakSecurityException.class)
     public void tGoodRangeUpperBoundLimitFailTest() throws WeakSecurityException{
     	int n = 10;
     	int t = 5;
-        new CevallosUSRSS(n, t + 1, decoderFactory, rng, mac); // here the t is over the upper bound
+        new CevallosUSRSS(new ShamirPSS(n, t + 1, rng, decoderFactory), mac, rng); // here the t is over the upper bound
     }
     
     @Test

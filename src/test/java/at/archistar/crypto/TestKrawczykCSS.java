@@ -1,5 +1,7 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.secretsharing.KrawczykCSS;
+import at.archistar.crypto.secretsharing.SecretSharing;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -7,10 +9,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import at.archistar.crypto.KrawczykCSS;
-import at.archistar.crypto.SecretSharing;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.data.KrawczykShare.EncryptionAlgorithm;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;

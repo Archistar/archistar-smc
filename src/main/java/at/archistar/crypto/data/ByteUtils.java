@@ -1,4 +1,4 @@
-package at.archistar.helper;
+package at.archistar.crypto.data;
 
 /**
  * Provides some little utility for converting a (in Java signed) byte to an unsigned Integer.

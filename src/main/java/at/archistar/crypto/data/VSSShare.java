@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import at.archistar.crypto.CevallosUSRSS;
+import at.archistar.crypto.informationchecking.CevallosUSRSS;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 
@@ -18,9 +18,9 @@ import at.archistar.crypto.exceptions.WeakSecurityException;
  * @version 2014-7-29
  */
 public class VSSShare extends BaseSerializableShare {
-    private Share share;
-    private Map<Byte, byte[]> macs;
-    private Map<Byte, byte[]> macKeys;
+    private final Share share;
+    private final Map<Byte, byte[]> macs;
+    private final Map<Byte, byte[]> macKeys;
     
     /**
      * Constructor
@@ -186,6 +186,7 @@ public class VSSShare extends BaseSerializableShare {
     public static VSSShare[] createVSSShares(Share[] shares, int tagLength, int keyLength) {
         VSSShare[] vssshares = new VSSShare[shares.length];
         
+        /* TODO: do we really need this? Those should be empty anyways! */
         for (int i = 0; i < shares.length; i++) {
             /* initialize macs-Map */
             Map<Byte, byte[]> tmpMacs = new HashMap<Byte, byte[]>();

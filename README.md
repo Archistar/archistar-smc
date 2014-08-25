@@ -10,6 +10,29 @@ Currently implemented algorithms
 * [Shamir's Secret Sharing](http://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing)
 * [Krawczyk Secret Sharing Made Short](http://courses.csail.mit.edu/6.857/2009/handouts/short-krawczyk.pdf)
 * [Rabin-Ben-Or Verifiable Secret Sharing](http://www.cse.huji.ac.il/course/2003/ns/Papers/RB89.pdf)
+* [Cevallos (partially, MAC is missing)](http://www.algant.eu/documents/theses/cevallos.pdf)
+
+Performance Numbers
+-------------------
+
+Rough observed performance numbers on a Intel Core i5-3570k, single core, Java 1.7, 256kByte Datasets:
+
+```
+ShamirPSS:                        share:  24854.369kByte/sec, combine: 16075.35kByte/sec
+
+RabinIDS:                         share: 107789.474kByte/sec, combine: 53333.33kByte/sec
+
+KrawczykCSS AES-CBC:              share:  50443.350kByte/sec, combine: 33684.21kByte/sec
+KrawczykCSS AES-GCM:              share:  31411.043kByte/sec, combine: 24824.24kByte/sec
+KrawczykCSS ChaCha:               share:  64402.516kByte/sec, combine: 41457.49kByte/sec
+
+RabinBenOrRSS (AES, SHA256):      share:  17594.502kByte/sec, combine: 14927.11kByte/sec
+RabinBenOrRSS (ChaCha, SHA256):   share:  19730.250kByte/sec, combine: 16677.52kByte/sec
+RabinBenOrRSS (AES, Poly1305):    share:  30385.757kByte/sec, combine: 22629.83kByte/sec
+RabinBenOrRSS (ChaCha, Poly1305): share:  34362.416kByte/sec, combine: 24674.70kByte/sec
+
+CevallosUSRSS (AES/CBC, SHA256):  share:   4550.100kByte/sec, combine:   173.03kByte/sec
+```
 
 Basic Introduction to Secret Sharing
 ---------------------------------------------

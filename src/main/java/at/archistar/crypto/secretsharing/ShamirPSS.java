@@ -1,4 +1,4 @@
-package at.archistar.crypto;
+package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.BaseShare;
 import at.archistar.crypto.data.ShamirShare;
@@ -12,7 +12,7 @@ import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.helper.ByteUtils;
+import at.archistar.crypto.data.ByteUtils;
 
 /**
  * <p>This class implements the <i>Perfect-Secret-Sharing</i>-scheme (PSS) developed by Adi Shamir.</p>
@@ -148,5 +148,10 @@ public class ShamirPSS extends SecretSharing {
         }
         
         return sshares;
+    }
+    
+    @Override
+    public String toString() {
+        return "ShamirPSS(" + n + "/" + k + ")";
     }
 }
