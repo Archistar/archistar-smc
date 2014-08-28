@@ -33,7 +33,6 @@ public class ShareMacHelper implements MacHelper {
     /**
      * Computes the MAC of the specified length for the given share with the given key.
      * 
-     * @param share the share to create the MAC for
      * @param key the key to use for computing the MAC
      * @return the message authentication code (tag or MAC) for this share
      * @throws InvalidKeyException thrown if an InvalidKeyException occurred
@@ -53,7 +52,6 @@ public class ShareMacHelper implements MacHelper {
      * Verifies the given MAC.<br>
      * (recomputes the tag from share and key and compares it with the given tag)
      * 
-     * @param share the share to verify the MAC for
      * @param tag the tag to verify
      * @param key the key to use for verification
      * @return true if verification was successful (the tags matched); false otherwise

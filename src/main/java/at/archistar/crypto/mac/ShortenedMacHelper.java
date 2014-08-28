@@ -10,6 +10,8 @@ import at.archistar.crypto.informationchecking.CevallosUSRSS;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -56,21 +58,19 @@ public class ShortenedMacHelper implements MacHelper {
      * Verifies the given MAC.<br>
      * (recomputes the tag from share and key and compares it with the given tag)
      * 
-     * @param share the share to verify the MAC for
+     * @param data the data to verify the MAC for
      * @param tag the tag to verify
      * @param key the key to use for verification
      * @return true if verification was successful (the tags matched); false otherwise
      */
     @Override
     public boolean verifyMAC(byte[] data, byte[] tag, byte[] key) {
-        boolean valid = false;
-        
         try {
-            byte[] newTag = computeMAC(data, key); // compute tag for the given parameters
-            valid = Arrays.equals(tag, newTag); // compare with original tag
-        } catch (InvalidKeyException e) {}
-        
-        return valid;
+            byte[] newTag = computeMAC(data, key);
+            return Arrays.equals(tag, newTag);
+        } catch (InvalidKeyException ex) {
+            return false;
+        }
     }
 
     @Override

@@ -1,19 +1,14 @@
 package at.archistar.crypto.data;
 
-import java.nio.ByteBuffer;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 /**
  * Represents a share for {@link RabinIDS}.
- * 
- * @author Elias Frantar
- * @version 2014-7-24
  */
-public final class ReedSolomonShare extends BaseSerializableShare {
-    private final byte x;
-    private final byte[] y;
+public final class ReedSolomonShare extends BaseShare {
     private final int originalLength;
     
     /**
@@ -26,39 +21,30 @@ public final class ReedSolomonShare extends BaseSerializableShare {
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public ReedSolomonShare(byte x, byte[] y, int originalLength) {
-        this.x = x;
-        this.y = y;
+        
+        super(x, y);
         this.originalLength = originalLength;
         
-        validateShare();
+        if (!isValid()) {
+            throw new NullPointerException();
+        }
     }
     
     /**
-     * Constructor<br>
-     * Tries to deserialize the serialized ReedSolomonShare.
+     * De-serializes a serialized ReedSolomonShare.
      * 
-     * @param serialized the serialized data (must be a valid serialized ReedSolomonShare)
-     * @throws IllegalArgumentException if the given data was not a valid serialized share 
-     *         ({@link BaseSerializableShare#validateSerialization(byte[], int)})
-     * @throws NullPointerException if validation failed ({@link #validateShare()})
+     * @param in the serialized data (must be a valid serialized ReedSolomonShare)
+     * @param version the version (extracted from serialized data header)
+     * @param x the key/id (extracted from serialized data header)
+     * @returns the newly created share
      */
-    protected ReedSolomonShare(byte[] serialized) {
-        validateSerialization(serialized, HEADER_LENGTH + 5); // + y + originalLength.length
+    public static ReedSolomonShare deserialize(DataInputStream in, int version, byte x) throws IOException {
         
-        ByteBuffer bb = ByteBuffer.wrap(serialized);
-        bb.position(ID);
-        
-        /* deserialize x */
-        x = bb.get();
-        
-        /* deserialize originalLength */
-        originalLength = bb.getInt();
-        
-        /* deserialize y */
-        y = new byte[bb.remaining()];
-        bb.get(y);
-        
-        validateShare();
+        int originalLength = in.readInt();
+        int count = in.readInt();        
+        byte[] y = new byte[count];
+        assert in.read(y) == count;
+        return new ReedSolomonShare(x, y, originalLength);
     }
 
     @Override
@@ -67,21 +53,10 @@ public final class ReedSolomonShare extends BaseSerializableShare {
     }
 
     @Override
-    public int getId() {
-        return ByteUtils.toUnsignedByte(x);
-    }
-
-    @Override
-    protected byte[] serializeBody() {
-        ByteBuffer bb = ByteBuffer.allocate(4 + y.length);
-        
-        /* add originalLength */
-        bb.putInt(originalLength);
-        
-        /* add the y-values */
-        bb.put(y);
-        
-        return bb.array();
+    public void serializeBody(DataOutputStream os) throws IOException {
+        os.writeInt(originalLength);
+        os.writeInt(y.length);
+        os.write(y);
     }
     
     /**
@@ -91,16 +66,14 @@ public final class ReedSolomonShare extends BaseSerializableShare {
      *  <li>y is not null
      *  <li>originalLength is larger than 0
      * </ul>
-     * @throws NullPointerException if any of the above conditions is violated
+     * @return true if share is valid
      */
-    private void validateShare() {
-        if (x == 0 || y == null || originalLength <= 0) {
-            throw new NullPointerException();
-        }
+    @Override
+    public boolean isValid() {
+        return !(x == 0 || y == null || originalLength <= 0);
     }
     
-    /* Getters */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public byte[] getY() { return y; }
-    public int getOriginalLength() { return originalLength; }
+    public int getOriginalLength() {
+        return originalLength;
+    }
 }

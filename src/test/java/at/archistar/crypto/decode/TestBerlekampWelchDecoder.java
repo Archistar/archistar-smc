@@ -9,11 +9,7 @@ import at.archistar.crypto.random.SHA1PRNG;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
- * Basic tests for {@link BerlekampWelchDecoder}
- *
- * @author Andreas Happe
- * @author Elias Frantar
- * @version 2014-7-25
+ * Basic BerlekampWelch-Decoder Test
  */
 public class TestBerlekampWelchDecoder {
 

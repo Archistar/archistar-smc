@@ -26,10 +26,10 @@ import org.junit.Test;
  * @author Andreas Happe <andreashappe@snikt.net>
  * @version 2014-7-21
  */
-public class TestRabinBenOrRSS {
+public class TestRabinBenOrEngine {
 
     byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-    private SecretSharing algorithm;
+    private CryptoEngine algorithm;
 
     /* setup and tear-down */
     @Before
@@ -37,8 +37,7 @@ public class TestRabinBenOrRSS {
 
         RandomSource rng = new FakeRandomSource();
         MacHelper mac = new ShareMacHelper("HMacSHA256");
-
-        algorithm = new RabinBenOrRSS(new ShamirPSS(8, 5, rng), mac, rng);
+        algorithm = new RabinBenOrEngine(8, 5, rng);
     }
 
     @After

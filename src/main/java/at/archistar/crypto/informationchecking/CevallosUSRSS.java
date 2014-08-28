@@ -1,11 +1,12 @@
 package at.archistar.crypto.informationchecking;
 
-import at.archistar.crypto.secretsharing.SecretSharing;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.VSSShare;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.mac.MacHelper;
+import at.archistar.crypto.random.RandomSource;
+import at.archistar.crypto.secretsharing.SecretSharing;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,9 +21,6 @@ import java.util.Queue;
  * 
  * <p>For detailed information about this system, see: 
  * <a href="http://www.iacr.org/cryptodb/data/paper.php?pubkey=24281">http://www.iacr.org/cryptodb/data/paper.php?pubkey=24281</a></p>
- * 
- * @author Elias Frantar
- * @version 2014-7-29
  */
 public class CevallosUSRSS extends RabinBenOrRSS {
     public static final int E = 128; // security constant for computing the tag length; means 128 bit
@@ -45,10 +43,13 @@ public class CevallosUSRSS extends RabinBenOrRSS {
     }
     
     @Override
-    protected Share[] checkShares(VSSShare[] cshares) {
+    public Share[] checkShares(VSSShare[] cshares) throws IOException {
         
-        Queue<Integer> queue = new LinkedList<Integer>();
-        List<Share> valid = new LinkedList<Share>();
+        Queue<Integer> queue = new LinkedList<>();
+        List<Share> valid = new LinkedList<>();
+        
+        int n = sharing.getN();
+        int k = sharing.getK();
 
         // accepts[i][j] = true means participant j accepts i
         boolean[][] accepts = new boolean[n + 1][n + 1];
@@ -56,15 +57,19 @@ public class CevallosUSRSS extends RabinBenOrRSS {
         
         for (VSSShare s1 : cshares) {
             for (VSSShare s2 : cshares) {
-                accepts[s1.getId()][s2.getId()] = mac.verifyMAC(
-                            s1.getShare().serialize(), s1.getMacs().get((byte) s2.getId()),
-                            s2.getMacKeys().get((byte) s1.getId()));
-                a[s1.getId()] += accepts[s1.getId()][s2.getId()] ? 1 : 0;
+                byte[] data = s1.getShare().serialize();
+                byte[] mac1 = s1.getMacs().get((byte) s2.getId());
+                byte[] mac2 = s2.getMacKeys().get((byte) s1.getId());
+                
+                accepts[s1.getId()][s2.getId()] = mac.verifyMAC(data, mac1, mac2);
+                if (accepts[s1.getId()][s2.getId()]) {
+                    a[s1.getId()]++;
+                }
             }
             if (a[s1.getId()] < k) {
                 queue.add(s1.getId());
             } else {
-                valid.add(s1.getShare());
+                valid.add(s1);
             }
         }
         

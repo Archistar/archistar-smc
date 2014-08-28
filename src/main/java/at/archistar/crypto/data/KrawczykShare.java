@@ -1,19 +1,17 @@
 package at.archistar.crypto.data;
 
-import java.nio.ByteBuffer;
-
+import at.archistar.crypto.data.Share.Algorithm;
 import at.archistar.crypto.secretsharing.KrawczykCSS;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 /**
  * Represents a share for {@link KrawczykCSS}.
- * 
- * @author Elias Frantar
- * @version 2014-7-24
  */
-public final class KrawczykShare extends BaseSerializableShare {
-    
+public final class KrawczykShare extends BaseShare {
+
     /**
      * <p>Identifier for the algorithm used for encrypting the content of this share.</p>
      * 
@@ -30,8 +28,6 @@ public final class KrawczykShare extends BaseSerializableShare {
         public String getAlgString() { return algString; }
     }
     
-    private final byte x;
-    private final byte[] y;
     private final int originalLength;
     private final byte[] keyY;
     private final EncryptionAlgorithm alg;
@@ -48,56 +44,45 @@ public final class KrawczykShare extends BaseSerializableShare {
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public KrawczykShare(byte x, byte[] y, int originalLength, byte[] keyY, EncryptionAlgorithm alg) {
-        this.x = x;
-        this.y = y;
+        super(x, y);
         this.originalLength = originalLength;
         this.keyY = keyY;
         this.alg = alg;
         
-        validateShare();
+        if (!isValid()) {
+            throw new NullPointerException();
+        }
     }
     
     /**
-     * Constructor<br>
-     * Tries to deserialize the serialized KrawczykShare.
+     * Tries to de-serialize a serialized Share.
      * 
-     * @param serialized the serialized data (must be a valid serialized KrawczykShare)
-     * @throws IllegalArgumentException if the given data was not a valid serialized share 
-     *         ({@link BaseSerializableShare#validateSerialization(byte[], int)})
-     * @throws NullPointerException if validation failed ({@link #validateShare()})
+     * @param in the serialized data
+     * @param version the expected version (as read from the header)
+     * @param x the xValue/key of the share
+     * @return the de-serialized share
+     * @throws IOException in case share wasn't deserializable
      */
-    protected KrawczykShare(byte[] serialized) {
-        validateSerialization(serialized, HEADER_LENGTH + 7); // + alg + originalLength + y.length + y + keyY
-        
-        ByteBuffer bb = ByteBuffer.wrap(serialized);
-        bb.position(ID);
-        
-        /* deserialize x */
-        x = bb.get();
-        
-        /* try to deserialize encryption algorithm */
-        byte algOrdinal = bb.get();
+    public static KrawczykShare deserialize(DataInputStream in, int version, byte x) throws IOException {
+
+        byte algOrdinal = in.readByte();
         if (algOrdinal < 0 || algOrdinal > (EncryptionAlgorithm.values().length - 1)) {
             throw new IllegalArgumentException("encryption algorithm does not exist");
         }
-        alg = EncryptionAlgorithm.values()[algOrdinal];
-        
-        /* deserialize originalLength */
-        originalLength = bb.getInt();
-        /* deserialize y.length */
-        y = new byte[bb.getInt()];
+        EncryptionAlgorithm alg = EncryptionAlgorithm.values()[algOrdinal];
 
-        /* try to deserialize y */
-        if (y.length < 1 || y.length > bb.remaining() - 1) {
-            throw new IllegalArgumentException("invalid y-length field");
-        }
-        bb.get(y);
+        int originalLength = in.readInt();
+        int yLength = in.readInt();
         
-        /* deserialize keyY */
-        keyY = new byte[bb.remaining()];
-        bb.get(keyY);
+        byte[] tmpY = new byte[yLength];
+        assert in.read(tmpY) == yLength;
         
-        validateShare();
+        int keyYLength = in.readInt();
+        
+        byte[] tmpYKey = new byte[keyYLength];
+        assert in.read(tmpYKey) == keyYLength;
+        
+        return new KrawczykShare(x, tmpY, originalLength, tmpYKey, alg);
     }
 
     @Override
@@ -106,27 +91,13 @@ public final class KrawczykShare extends BaseSerializableShare {
     }
     
     @Override
-    public int getId() {
-        return x;
-    }
-
-    @Override
-    protected byte[] serializeBody() {
-        ByteBuffer bb = ByteBuffer.allocate(1 + 4 + 4 + y.length + keyY.length); // + alg + originalLength + y.length + y + keyY
-        
-        /* add encryption algorithm */
-        bb.put((byte) alg.ordinal());
-        /* add originalLength */
-        bb.putInt(originalLength);
-        /* add y.length */
-        bb.putInt(y.length);
-        
-        /* add y-values */
-        bb.put(y);
-        /* add keyY */
-        bb.put(keyY);
-        
-        return bb.array();
+    public void serializeBody(DataOutputStream os) throws IOException {
+        os.writeByte((byte) alg.ordinal());
+        os.writeInt(originalLength);
+        os.writeInt(y.length);
+        os.write(y);
+        os.writeInt(keyY.length);
+        os.write(keyY);
     }
     
     /**
@@ -138,24 +109,26 @@ public final class KrawczykShare extends BaseSerializableShare {
      *  <li>keyY is not null
      *  <li>alg is not null
      * </ul>
-     * @throws NullPointerException if any of the above conditions is violated
+     * @return true if share is valid
      */
-    private void validateShare() {
-        if (x == 0 || y == null || originalLength <= 0 || keyY == null || alg == null) {
-            throw new NullPointerException();
-        }
+    @Override
+    public boolean isValid() {
+        return !(x == 0 || y == null || originalLength <= 0 || keyY == null || alg == null);
     }
     
-    /* Getters */
-
     /* TODO: those two actually return a reference to the array, not
      *       sure that we want this security-wise, but performance
      *       might make this mandatory */
     @SuppressFBWarnings("EI_EXPOSE_REP")
-    public byte[] getY() { return y; }
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public byte[] getKeyY() { return keyY; }
+    public byte[] getKeyY() {
+        return keyY;
+    }
 
-    public int getOriginalLength() { return originalLength; }
-    public EncryptionAlgorithm getEncryptionAlgorithm() { return alg; }
+    public int getOriginalLength() {
+        return originalLength;
+    }
+    
+    public EncryptionAlgorithm getEncryptionAlgorithm() {
+        return alg;
+    }
 }

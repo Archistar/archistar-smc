@@ -15,6 +15,7 @@ import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.Encryptor;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 /**
@@ -34,14 +35,10 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
  * @version 2014-7-28
  */
 public class KrawczykCSS extends SecretSharing {
-    private EncryptionAlgorithm alg = EncryptionAlgorithm.AES;
-    private static final int KEY_LENGTH = 128;
-    
+    private final EncryptionAlgorithm alg = EncryptionAlgorithm.AES;
     private final RandomSource rng;
-    
     private final SecretSharing shamir;
     private final SecretSharing rs;
-    
     private final Encryptor cryptor;
     
     /**
@@ -109,56 +106,27 @@ public class KrawczykCSS extends SecretSharing {
 
             //Generate a new array of encrypted shares
             return createKrawczykShares((ShamirShare[]) keyShares, (ReedSolomonShare[]) contentShares, alg);
-        } catch (GeneralSecurityException e) { 
+        } catch (GeneralSecurityException | InvalidCipherTextException | IOException | ImpossibleException e) { 
             // encryption should actually never fail
-            throw new ImpossibleException("sharing failed (" + e.getMessage() + ")");
-        } catch (InvalidCipherTextException e) {
-            throw new ImpossibleException("sharing failed (" + e.getMessage() + ")");
-        } catch (IOException e) {
-            throw new ImpossibleException("sharing failed (" + e.getMessage() + ")");
-        } catch (ImpossibleException e) {
             throw new ImpossibleException("sharing failed (" + e.getMessage() + ")");
         }
     }
 
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
-        try {   
-            KrawczykShare[] kshares = safeCast(shares);
-            
+        try {
+            KrawczykShare[] kshares = Arrays.copyOf(shares, shares.length, KrawczykShare[].class);
+
             byte[] key = shamir.reconstruct(extractKeyShares(kshares)); // reconstruct the key
             byte[] encShare = rs.reconstruct(extractContentShares(kshares)); // reconstruct the encrypted share
             
             return cryptor.decrypt(encShare, key);
-        } catch (GeneralSecurityException e) {
+        } catch (GeneralSecurityException | IOException | IllegalStateException | InvalidCipherTextException e) {
             // dencryption should actually never fail
             throw new ImpossibleException("reconstruction failed (" + e.getMessage() + ")");
-        } catch (IOException e) {
-            throw new ImpossibleException("reconstruction failed (" + e.getMessage() + ")");
-        } catch (IllegalStateException e) {
-            throw new ImpossibleException("reconstruction failed (" + e.getMessage() + ")");
-        } catch (InvalidCipherTextException e) {
-            throw new ImpossibleException("reconstruction failed (" + e.getMessage() + ")");
         }
     }
-    
-    /**
-     * Converts the Share[] to a KrawczykShare[] by casting each element individually.
-     * 
-     * @param shares the shares to cast
-     * @return the given Share[] as KrawczykShare[]
-     * @throws ClassCastException if the Share[] did not (only) contain KrawczykShare
-     */
-    private KrawczykShare[] safeCast(Share[] shares) {
-        KrawczykShare[] kshares = new KrawczykShare[shares.length];
-        
-        for (int i = 0; i < shares.length; i++) {
-            kshares[i] = (KrawczykShare) shares[i];
-        }
-        
-        return kshares;
-    }
-    
+
     /**
      * Create <i>n</i> KrawczykShares from the given Shamir- and Reed-Solomon shares.
      * @param sshares the ShamirShares (key-shares)

@@ -1,0 +1,46 @@
+Data-Size per Test: 20MByte
+Performance(4kB file size) of ShamirPSS(4/3): share: 22629.834kByte/sec, combine: 15633.59kByte/sec
+Performance(128kB file size) of ShamirPSS(4/3): share: 22933.931kByte/sec, combine: 16995.85kByte/sec
+Performance(512kB file size) of ShamirPSS(4/3): share: 23011.236kByte/sec, combine: 16215.36kByte/sec
+Performance(4096kB file size) of ShamirPSS(4/3): share: 21764.081kByte/sec, combine: 16397.12kByte/sec
+Performance(4kB file size) of RabinIDS(4/3): share: 92252.252kByte/sec, combine: 47627.91kByte/sec
+Performance(128kB file size) of RabinIDS(4/3): share: 98461.538kByte/sec, combine: 54323.61kByte/sec
+Performance(512kB file size) of RabinIDS(4/3): share: 101890.547kByte/sec, combine: 53056.99kByte/sec
+Performance(4096kB file size) of RabinIDS(4/3): share: 102914.573kByte/sec, combine: 49829.68kByte/sec
+Performance(4kB file size) of KrawczzkCSS(4/3, AESCryptor(CBC)): share: 43481.953kByte/sec, combine: 27750.68kByte/sec
+Performance(128kB file size) of KrawczzkCSS(4/3, AESCryptor(CBC)): share: 51457.286kByte/sec, combine: 33409.46kByte/sec
+Performance(512kB file size) of KrawczzkCSS(4/3, AESCryptor(CBC)): share: 51717.172kByte/sec, combine: 34133.33kByte/sec
+Performance(4096kB file size) of KrawczzkCSS(4/3, AESCryptor(CBC)): share: 52378.517kByte/sec, combine: 32663.48kByte/sec
+Performance(4kB file size) of KrawczzkCSS(4/3, AESGCMCryptor()): share: 25440.994kByte/sec, combine: 19922.18kByte/sec
+Performance(128kB file size) of KrawczzkCSS(4/3, AESGCMCryptor()): share: 31314.985kByte/sec, combine: 24009.38kByte/sec
+Performance(512kB file size) of KrawczzkCSS(4/3, AESGCMCryptor()): share: 31077.390kByte/sec, combine: 23325.74kByte/sec
+Performance(4096kB file size) of KrawczzkCSS(4/3, AESGCMCryptor()): share: 31900.312kByte/sec, combine: 24009.38kByte/sec
+Performance(4kB file size) of KrawczzkCSS(4/3, ChaCha20()): share: 58016.997kByte/sec, combine: 33628.90kByte/sec
+Performance(128kB file size) of KrawczzkCSS(4/3, ChaCha20()): share: 63015.385kByte/sec, combine: 38280.37kByte/sec
+Performance(512kB file size) of KrawczzkCSS(4/3, ChaCha20()): share: 63209.877kByte/sec, combine: 38787.88kByte/sec
+Performance(4096kB file size) of KrawczzkCSS(4/3, ChaCha20()): share: 64402.516kByte/sec, combine: 38568.74kByte/sec
+Performance(4kB file size) of RabinBenOr(KrawczzkCSS(4/3, AESCryptor(CBC)), ShareMacHelper(HMacSHA256)): share: 14948.905kByte/sec, combine: 12688.97kByte/sec
+Performance(128kB file size) of RabinBenOr(KrawczzkCSS(4/3, AESCryptor(CBC)), ShareMacHelper(HMacSHA256)): share: 18433.843kByte/sec, combine: 15421.69kByte/sec
+Performance(512kB file size) of RabinBenOr(KrawczzkCSS(4/3, AESCryptor(CBC)), ShareMacHelper(HMacSHA256)): share: 18652.095kByte/sec, combine: 15574.14kByte/sec
+Performance(4096kB file size) of RabinBenOr(KrawczzkCSS(4/3, AESCryptor(CBC)), ShareMacHelper(HMacSHA256)): share: 18517.179kByte/sec, combine: 15249.44kByte/sec
+Performance(4kB file size) of RabinBenOr(KrawczzkCSS(4/3, ChaCha20()), ShareMacHelper(HMacSHA256)): share: 16516.129kByte/sec, combine: 13979.52kByte/sec
+Performance(128kB file size) of RabinBenOr(KrawczzkCSS(4/3, ChaCha20()), ShareMacHelper(HMacSHA256)): share: 19122.316kByte/sec, combine: 16410.26kByte/sec
+Performance(512kB file size) of RabinBenOr(KrawczzkCSS(4/3, ChaCha20()), ShareMacHelper(HMacSHA256)): share: 19616.858kByte/sec, combine: 16410.26kByte/sec
+Performance(4096kB file size) of RabinBenOr(KrawczzkCSS(4/3, ChaCha20()), ShareMacHelper(HMacSHA256)): share: 19768.340kByte/sec, combine: 16423.42kByte/sec
+Performance(4kB file size) of RabinBenOr(KrawczzkCSS(4/3, AESCryptor(CBC)), Poly1304MacHelper()): share: 28523.677kByte/sec, combine: 21355.58kByte/sec
+Performance(128kB file size) of RabinBenOr(KrawczzkCSS(4/3, AESCryptor(CBC)), Poly1304MacHelper()): share: 32050.078kByte/sec, combine: 24351.96kByte/sec
+Performance(512kB file size) of RabinBenOr(KrawczzkCSS(4/3, AESCryptor(CBC)), Poly1304MacHelper()): share: 30251.108kByte/sec, combine: 23513.20kByte/sec
+Performance(4096kB file size) of RabinBenOr(KrawczzkCSS(4/3, AESCryptor(CBC)), Poly1304MacHelper()): share: 30206.490kByte/sec, combine: 23594.47kByte/sec
+Performance(4kB file size) of RabinBenOr(KrawczzkCSS(4/3, ChaCha20()), Poly1304MacHelper()): share: 31556.240kByte/sec, combine: 24645.01kByte/sec
+Performance(128kB file size) of RabinBenOr(KrawczzkCSS(4/3, ChaCha20()), Poly1304MacHelper()): share: 35804.196kByte/sec, combine: 27788.33kByte/sec
+Performance(512kB file size) of RabinBenOr(KrawczzkCSS(4/3, ChaCha20()), Poly1304MacHelper()): share: 35929.825kByte/sec, combine: 26876.64kByte/sec
+Performance(4096kB file size) of RabinBenOr(KrawczzkCSS(4/3, ChaCha20()), Poly1304MacHelper()): share: 35310.345kByte/sec, combine: 26631.99kByte/sec
+Performance(4kB file size) of CevallosUSRSS(ShamirPSS(5/3), ShortenedMacHelper(HMacSHA256)): share: 4498.133kByte/sec, combine: 186.29kByte/sec
+Performance(128kB file size) of CevallosUSRSS(ShamirPSS(5/3), ShortenedMacHelper(HMacSHA256)): share: 4741.838kByte/sec, combine: 186.43kByte/sec
+Performance(512kB file size) of CevallosUSRSS(ShamirPSS(5/3), ShortenedMacHelper(HMacSHA256)): share: 4830.189kByte/sec, combine: 185.80kByte/sec
+Performance(4096kB file size) of CevallosUSRSS(ShamirPSS(5/3), ShortenedMacHelper(HMacSHA256)): share: 4728.700kByte/sec, combine: 185.64kByte/sec
+Performance(4kB file size) of CevallosUSRSS(KrawczzkCSS(5/3, AESCryptor(CBC)), ShortenedMacHelper(HMacSHA256)): share: 10275.966kByte/sec, combine: 749.94kByte/sec
+Performance(128kB file size) of CevallosUSRSS(KrawczzkCSS(5/3, AESCryptor(CBC)), ShortenedMacHelper(HMacSHA256)): share: 13103.007kByte/sec, combine: 783.98kByte/sec
+Performance(512kB file size) of CevallosUSRSS(KrawczzkCSS(5/3, AESCryptor(CBC)), ShortenedMacHelper(HMacSHA256)): share: 13264.249kByte/sec, combine: 787.12kByte/sec
+Performance(4096kB file size) of CevallosUSRSS(KrawczzkCSS(5/3, AESCryptor(CBC)), ShortenedMacHelper(HMacSHA256)): share: 13094.629kByte/sec, combine: 791.96kByte/sec
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 740.982 sec

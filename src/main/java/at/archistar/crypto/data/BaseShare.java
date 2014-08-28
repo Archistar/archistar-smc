@@ -1,10 +1,22 @@
 package at.archistar.crypto.data;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
- *
  * @author andy
  */
-public abstract class BaseShare implements Share {
+public abstract class BaseShare extends SerializableShare {
+    
+    protected final byte x;
+    protected final byte[] y;
+    
+    
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
+    public BaseShare(byte x, byte[] y) {
+        this.x = x;
+        this.y = y;
+    }
+
         /**
      * Extracts all x-values from the given Share[].
      * @param shares the shares to extract the x-values from
@@ -18,5 +30,16 @@ public abstract class BaseShare implements Share {
         }
         
         return x;
+    }
+    
+        /* Getters */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public byte[] getY() {
+        return y;
+    }
+    
+    @Override
+    public int getId() {
+        return ByteUtils.toUnsignedByte(x);
     }
 }

@@ -26,9 +26,9 @@ import org.junit.Test;
  * @author Elias Frantar
  * @version 2014-7-29
  */
-public class TestCevallosUSRSS {
+public class TestCevallosEngine {
     byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-    private SecretSharing algorithm;
+    private CryptoEngine algorithm;
     private static final RandomSource rng = new FakeRandomSource();
     //private static final DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
     private static final DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
@@ -37,7 +37,7 @@ public class TestCevallosUSRSS {
     @Before
     public void setup() throws WeakSecurityException, NoSuchAlgorithmException {
         mac = new ShortenedMacHelper("HMacSHA256", 4, CevallosUSRSS.E);
-        algorithm = new CevallosUSRSS(new ShamirPSS(8, 4, rng, decoderFactory), mac, rng);
+        algorithm = new CevallosEngine(8, 4, rng);
     }
     
     @After

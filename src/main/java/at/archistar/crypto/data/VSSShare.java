@@ -1,24 +1,19 @@
 package at.archistar.crypto.data;
 
-import java.io.ByteArrayOutputStream;
+import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.informationchecking.CevallosUSRSS;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import at.archistar.crypto.informationchecking.CevallosUSRSS;
-import at.archistar.crypto.exceptions.ImpossibleException;
-import at.archistar.crypto.exceptions.WeakSecurityException;
-
 /**
  * Represents a share for {@link RabinBenOrVSS} and {@link CevallosUSRSS}.
- * 
- * @author Elias Frantar
- * @version 2014-7-29
  */
-public class VSSShare extends BaseSerializableShare {
-    private final Share share;
+public class VSSShare extends SerializableShare {
+    private final SerializableShare share;
     private final Map<Byte, byte[]> macs;
     private final Map<Byte, byte[]> macKeys;
     
@@ -30,100 +25,127 @@ public class VSSShare extends BaseSerializableShare {
      * @param macKeys a map containing the macKeys of the underlying share identified by the share-ids
      * @throws WeakSecurityException if validation failed ({@link #validateShare()})
      */
-    public VSSShare(Share share, Map<Byte, byte[]> macs, Map<Byte, byte[]> macKeys) throws WeakSecurityException {
+    public VSSShare(SerializableShare share, Map<Byte, byte[]> macs, Map<Byte, byte[]> macKeys) throws WeakSecurityException {
+        
         this.share = share;
         this.macs = macs;
         this.macKeys = macKeys;
         
-        validateShare();
+        if (!isValid()) {
+            throw new NullPointerException();
+        }
     }
     
-    /**
-     * Constructor<br>
-     * Tries to deserialize the serialized RabinBenOrShare.
-     * 
-     * @param serialized the serialized data (must be a valid serialized RabinBenOrShare)
-     * @throws IllegalArgumentException if the given data was not a valid serialized share 
-     *         ({@link BaseSerializableShare#validateSerialization(byte[], int)})
-     * @throws NullPointerException if validation failed ({@link #validateShare()})
-     */
-    public VSSShare(byte[] serialized) {
-        validateSerialization(serialized, HEADER_LENGTH + 2*(4 + 4 + 2) + 11); // + macs + macKeys + share
-        
-        ByteBuffer bb = ByteBuffer.wrap(serialized); // cut off the header
-        bb.position(ID + 1); // x is saved redundantly when using Rabin-Ben-Or
-        
-        /* deserialize macs */
-        macs = new HashMap<Byte, byte[]>();
-        
-        int size = bb.getInt();
-        byte key;
-        byte[] value = new byte[bb.getInt()]; // value-size
-        for (int i = 0; i < size; i++) {
-            key = bb.get();
-            bb.get(value);
-            
-            macs.put(key, Arrays.copyOf(value, value.length)); // we may not pass references to the Map
-        }
-        
-        /* deserialize macKeys */
-        macKeys = new HashMap<Byte, byte[]>();
-        
-        size = bb.getInt();
-        value = new byte[bb.getInt()]; // value-size
-        for (int i = 0; i < size; i++) {
-            key = bb.get();
-            bb.get(value);
-            
-            macKeys.put(key, Arrays.copyOf(value, value.length));
-        }
-        
-        /* deserialize the share */
-        byte[] sShare = new byte[bb.remaining()];
-        bb.get(sShare);
-        share = ShareDeserializer.deserialize(sShare);
+    public VSSShare(SerializableShare share) throws WeakSecurityException {
+        this.share = share;
+        this.macs = new HashMap<>();
+        this.macKeys = new HashMap<>();
     }
-    
+
     @Override
-    public Algorithm getAlgorithm() {
-        return Algorithm.RABIN_BEN_OR;
+    public void serializeBody(DataOutputStream os) throws IOException {
+
+        /* serialize macs */
+        os.writeInt(macs.size());
+        for (Map.Entry<Byte, byte[]> e : macs.entrySet()) {
+            Byte id = e.getKey();
+            byte[] mac = e.getValue();
+            
+            os.writeByte(id);
+            os.writeInt(mac.length);
+            os.write(mac);
+        }
+        
+        /* serialize keys */
+        os.writeInt(macKeys.size());
+        for (Map.Entry<Byte, byte[]> e : macKeys.entrySet()) {
+            Byte id = e.getKey();
+            byte[] mac = e.getValue();
+            
+            os.writeByte(id);
+            os.writeInt(mac.length);
+            os.write(mac);
+        }
+        
+        /* serialize share */
+        os.writeByte((byte)share.getAlgorithm().ordinal());
+        share.serializeBody(os);
     }
 
     @Override
     public int getId() {
         return share.getId();
     }
-
-    @Override
-    protected byte[] serializeBody() {
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            
-            /* serialize macs */
-            bos.write(ByteBuffer.allocate(4).putInt(macs.size()).array()); // size
-            bos.write(ByteBuffer.allocate(4).putInt(macs.get(macs.keySet().toArray()[0]).length).array()); // value size
-            
-            for (byte key : macs.keySet()) {
-                bos.write(new byte[]{key}); // key
-                bos.write(macs.get(key)); // value
-            }
-            
-            /* serialize macKeys */
-            bos.write(ByteBuffer.allocate(4).putInt(macKeys.size()).array()); // size
-            bos.write(ByteBuffer.allocate(4).putInt(macKeys.get(macKeys.keySet().toArray()[0]).length).array()); // value size
-            
-            for (byte key : macKeys.keySet()) {
-                bos.write(new byte[]{key}); // key
-                bos.write(macKeys.get(key)); // value
-            }
-            
-            /* serialize underlying share */
-            bos.write(share.serialize());
-            
-            return bos.toByteArray();
-        } catch (IOException e) { // this should never happen
-            throw new ImpossibleException("serializing failed");
+    
+    public Share getShare() {
+        return this.share;
+    }
+    
+        /**
+     * Tries to de-serialize a serialized Share.
+     * 
+     * @param in the serialized data
+     * @param version the expected version (as read from the header)
+     * @param x the xValue/key of the share
+     * @return the de-serialized share
+     * @throws IOException in case share wasn't deserializable
+     */
+    @SuppressFBWarnings("DB_DUPLICATE_SWITCH_CLAUSES")
+    public static VSSShare deserialize(DataInputStream in, int version, byte x) throws IOException, WeakSecurityException {
+        
+        /* deserialize macs */
+        int macCount = in.readInt();
+        Map<Byte, byte[]> macs = new HashMap<>();
+        for (int i = 0; i < macCount; i++) {
+            byte id = in.readByte();
+            int length = in.readInt();
+            byte[] mac = new byte[length];
+            assert in.read(mac) == length;
+            macs.put(id, mac);
         }
+        
+        /* deserialize keys */
+        macCount = in.readInt();
+        Map<Byte, byte[]> macKeys = new HashMap<>();
+        for (int i = 0; i < macCount; i++) {
+            byte id = in.readByte();
+            int length = in.readInt();
+            byte[] mac = new byte[length];
+            assert in.read(mac) == length;
+            macKeys.put(id, mac);
+        }
+        
+        /* deserialize the share */
+        byte algByte = in.readByte();
+        Algorithm alg = Algorithm.values()[algByte];
+        
+        SerializableShare share;
+        switch(alg) {
+        case SHAMIR:
+            share = ShamirShare.deserialize(in, version, x);
+            break;
+        case REED_SOLOMON:
+            share = ReedSolomonShare.deserialize(in, version, x);
+            break;
+        case KRAWCZYK:
+            share =  KrawczykShare.deserialize(in, version, x);
+            break;
+        case RABIN_BEN_OR:
+            share = VSSShare.deserialize(in, version, x);
+            break;
+        case CEVALLOS:
+            share = VSSShare.deserialize(in, version, x);
+            break;
+        default:
+            throw new IllegalArgumentException("no matching sharetype");
+        }
+        
+        return new VSSShare(share, macs, macKeys);
+    }
+    
+    @Override
+    public Algorithm getAlgorithm() {
+        return Algorithm.RABIN_BEN_OR;
     }
     
     /**
@@ -136,16 +158,16 @@ public class VSSShare extends BaseSerializableShare {
      *  <li>all macs-values have the same length
      *  <li>all macKeys have the same length
      * </ul>
-     * @throws WeakSecurityException if share is not a ShamirShare or a KrawczykShare
-     * @throws NullPointerException if any of the other above conditions is violated
+     * @return true if share is valid
      */
-    private void validateShare() throws WeakSecurityException {
+    @Override
+    public boolean isValid() {
         if (share == null || macs == null || macKeys == null) { // catch invalid parameters
-            throw new NullPointerException();
+            return false;
         }
 
         if (!(share.getAlgorithm() == Algorithm.SHAMIR || share.getAlgorithm() == Algorithm.KRAWCZYK)) { // underlying share may only be a Shamir or a Krawczyk one
-            throw new WeakSecurityException();
+            return false;
         }
         
         /* check if all macs are of equal length */
@@ -155,7 +177,7 @@ public class VSSShare extends BaseSerializableShare {
                 firstLength = mac.length;
             }
             if (mac == null || mac.length != firstLength) {
-                throw new NullPointerException();
+                return false;
             }
         }
         /* check if all macKeys are of equal length */
@@ -165,63 +187,21 @@ public class VSSShare extends BaseSerializableShare {
                 firstLength = macKey.length;
             }
             if (macKey == null || macKey.length != firstLength) {
-                throw new NullPointerException();
+                return false;
             }
         }
+        return true;
     }
     
     /* Getters */
-    public Share getShare() { return share; }
     public Map<Byte, byte[]> getMacs() { return macs; }
     public Map<Byte, byte[]> getMacKeys() { return macKeys; }
     
-   /**
-     * Creates VSSShares using the given shares as underlying ones.
-     * 
-     * @param shares the underlying shares
-     * @param tagLength the length of a single tag
-     * @param keyLength the length of a single MAC-key
-     * @return the created RabinBenOrShares
-     */
-    public static VSSShare[] createVSSShares(Share[] shares, int tagLength, int keyLength) {
-        VSSShare[] vssshares = new VSSShare[shares.length];
-        
-        /* TODO: do we really need this? Those should be empty anyways! */
+    public static SerializableShare[] getInnerShares(VSSShare shares[]) {
+        SerializableShare[] result = new SerializableShare[shares.length];
         for (int i = 0; i < shares.length; i++) {
-            /* initialize macs-Map */
-            Map<Byte, byte[]> tmpMacs = new HashMap<Byte, byte[]>();
-            for (Share tmpShare : shares) {
-                tmpMacs.put((byte) tmpShare.getId(), new byte[tagLength]);
-            }
-            /* initialize macKeys-Map */
-            Map<Byte, byte[]> tmpMacKeys = new HashMap<Byte, byte[]>();
-            for (Share tmpShare : shares) {
-                tmpMacKeys.put((byte) tmpShare.getId(), new byte[tagLength]);
-            }
-            
-            try {
-                vssshares[i] = new VSSShare(shares[i], tmpMacs, tmpMacKeys);
-            } catch (WeakSecurityException e) { // this should never happen
-                throw new ImpossibleException(e);
-            }
+            result[i] = (SerializableShare)shares[i].getShare();
         }
-        
-        return vssshares;
+        return result;
     }
-    
-    /**
-     * Extracts all underlying shares from the given VSSShares
-     * @param shares the shares to extract from
-     * @return an array of the extracted underlying shares
-     */
-    public static Share[] extractUnderlyingShares(VSSShare[] shares) {
-        Share[] ushares = new Share[shares.length];
-        
-        for (int i = 0; i < shares.length; i++) {
-            ushares[i] = shares[i].getShare();
-        }
-        
-        return ushares;
-    }
-
 }

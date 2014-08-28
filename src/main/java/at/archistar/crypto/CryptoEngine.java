@@ -1,7 +1,9 @@
 package at.archistar.crypto;
 
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
+import at.archistar.crypto.exceptions.WeakSecurityException;
 
 /**
  * This is the preferred interface for users of archistar-smc. It's implementations
@@ -10,7 +12,7 @@ import at.archistar.crypto.exceptions.ReconstructionException;
  */
 public interface CryptoEngine {
     
-    public abstract Share[] share(byte[] data);
+    public abstract Share[] share(byte[] data) throws WeakSecurityException, ImpossibleException;
 
     public abstract byte[] reconstruct(Share[] shares) throws ReconstructionException;
 }

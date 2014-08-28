@@ -1,19 +1,8 @@
-package at.archistar.crypto;
+package at.archistar.crypto.secretsharing;
 
-import at.archistar.crypto.secretsharing.KrawczykCSS;
-import at.archistar.crypto.secretsharing.SecretSharing;
-import at.archistar.crypto.secretsharing.ShamirPSS;
-import at.archistar.crypto.secretsharing.RabinIDS;
-import at.archistar.crypto.informationchecking.RabinBenOrRSS;
-import at.archistar.crypto.informationchecking.CevallosUSRSS;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.mac.BCMacHelper;
-import at.archistar.crypto.mac.BCPoly1305MacHelper;
-import at.archistar.crypto.mac.BCShortenedMacHelper;
 import at.archistar.crypto.mac.ShareMacHelper;
-import at.archistar.crypto.mac.ShortenedMacHelper;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
@@ -22,9 +11,6 @@ import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
-import org.bouncycastle.crypto.digests.SHA256Digest;
-import org.bouncycastle.crypto.macs.HMac;
-import org.bouncycastle.crypto.macs.SipHash;
 
 import static org.fest.assertions.api.Assertions.*;
 
@@ -34,19 +20,14 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 /**
- * Tests and compares the performance of the different Secret-Sharing algorithms. 
- * (does use {@link ErasureDecoder} for reconstruction)
- * 
- * @author Elias Frantar <i>(added documentation)</i>
- * @author Andreas Happe <andreashappe@snikt.net>
- * @version 2014-7-28
+ * Tests the performance of the different Secret-Sharing algorithms. 
  */
 @RunWith(value = Parameterized.class)
 public class PerformanceTest {
 
     private final byte[][][] input;
     private final SecretSharing algorithm;
-    private static final int size = 20 * 1024 * 1024;
+    public static final int size = 20 * 1024 * 1024;
     
     /**
      * Creates a byte[] of the given size, with all values set to 42.
@@ -87,17 +68,7 @@ public class PerformanceTest {
            {secrets, new RabinIDS(n, k)},
            {secrets, new KrawczykCSS(n, k, rng, new AESEncryptor())},
            {secrets, new KrawczykCSS(n, k, rng, new AESGCMEncryptor())},
-           {secrets, new KrawczykCSS(n, k, rng, new ChaCha20Encryptor())},
-           {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng), mac, rng)},
-           {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng, new ChaCha20Encryptor()), mac, rng)},
-           {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng), new BCPoly1305MacHelper(), rng)},
-           {secrets, new RabinBenOrRSS(new KrawczykCSS(n, k, rng, new ChaCha20Encryptor()), new BCPoly1305MacHelper(), rng)},
-           {secrets, new CevallosUSRSS(new ShamirPSS(5, 3, rng, new BerlekampWelchDecoderFactory()),
-                                       new ShortenedMacHelper("HMacSHA256", 3, CevallosUSRSS.E),
-                                       rng)},
-           {secrets, new CevallosUSRSS(new KrawczykCSS(5, 3, rng, new AESEncryptor(), new BerlekampWelchDecoderFactory()),
-                                       new ShortenedMacHelper("HMacSHA256", 3, CevallosUSRSS.E),
-                                       rng)},
+           {secrets, new KrawczykCSS(n, k, rng, new ChaCha20Encryptor())}
         };
 
         return Arrays.asList(data);

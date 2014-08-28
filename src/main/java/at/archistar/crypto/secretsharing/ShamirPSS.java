@@ -1,6 +1,7 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.BaseShare;
+import at.archistar.crypto.data.ByteUtils;
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.Decoder;
@@ -12,7 +13,8 @@ import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.data.ByteUtils;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Arrays;
 
 /**
  * <p>This class implements the <i>Perfect-Secret-Sharing</i>-scheme (PSS) developed by Adi Shamir.</p>
@@ -80,8 +82,9 @@ public class ShamirPSS extends SecretSharing {
         if (!validateShareCount(shares.length, k)) {
             throw new ReconstructionException();
         }
-        
-        ShamirShare[] sshares = safeCast(shares); // we need access to the inner fields
+
+        /* you cannot cast arrays to arrays of subtype in java7 */
+        ShamirShare[] sshares = Arrays.copyOf(shares, shares.length, ShamirShare[].class); // we need access to the inner fields
         
         byte[] result = new byte[sshares[0].getY().length];
         int[] xVals = BaseShare.extractXVals(sshares);
@@ -116,23 +119,6 @@ public class ShamirPSS extends SecretSharing {
         return new GF256Polynomial(coeffs);
     }
 
-    /**
-     * Converts the Share[] to a ShamirShare[] by casting each element individually.
-     * 
-     * @param shares the shares to cast
-     * @return the given Share[] as ShamirShare[]
-     * @throws ClassCastException if the Share[] did not (only) contain ShamirShares
-     */
-    private ShamirShare[] safeCast(Share[] shares) {
-        ShamirShare[] sshares = new ShamirShare[shares.length];
-        
-        for (int i = 0; i < shares.length; i++) {
-            sshares[i] = (ShamirShare) shares[i];
-        }
-        
-        return sshares;
-    }
-       
     /**
      * Creates <i>n</i> ShamirShares with the given share-length.
      * 

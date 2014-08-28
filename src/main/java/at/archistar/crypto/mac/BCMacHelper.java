@@ -20,7 +20,7 @@ public class BCMacHelper implements MacHelper {
     /**
      * Constructor
      * 
-     * @param algorithm the MAC algorithm to use (for example <i>SHA-256</i>)
+     * @param mac the MAC algorithm to use (for example <i>SHA-256</i>)
      * @throws NoSuchAlgorithmException thrown if the given algorithm is not supported
      */
     public BCMacHelper(Mac mac, int keySize) throws NoSuchAlgorithmException {
@@ -31,7 +31,7 @@ public class BCMacHelper implements MacHelper {
     /**
      * Computes the MAC of the specified length for the given share with the given key.
      * 
-     * @param share the share to create the MAC for
+     * @param data the data to create the MAC for
      * @param key the key to use for computing the MAC
      * @return the message authentication code (tag or MAC) for this share
      * @throws InvalidKeyException thrown if an InvalidKeyException occurred
@@ -39,7 +39,7 @@ public class BCMacHelper implements MacHelper {
     @Override
     public byte[] computeMAC(byte[] data, byte[] key) throws InvalidKeyException {
         
-        byte[] result = new byte[mac.getMacSize()];
+        byte[] result = new byte[keySize];
         
         mac.init(new KeyParameter(key));
         mac.update(data, 0, data.length);
@@ -58,14 +58,12 @@ public class BCMacHelper implements MacHelper {
      */
     @Override
     public boolean verifyMAC(byte[] data, byte[] tag, byte[] key) {
-        boolean valid = false;
-        
         try {
-            byte[] newTag = computeMAC(data, key); // compute tag for the given parameters
-            valid = Arrays.equals(tag, newTag); // compare with original tag
-        } catch (InvalidKeyException e) {}
-        
-        return valid;
+            byte[] newTag = computeMAC(data, key);
+            return Arrays.equals(tag, newTag);
+        } catch (InvalidKeyException e) {
+            return false;
+        }
     }
 
     @Override

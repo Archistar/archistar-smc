@@ -96,7 +96,7 @@ public class RabinIDS extends SecretSharing {
             throw new ReconstructionException();
         }
         
-        ReedSolomonShare[] rsshares = safeCast(shares); // we need access to the inner fields
+        ReedSolomonShare[] rsshares = Arrays.copyOf(shares, shares.length, ReedSolomonShare[].class);
             
         int xValues[] = Arrays.copyOfRange(BaseShare.extractXVals(rsshares), 0, k); // we only need k x-values for reconstruction
         byte result[] = new byte[rsshares[0].getOriginalLength()];
@@ -136,23 +136,6 @@ public class RabinIDS extends SecretSharing {
             }
         }
         return true;
-    }
-    
-    /**
-     * Converts the Share[] to a ReedSolomonShare[] by casting each element individually.
-     * 
-     * @param shares the shares to cast
-     * @return the given Share[] as ReedSolomonShare[]
-     * @throws ClassCastException if the Share[] did not (only) contain ReedSolomonShares
-     */
-    private ReedSolomonShare[] safeCast(Share[] shares) {
-        ReedSolomonShare[] rsshares = new ReedSolomonShare[shares.length];
-        
-        for (int i = 0; i < shares.length; i++) {
-            rsshares[i] = (ReedSolomonShare) shares[i];
-        }
-        
-        return rsshares;
     }
     
     /**

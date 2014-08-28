@@ -1,10 +1,9 @@
 package at.archistar.crypto.data;
 
+import java.io.IOException;
+
 /**
  * The base interface of a share defining the absolutely necessary methods.
- * 
- * @author Elias Frantar
- * @version 2014-7-22
  */
 public interface Share {
     
@@ -15,7 +14,8 @@ public interface Share {
         SHAMIR,
         REED_SOLOMON,
         KRAWCZYK,
-        RABIN_BEN_OR
+        RABIN_BEN_OR,
+        CEVALLOS
     }
     
     /**
@@ -34,5 +34,7 @@ public interface Share {
      * Serializes the share.
      * @return the serialized share (in bytes)
      */
-    public byte[] serialize();
+    public byte[] serialize() throws IOException;
+    
+    public boolean isValid();
 }

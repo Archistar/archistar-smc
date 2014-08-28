@@ -1,4 +1,4 @@
-package at.archistar.crypto;
+package at.archistar.crypto.secretsharing;
 
 import static org.fest.assertions.api.Assertions.*;
 

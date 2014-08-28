@@ -1,7 +1,7 @@
-package at.archistar.crypto;
+package at.archistar.crypto.secretsharing;
 
-import at.archistar.crypto.secretsharing.KrawczykCSS;
-import at.archistar.crypto.secretsharing.SecretSharing;
+import static org.fest.assertions.api.Assertions.*;
+
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -9,27 +9,27 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import at.archistar.crypto.secretsharing.RabinIDS;
+import at.archistar.crypto.secretsharing.SecretSharing;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.random.FakeRandomSource;
-import static org.fest.assertions.api.Assertions.*;
 
 /**
- * Test for {@link KrawczykCSS}
+ * Tests for {@link RabinBenOrRSS}
  * 
  * @author Elias Frantar <i>(added additional test-cases)</i>
  * @author Andreas Happe <andreashappe@snikt.net>
  * @version 2014-7-21
  */
-public class TestKrawczykCSS {
+public class TestRabinIDS {
 	byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
 	private SecretSharing algorithm;
 	
 	/* setup and tear-down */
 	@Before
 	public void setup() throws WeakSecurityException {
-		algorithm = new KrawczykCSS(8, 5, new FakeRandomSource());
+		algorithm = new RabinIDS(8, 5);
 	}
 	@After
 	public void tearDown() {

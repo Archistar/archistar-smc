@@ -1,0 +1,46 @@
+Performance:
+
+* maybe add a cached serialization block or cache serialized data
+  within rabin-ben-or / cevallos encode+decode. This should reduce
+  serialization calls from O(n*(n-1)) / O(n^2) to O(n)
+
+* add a serializedHashData call? This could be implemented within
+  Krawcywk, etc. and should remove the need for those
+
+   for(Share s : VSSShare shares)
+       collect s.inner_share
+
+  calls
+
+* Instrument test-cases for performance measurements. Currently our
+  assertions take approx. 1/8th to 1/4th of the overall CPU time
+
+Testability:
+
+* remove fake random generator and replace it with a pseudo random
+   generator and a fixed seed
+
+Readability
+
+ * implement standard java serialization API
+
+ * write real acceptance tests for the test engine
+
+ * overwork unit tests!
+
+ * write "real" decoder tests, not just "call rabin-ids and compare
+   output performance"
+
+ * create an unified ICCryptoEngine as RabinBenOrEngine and
+   CevallosEngine are almost the same
+
+Notes for Thomas
+
+ * CustomMatrix is the culprit #1: 66% of CPU time is spent in there
+
+ * try Netbeans 8.0, almost everything needed is included out of
+   the box
+
+ * can i use rabin-ben-or without BW?
+
+ * why is rabin-ben-or with BW 4x as fast (decoding) as cevallos?
