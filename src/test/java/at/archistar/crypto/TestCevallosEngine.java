@@ -47,9 +47,8 @@ public class TestCevallosEngine {
     
     /* expected successful encryption */
     @Test
-    public void simpleRoundTest() throws ReconstructionException {
+    public void simpleRoundTest() throws ReconstructionException, WeakSecurityException {
         Share shares[] = algorithm.share(data);
-
         byte reconstructedData[] = algorithm.reconstruct(shares);
         assertThat(reconstructedData).isEqualTo(data);
     }
@@ -83,29 +82,26 @@ public class TestCevallosEngine {
     }
     
     @Test
-    public void notAllSharesTest() throws ReconstructionException {
+    public void notAllSharesTest() throws ReconstructionException, WeakSecurityException {
         Share shares[] = algorithm.share(data);
         Share[] shares1 = Arrays.copyOfRange(shares, 1, 6);
-
         byte reconstructedData[] = algorithm.reconstruct(shares1);
         assertThat(reconstructedData).isEqualTo(data);
     }
     @Test
-    public void shuffledSharesTest() throws ReconstructionException {
+    public void shuffledSharesTest() throws ReconstructionException, WeakSecurityException {
         Share shares[] = algorithm.share(data);
         Collections.shuffle(Arrays.asList(shares));
-
         byte reconstructedData[] = algorithm.reconstruct(shares);
         assertThat(reconstructedData).isEqualTo(data);
     }
     
     /* expected failing decryption */
     @Test(expected=ReconstructionException.class)
-    public void notEnoughSharesTest() throws ReconstructionException {
+    public void notEnoughSharesTest() throws ReconstructionException, WeakSecurityException {
         Share shares[] = algorithm.share(data);
         Share[] shares1 = Arrays.copyOfRange(shares, 0, 2);
         
         algorithm.reconstruct(shares1);
     }
-
 }

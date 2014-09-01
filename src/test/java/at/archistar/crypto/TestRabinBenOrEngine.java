@@ -1,7 +1,5 @@
 package at.archistar.crypto;
 
-import at.archistar.crypto.secretsharing.SecretSharing;
-import at.archistar.crypto.secretsharing.ShamirPSS;
 import at.archistar.crypto.informationchecking.RabinBenOrRSS;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.ReconstructionException;
@@ -48,25 +46,23 @@ public class TestRabinBenOrEngine {
     /* tests */
     /* should succeed reconstructing */
     @Test
-    public void simpleRoundTest() throws ReconstructionException {
+    public void simpleRoundTest() throws ReconstructionException, WeakSecurityException {
         Share shares[] = algorithm.share(data);
         assertThat(shares.length).isEqualTo(8);
-
         byte reconstructedData[] = algorithm.reconstruct(shares);
         assertThat(reconstructedData).isEqualTo(data);
     }
 
     @Test
-    public void notAllSharesTest() throws ReconstructionException {
+    public void notAllSharesTest() throws ReconstructionException, WeakSecurityException {
         Share shares[] = algorithm.share(data);
         Share shares1[] = Arrays.copyOfRange(shares, 0, 6);
-
         byte reconstructedData[] = algorithm.reconstruct(shares1);
         assertThat(reconstructedData).isEqualTo(data);
     }
 
     @Test
-    public void shuffledSharesTest() throws ReconstructionException {
+    public void shuffledSharesTest() throws ReconstructionException, WeakSecurityException {
         Share shares[] = algorithm.share(data);
         Collections.shuffle(Arrays.asList(shares));
 
@@ -76,7 +72,7 @@ public class TestRabinBenOrEngine {
 
     /* should fail reconstructing */
     @Test(expected = ReconstructionException.class)
-    public void notEnoughSharesTest() throws ReconstructionException {
+    public void notEnoughSharesTest() throws ReconstructionException, WeakSecurityException {
         Share shares[] = algorithm.share(data);
         Share[] shares1 = Arrays.copyOfRange(shares, 0, 2);
 
