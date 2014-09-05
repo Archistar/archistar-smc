@@ -4,11 +4,12 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Represents a share for {@link RabinIDS}.
  */
-public final class ReedSolomonShare extends BaseShare {
+public final class ReedSolomonShare extends BaseShare implements Comparable<ReedSolomonShare> {
     private final int originalLength;
     
     /**
@@ -17,16 +18,16 @@ public final class ReedSolomonShare extends BaseShare {
      * @param x the x-value (also identifier) of this share
      * @param y the y-values of this share
      * @param originalLength the original length of the shared data
-     * @throws NullPointerException if validation failed ({@link #validateShare()})
+     * @throws InvalidParametersException if validation failed ({@link #validateShare()})
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public ReedSolomonShare(byte x, byte[] y, int originalLength) {
+    public ReedSolomonShare(byte x, byte[] y, int originalLength) throws InvalidParametersException {
         
         super(x, y);
         this.originalLength = originalLength;
         
         if (!isValid()) {
-            throw new NullPointerException();
+            throw new InvalidParametersException();
         }
     }
     
@@ -38,13 +39,16 @@ public final class ReedSolomonShare extends BaseShare {
      * @param x the key/id (extracted from serialized data header)
      * @returns the newly created share
      */
-    public static ReedSolomonShare deserialize(DataInputStream in, int version, byte x) throws IOException {
+    public static ReedSolomonShare deserialize(DataInputStream in, int version, byte x) throws IOException, InvalidParametersException {
         
         int originalLength = in.readInt();
         int count = in.readInt();        
         byte[] y = new byte[count];
-        assert in.read(y) == count;
-        return new ReedSolomonShare(x, y, originalLength);
+        if (in.read(y) == count) {
+            return new ReedSolomonShare(x, y, originalLength);
+        } else {
+            throw new InvalidParametersException("data length inconsistent");
+        }
     }
 
     @Override
@@ -75,5 +79,29 @@ public final class ReedSolomonShare extends BaseShare {
     
     public int getOriginalLength() {
         return originalLength;
+    }
+
+    @Override
+    public int compareTo(ReedSolomonShare t) {
+        if (t.getId() == getId() && Arrays.equals(t.getY(), getY()) && t.getOriginalLength() == getOriginalLength()) {
+            return 0;
+        } else {
+            return t.getId() - getId();
+        }
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof ReedSolomonShare) {
+            return compareTo((ReedSolomonShare)o) == 0;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        assert false : "hashCode not designed";
+        return 42;
     }
 }

@@ -6,7 +6,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import at.archistar.crypto.math.GF256Polynomial;
 import de.flexiprovider.common.math.codingtheory.GF2mField;
 import de.flexiprovider.common.math.codingtheory.PolynomialGF2mSmallM;
 
@@ -15,9 +14,6 @@ import de.flexiprovider.common.math.codingtheory.PolynomialGF2mSmallM;
  * 
  * <p>Most of the functions are tested by comparing the result with the reference-result of the flexiprovider-API
  * (which is expected to work properly).</p>
- * 
- * @author Elias Frantar
- * @version 2014-7-21
  */
 public class TestGF256Polynomial {
 	/* the constants used for testing */

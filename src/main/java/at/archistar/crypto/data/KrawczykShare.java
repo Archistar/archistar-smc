@@ -6,11 +6,23 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Represents a share for {@link KrawczykCSS}.
  */
-public final class KrawczykShare extends BaseShare {
+public final class KrawczykShare extends BaseShare implements Comparable<KrawczykShare>{
+
+    @Override
+    public int compareTo(KrawczykShare t) {
+        if (t.getId() == getId() && Arrays.equals(t.getY(), getY()) &&
+                t.getOriginalLength() == getOriginalLength() &&
+                Arrays.equals(t.getKeyY(), getKeyY())) {
+            return 0;
+        } else {
+            return t.getId() - getId();
+        }
+    }
 
     /**
      * <p>Identifier for the algorithm used for encrypting the content of this share.</p>
@@ -40,17 +52,17 @@ public final class KrawczykShare extends BaseShare {
      * @param originalLength the original length of the shared data
      * @param keyY the y-values of the shared key
      * @param alg the algorithm used for encrypting the content
-     * @throws NullPointerException if validation failed ({@link #validateShare()})
+     * @throws InvalidParametersException if validation failed ({@link #validateShare()})
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public KrawczykShare(byte x, byte[] y, int originalLength, byte[] keyY, EncryptionAlgorithm alg) {
+    public KrawczykShare(byte x, byte[] y, int originalLength, byte[] keyY, EncryptionAlgorithm alg) throws InvalidParametersException {
         super(x, y);
         this.originalLength = originalLength;
         this.keyY = keyY;
         this.alg = alg;
         
         if (!isValid()) {
-            throw new NullPointerException();
+            throw new InvalidParametersException();
         }
     }
     
@@ -63,7 +75,7 @@ public final class KrawczykShare extends BaseShare {
      * @return the de-serialized share
      * @throws IOException in case share wasn't deserializable
      */
-    public static KrawczykShare deserialize(DataInputStream in, int version, byte x) throws IOException {
+    public static KrawczykShare deserialize(DataInputStream in, int version, byte x) throws IOException, InvalidParametersException {
 
         byte algOrdinal = in.readByte();
         if (algOrdinal < 0 || algOrdinal > (EncryptionAlgorithm.values().length - 1)) {
@@ -131,4 +143,20 @@ public final class KrawczykShare extends BaseShare {
     public EncryptionAlgorithm getEncryptionAlgorithm() {
         return alg;
     }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof KrawczykShare) {
+            return compareTo((KrawczykShare)o) == 0;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        assert false : "hashCode not designed";
+        return 42;
+    }
+
 }

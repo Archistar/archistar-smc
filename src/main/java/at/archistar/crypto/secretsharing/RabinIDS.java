@@ -12,6 +12,8 @@ import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.data.ByteUtils;
+import at.archistar.crypto.data.InvalidParametersException;
+import at.archistar.crypto.exceptions.ImpossibleException;
 import java.util.Arrays;
 
 /**
@@ -59,35 +61,40 @@ public class RabinIDS extends SecretSharing {
 
     @Override
     public Share[] share(byte[] data) {
-        ReedSolomonShare shares[] = RabinIDS.createReedSolomonShares(n, (data.length + k-1) / k, data.length);
-
-        /* compute share values */
-        int coeffs[] = new int[k];
-        int fillPosition = 0;
         
-        for (int i = 0; i < data.length; i += k) {
-            for (int j = 0; j < k; j++) { // let k coefficients be the secret in this polynomial
-                if ((i + j) < data.length) {
-                    coeffs[j] = ByteUtils.toUnsignedByte(data[i + j]);
-                } else {
-                    coeffs[j] = 0;
+        try {
+            ReedSolomonShare shares[] = RabinIDS.createReedSolomonShares(n, (data.length + k-1) / k, data.length);
+
+            /* compute share values */
+            int coeffs[] = new int[k];
+            int fillPosition = 0;
+
+            for (int i = 0; i < data.length; i += k) {
+                for (int j = 0; j < k; j++) { // let k coefficients be the secret in this polynomial
+                    if ((i + j) < data.length) {
+                        coeffs[j] = ByteUtils.toUnsignedByte(data[i + j]);
+                    } else {
+                        coeffs[j] = 0;
+                    }
                 }
+
+                GF256Polynomial poly = new GF256Polynomial(coeffs);
+
+                /* calculate the share a value for this byte for every share */
+                for (int j = 0; j < n; j++) {
+                    if (checkForZeros(coeffs)) { // skip evaluation in case all coefficients are 0
+                        shares[j].getY()[fillPosition] = 0;
+                    } else {
+                        shares[j].getY()[fillPosition] = (byte)poly.evaluateAt(shares[j].getId());
+                    }
+                }
+                fillPosition++;
             }
 
-            GF256Polynomial poly = new GF256Polynomial(coeffs);
-
-            /* calculate the share a value for this byte for every share */
-            for (int j = 0; j < n; j++) {
-                if (checkForZeros(coeffs)) { // skip evaluation in case all coefficients are 0
-                    shares[j].getY()[fillPosition] = 0;
-                } else {
-                    shares[j].getY()[fillPosition] = (byte)poly.evaluateAt(shares[j].getId());
-                }
-            }
-            fillPosition++;
+            return shares;
+        } catch (InvalidParametersException ex) {
+            throw new ImpossibleException("share failed: " + ex.getMessage());
         }
-        
-        return shares;
     }
 
     @Override
@@ -145,7 +152,7 @@ public class RabinIDS extends SecretSharing {
      * @param shareLength the length of all shares
      * @return an array with the created shares
      */
-    public static ReedSolomonShare[] createReedSolomonShares(int n, int shareLength, int originalLength) {
+    public static ReedSolomonShare[] createReedSolomonShares(int n, int shareLength, int originalLength) throws InvalidParametersException {
         ReedSolomonShare[] rsshares = new ReedSolomonShare[n];
         
         for (int i = 0; i < n; i++) {

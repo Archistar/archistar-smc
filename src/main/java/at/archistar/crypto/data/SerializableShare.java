@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 
 /**
@@ -35,32 +36,66 @@ public abstract class SerializableShare implements Share {
     }
     
     @SuppressFBWarnings("DB_DUPLICATE_SWITCH_CLAUSES")
-    public static Share deserialize(byte[] serialized) throws IOException, WeakSecurityException {
+    public static Share deserialize(byte[] serialized) throws IOException, WeakSecurityException, InvalidParametersException {
+        
+        if (serialized == null) {
+            throw new InvalidParametersException("how should you deserialize from null?");
+        }
         
         ByteArrayInputStream bis = new ByteArrayInputStream(serialized);
         DataInputStream is = new DataInputStream(bis);
+
+        Algorithm alg = null;
+        int version = -1;
+        byte x = -1;
         
-        int version = is.readInt();
-        assert(version == 2);
-        
-        byte algByte = is.readByte();
-        Algorithm alg = Algorithm.values()[algByte];
-        
-        byte x = (byte)is.readInt();
-        
+        try {
+            version = is.readInt();
+
+            if (version != VERSION) {
+                throw new InvalidParametersException("Different on-disk format verson");
+            }
+
+            byte algByte = is.readByte();
+            if (algByte >= 0 && algByte < Algorithm.values().length) {
+                alg = Algorithm.values()[algByte];
+                x = (byte)is.readInt();
+            } else {
+                throw new InvalidParametersException("unknown share type");
+            }
+        } catch (IOException ex) {
+            throw new InvalidParametersException("invalid on-disk format: " + ex.getMessage());
+        }
+
+        Share share = null;
         switch(alg) {
         case SHAMIR:
-            return ShamirShare.deserialize(is, version, x);
+            share =  ShamirShare.deserialize(is, version, x);
+            break;
         case REED_SOLOMON:
-            return ReedSolomonShare.deserialize(is, version, x);
+            share = ReedSolomonShare.deserialize(is, version, x);
+            break;
         case KRAWCZYK:
-            return KrawczykShare.deserialize(is, version, x);
+            share = KrawczykShare.deserialize(is, version, x);
+            break;
         case RABIN_BEN_OR:
-            return VSSShare.deserialize(is, version, x);
+            share = VSSShare.deserialize(is, version, x);
+            break;
         case CEVALLOS:
-            return VSSShare.deserialize(is, version, x);
+            share = VSSShare.deserialize(is, version, x);
+            break;
         default:
-            throw new IllegalArgumentException("no matching sharetype");
+            throw new InvalidParametersException("no matching sharetype");
         }
+
+        // check for EOF
+        try {
+            is.readByte();
+            throw new InvalidParametersException("data was too long");
+        } catch (EOFException ex) {
+            // this is actually the good case
+        }
+        
+        return share;
     }
 }

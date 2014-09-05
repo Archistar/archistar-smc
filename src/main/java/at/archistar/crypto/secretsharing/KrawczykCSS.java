@@ -1,5 +1,6 @@
 package at.archistar.crypto.secretsharing;
 
+import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.KrawczykShare;
 import at.archistar.crypto.data.KrawczykShare.EncryptionAlgorithm;
 import at.archistar.crypto.data.ReedSolomonShare;
@@ -106,7 +107,7 @@ public class KrawczykCSS extends SecretSharing {
 
             //Generate a new array of encrypted shares
             return createKrawczykShares((ShamirShare[]) keyShares, (ReedSolomonShare[]) contentShares, alg);
-        } catch (GeneralSecurityException | InvalidCipherTextException | IOException | ImpossibleException e) { 
+        } catch (GeneralSecurityException | InvalidCipherTextException | IOException | ImpossibleException | InvalidParametersException e) { 
             // encryption should actually never fail
             throw new ImpossibleException("sharing failed (" + e.getMessage() + ")");
         }
@@ -121,7 +122,7 @@ public class KrawczykCSS extends SecretSharing {
             byte[] encShare = rs.reconstruct(extractContentShares(kshares)); // reconstruct the encrypted share
             
             return cryptor.decrypt(encShare, key);
-        } catch (GeneralSecurityException | IOException | IllegalStateException | InvalidCipherTextException e) {
+        } catch (GeneralSecurityException | IOException | IllegalStateException | InvalidCipherTextException | InvalidParametersException e) {
             // dencryption should actually never fail
             throw new ImpossibleException("reconstruction failed (" + e.getMessage() + ")");
         }
@@ -134,7 +135,7 @@ public class KrawczykCSS extends SecretSharing {
      * @param algorithm the algorithm used for encryption
      * @return an array with the created shares
      */
-    private static KrawczykShare[] createKrawczykShares(ShamirShare[] sshares, ReedSolomonShare[] rsshares, EncryptionAlgorithm algorithm) {
+    private static KrawczykShare[] createKrawczykShares(ShamirShare[] sshares, ReedSolomonShare[] rsshares, EncryptionAlgorithm algorithm) throws InvalidParametersException {
         assert sshares.length == rsshares.length; // both Share[] must have the same length
         
         KrawczykShare[] kshares = new KrawczykShare[sshares.length];
@@ -150,7 +151,7 @@ public class KrawczykCSS extends SecretSharing {
      * @param kshares the shares to extract the key-shares from
      * @return an array of the extracted key-shares
      */
-    private static ShamirShare[] extractKeyShares(KrawczykShare[] kshares) {
+    private static ShamirShare[] extractKeyShares(KrawczykShare[] kshares) throws InvalidParametersException {
         ShamirShare[] sshares = new ShamirShare[kshares.length];
         
         for (int i = 0; i < kshares.length; i++) {
@@ -165,7 +166,7 @@ public class KrawczykCSS extends SecretSharing {
      * @param kshares the shares to extract the content-shares from
      * @return an array of the extracted content-shares
      */
-    private static ReedSolomonShare[] extractContentShares(KrawczykShare[] kshares) {
+    private static ReedSolomonShare[] extractContentShares(KrawczykShare[] kshares) throws InvalidParametersException {
         ReedSolomonShare[] rsshares = new ReedSolomonShare[kshares.length];
         
         for (int i = 0; i < kshares.length; i++) {

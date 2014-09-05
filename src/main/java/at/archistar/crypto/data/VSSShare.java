@@ -6,13 +6,14 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Represents a share for {@link RabinBenOrVSS} and {@link CevallosUSRSS}.
  */
-public class VSSShare extends SerializableShare {
+public class VSSShare extends SerializableShare implements Comparable<VSSShare>{
     private final SerializableShare share;
     private final Map<Byte, byte[]> macs;
     private final Map<Byte, byte[]> macKeys;
@@ -91,7 +92,7 @@ public class VSSShare extends SerializableShare {
      * @throws IOException in case share wasn't deserializable
      */
     @SuppressFBWarnings("DB_DUPLICATE_SWITCH_CLAUSES")
-    public static VSSShare deserialize(DataInputStream in, int version, byte x) throws IOException, WeakSecurityException {
+    public static VSSShare deserialize(DataInputStream in, int version, byte x) throws IOException, WeakSecurityException, InvalidParametersException {
         
         /* deserialize macs */
         int macCount = in.readInt();
@@ -204,4 +205,57 @@ public class VSSShare extends SerializableShare {
         }
         return result;
     }
+
+    @Override
+    public int compareTo(VSSShare t) {
+        
+        boolean equals = true;
+        
+        /* TODO: Implement better! */
+        /* TODO: Shouldn't Shares be comparable? */
+        assert t.getShare().getClass() == getShare().getClass();
+        
+        if (!((ShamirShare)t.getShare()).equals((ShamirShare)getShare())) {
+            equals = false;
+        }
+        
+        /* TODO: do true comparison */
+        if (!t.getMacs().keySet().equals(getMacs().keySet())) {
+            equals = false;
+        }
+        
+        if (!Arrays.equals(t.getMacs().get((byte) 1), getMacs().get((byte) 1))) { // hardcoded comparison
+            equals = false;
+        }
+        
+        if (!t.getMacKeys().keySet().equals(getMacKeys().keySet())) {
+            equals = false;
+        }
+        
+        if (!Arrays.equals(t.getMacKeys().get((byte) 1), getMacKeys().get((byte) 1))) { // hardcoded comparison
+            equals = false;
+        }
+        
+        if (equals) {
+            return 0;
+        } else {
+            return t.getId() - getId();
+        }
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof VSSShare) {
+            return compareTo((VSSShare)o) == 0;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        assert false : "hashCode not designed";
+        return 42;
+    }
+
 }

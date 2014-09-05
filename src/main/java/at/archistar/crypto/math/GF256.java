@@ -27,9 +27,6 @@ package at.archistar.crypto.math;
  * <b>WARNING:</b> The lookup-table implementation could lead to timing attacks on certain microprocessors!
  *                 So this class may not be suitable for all use-cases. 
  *                 (but definitively suitable for the <i>Archistar</i>-project)
- * 
- * @author Elias Frantar
- * @version 2014-7-18
  */
 public class GF256 {
     private static final int GEN_POLY = 0x11D; // a generator polynomial of GF(256); 285

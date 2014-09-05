@@ -2,6 +2,7 @@ package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.BaseShare;
 import at.archistar.crypto.data.ByteUtils;
+import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.Decoder;
@@ -9,11 +10,11 @@ import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
+import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.random.RandomSource;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 
 /**
@@ -63,18 +64,21 @@ public class ShamirPSS extends SecretSharing {
 
     @Override
     public Share[] share(byte[] data) {
-        ShamirShare shares[] = createShamirShares(n, data.length);
+        try {
+            ShamirShare shares[] = createShamirShares(n, data.length);
 
-        /* calculate the x and y values for the shares */
-        for (int i = 0; i < data.length; i++) {
-            GF256Polynomial poly = createShamirPolynomial(ByteUtils.toUnsignedByte(data[i]), k-1); // generate a new random polynomial
+            /* calculate the x and y values for the shares */
+            for (int i = 0; i < data.length; i++) {
+                GF256Polynomial poly = createShamirPolynomial(ByteUtils.toUnsignedByte(data[i]), k-1); // generate a new random polynomial
             
-            for (ShamirShare share : shares) { // evaluate the x-values at the polynomial
-                share.getY()[i] = (byte) poly.evaluateAt(share.getId());
+                for (ShamirShare share : shares) { // evaluate the x-values at the polynomial
+                    share.getY()[i] = (byte) poly.evaluateAt(share.getId());
+                }
             }
+            return shares;
+        } catch (InvalidParametersException ex) {
+            throw new ImpossibleException("sharing failed (" + ex.getMessage() + ")");
         }
-
-        return shares;
     }
 
     @Override
@@ -126,7 +130,7 @@ public class ShamirPSS extends SecretSharing {
      * @param shareLength the length of all shares
      * @return an array with the created shares
      */
-    public static ShamirShare[] createShamirShares(int n, int shareLength) {
+    public static ShamirShare[] createShamirShares(int n, int shareLength) throws InvalidParametersException {
         ShamirShare[] sshares = new ShamirShare[n];
         
         for (int i = 0; i < n; i++) {

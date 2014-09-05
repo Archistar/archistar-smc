@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import at.archistar.crypto.math.GF256;
 import de.flexiprovider.common.math.codingtheory.GF2mField;
 
 /**
@@ -12,9 +11,6 @@ import de.flexiprovider.common.math.codingtheory.GF2mField;
  * 
  * <p>All arithmetic operations are tested by comparing the result with the reference-result of the flexiprovider-API
  * (which is expected to work properly).</p>
- * 
- * @author Elias Frantar
- * @version 2014-7-18
  */
 public class TestGF256 {
 	/* reference GF */
