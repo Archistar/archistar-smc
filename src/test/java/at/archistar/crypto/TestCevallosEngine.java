@@ -128,11 +128,10 @@ public class TestCevallosEngine {
     
     /** it should fail if the number of shares <= k
      * 
-     * @throws ReconstructionException if this is thrown the test really fails
      * @throws WeakSecurityException happen as the upper bound was reached
      * @throws NoSuchAlgorithmException should not happen due to fixed algorithms
      */
-    public void failIfThereAintEnoughShares() throws ReconstructionException, WeakSecurityException, NoSuchAlgorithmException {
+    public void failIfThereAintEnoughShares() throws WeakSecurityException, NoSuchAlgorithmException {
         int n=8;
         int k=4;
         
