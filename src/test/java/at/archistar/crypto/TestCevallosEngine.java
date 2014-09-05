@@ -104,7 +104,7 @@ public class TestCevallosEngine {
         
         CryptoEngine algorithm = new CevallosEngine(n, k, rng);
         Share shares[] = algorithm.share(data);
-        for(int i = k+1; i < n; i++) {
+        for(int i = k; i < n; i++) {
             Share[] shares1 = Arrays.copyOfRange(shares, 0, i);
             byte reconstructedData[] = algorithm.reconstruct(shares1);
             assertThat(reconstructedData).isEqualTo(data);
@@ -138,8 +138,8 @@ public class TestCevallosEngine {
         CryptoEngine algorithm = new CevallosEngine(n, k, rng);
         Share shares[] = algorithm.share(data);
         
-        for (int i = 0; i <= k; i++) {
-            Share[] shares1 = Arrays.copyOfRange(shares, 0, 2);
+        for (int i = 0; i < k; i++) {
+            Share[] shares1 = Arrays.copyOfRange(shares, 0, k);
             try {
                 algorithm.reconstruct(shares1);
                 fail("could reconstruct even if there were too few shares! (k=" + k + ")");
