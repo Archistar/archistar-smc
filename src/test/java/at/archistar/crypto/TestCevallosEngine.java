@@ -1,15 +1,8 @@
 package at.archistar.crypto;
 
-import at.archistar.crypto.secretsharing.SecretSharing;
-import at.archistar.crypto.secretsharing.ShamirPSS;
-import at.archistar.crypto.informationchecking.CevallosUSRSS;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
-import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.mac.MacHelper;
-import at.archistar.crypto.mac.ShortenedMacHelper;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import java.security.NoSuchAlgorithmException;
@@ -17,91 +10,143 @@ import java.util.Arrays;
 import java.util.Collections;
 import static org.fest.assertions.api.Assertions.assertThat;
 
-import org.junit.After;
-import org.junit.Before;
+import static org.junit.Assert.fail;
 import org.junit.Test;
 
 /**
- * Tests for {@link CevallosUSRSS}
- * @author Elias Frantar
- * @version 2014-7-29
+ * Tests for {@link CevallosEngine}
  */
 public class TestCevallosEngine {
-    byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-    private CryptoEngine algorithm;
+    private static final byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
     private static final RandomSource rng = new FakeRandomSource();
-    //private static final DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
-    private static final DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
-    private MacHelper mac;
     
-    @Before
-    public void setup() throws WeakSecurityException, NoSuchAlgorithmException {
-        mac = new ShortenedMacHelper("HMacSHA256", 4, CevallosUSRSS.E);
-        algorithm = new CevallosEngine(8, 4, rng);
-    }
-    
-    @After
-    public void tearDown() {
-        algorithm = null;
-    }
-    
-    /* expected successful encryption */
+    /** A simple working share/reconstruct round over data.
+     * 
+     * @throws ReconstructionException reconstruction did not work
+     * @throws WeakSecurityException should not happen due to fixed parameters
+     * @throws NoSuchAlgorithmException should not happen due to fixed algorithms
+      */
     @Test
-    public void simpleRoundTest() throws ReconstructionException, WeakSecurityException {
+    public void simpleShareReconstructRound() throws ReconstructionException, WeakSecurityException, NoSuchAlgorithmException {
+        CryptoEngine algorithm = new CevallosEngine(8, 4, rng);
         Share shares[] = algorithm.share(data);
         byte reconstructedData[] = algorithm.reconstruct(shares);
         assertThat(reconstructedData).isEqualTo(data);
     }
-    
+
+    /** Create a new CryptoEngine if t >= n/3 (lower) and upper bound
+     * 
+     * @throws WeakSecurityException should not happen due to fixed parameters
+     * @throws NoSuchAlgorithmException should not happen due to fixed algorithms
+     */
     @Test
-    public void tGoodRangeLowerBoundGoodTest() throws WeakSecurityException{
-    	int n = 11;
-    	int t = 4;
-        new CevallosUSRSS(new ShamirPSS(n, t + 1, rng, decoderFactory), mac, rng); // very close above the lower bound n/3
+    public void withinLowerBounds() throws WeakSecurityException, NoSuchAlgorithmException{
+        
+        /* TODO: loop over n to test more cases (: */
+        
+    	int n = 12;
+    	int t = n/3;
+        CryptoEngine engine = new CevallosEngine(n, t+1, rng);
+        assertThat(engine).isNotNull();
     }
-    
+
+    /** Fail if lower than bound n/3
+     * 
+     * @throws WeakSecurityException happen as the lower bound is reached
+     * @throws NoSuchAlgorithmException should not happen due to fixed algorithms
+     */
     @Test(expected=WeakSecurityException.class)
-    public void tGoodRangeLowerBoundFailTest() throws WeakSecurityException{
+    public void failOutsideofLowerBound() throws WeakSecurityException, NoSuchAlgorithmException{
     	int n = 11;
     	int t = 3;
-        new CevallosUSRSS(new ShamirPSS(n, t + 1, rng, decoderFactory), mac, rng); // very close below the lower bound n/3
+        CryptoEngine engine = new CevallosEngine(n, t+1, rng);
+        fail();
     }
-    
+
+    /** Create a new CryptoEngine if t >= n/3 (lower) and upper bound
+     * 
+     * @throws WeakSecurityException should not happen due to fixed parameters
+     * @throws NoSuchAlgorithmException should not happen due to fixed algorithms
+     */
     @Test
-    public void tRangeUpperBoundLimitGoodTest() throws WeakSecurityException{
+    public void withinUpperBound() throws WeakSecurityException, NoSuchAlgorithmException{
     	int n = 11;
     	int t = 5;
-        new CevallosUSRSS(new ShamirPSS(n, t + 1, rng, decoderFactory), mac, rng); // here t is close to the upper bound but still in the good range
+        CryptoEngine engine = new CevallosEngine(n, t, rng);
+        assertThat(engine).isNotNull();
     }
-    
+
+    /** Fail if t is higher than the upper bound
+     * 
+     * TODO: do we really want to fail when this happens?
+     * 
+     * @throws WeakSecurityException happen as the upper bound was reached
+     * @throws NoSuchAlgorithmException should not happen due to fixed algorithms
+     */
     @Test(expected=WeakSecurityException.class)
-    public void tGoodRangeUpperBoundLimitFailTest() throws WeakSecurityException{
+    public void tGoodRangeUpperBoundLimitFailTest() throws WeakSecurityException, NoSuchAlgorithmException{
     	int n = 10;
     	int t = 5;
-        new CevallosUSRSS(new ShamirPSS(n, t + 1, rng, decoderFactory), mac, rng); // here the t is over the upper bound
+        CryptoEngine engine = new CevallosEngine(n, t + 1, rng);
+        fail();
+    }
+
+    /** it should reconstruct if the number of shares > k
+     * 
+     * @throws ReconstructionException if this is thrown the test really fails
+     * @throws WeakSecurityException happen as the upper bound was reached
+     * @throws NoSuchAlgorithmException should not happen due to fixed algorithms
+     */
+    @Test
+    public void reconstructPartialShares() throws ReconstructionException, WeakSecurityException, NoSuchAlgorithmException {
+        int n = 8;
+        int k = 4;
+        
+        CryptoEngine algorithm = new CevallosEngine(n, k, rng);
+        Share shares[] = algorithm.share(data);
+        for(int i = k+1; i < n; i++) {
+            Share[] shares1 = Arrays.copyOfRange(shares, 0, i);
+            byte reconstructedData[] = algorithm.reconstruct(shares1);
+            assertThat(reconstructedData).isEqualTo(data);
+        }
     }
     
+    /** it should reconstruct if shares were shuffled
+     * 
+     * @throws ReconstructionException if this is thrown the test really fails
+     * @throws WeakSecurityException happen as the upper bound was reached
+     * @throws NoSuchAlgorithmException should not happen due to fixed algorithms
+     */
     @Test
-    public void notAllSharesTest() throws ReconstructionException, WeakSecurityException {
-        Share shares[] = algorithm.share(data);
-        Share[] shares1 = Arrays.copyOfRange(shares, 1, 6);
-        byte reconstructedData[] = algorithm.reconstruct(shares1);
-        assertThat(reconstructedData).isEqualTo(data);
-    }
-    @Test
-    public void shuffledSharesTest() throws ReconstructionException, WeakSecurityException {
+    public void shuffleSharesBeforeReconstruct() throws ReconstructionException, WeakSecurityException, NoSuchAlgorithmException {
+        CryptoEngine algorithm = new CevallosEngine(8, 4, rng);
         Share shares[] = algorithm.share(data);
         Collections.shuffle(Arrays.asList(shares));
         byte reconstructedData[] = algorithm.reconstruct(shares);
         assertThat(reconstructedData).isEqualTo(data);
     }
     
-    /* expected failing decryption */
-    @Test(expected=ReconstructionException.class)
-    public void notEnoughSharesTest() throws ReconstructionException, WeakSecurityException {
-        Share shares[] = algorithm.share(data);
-        Share[] shares1 = Arrays.copyOfRange(shares, 0, 2);
+    /** it should fail if the number of shares <= k
+     * 
+     * @throws ReconstructionException if this is thrown the test really fails
+     * @throws WeakSecurityException happen as the upper bound was reached
+     * @throws NoSuchAlgorithmException should not happen due to fixed algorithms
+     */
+    public void failIfThereAintEnoughShares() throws ReconstructionException, WeakSecurityException, NoSuchAlgorithmException {
+        int n=8;
+        int k=4;
         
-        algorithm.reconstruct(shares1);
+        CryptoEngine algorithm = new CevallosEngine(n, k, rng);
+        Share shares[] = algorithm.share(data);
+        
+        for (int i = 0; i <= k; i++) {
+            Share[] shares1 = Arrays.copyOfRange(shares, 0, 2);
+            try {
+                algorithm.reconstruct(shares1);
+                fail("could reconstruct even if there were too few shares! (k=" + k + ")");
+            } catch(ReconstructionException ex) {
+                // actually the good case!
+            }
+        }
     }
 }
