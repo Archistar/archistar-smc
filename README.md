@@ -97,3 +97,11 @@ How to contribute/hack
 2. work on your new feature
 3. run the testcases with `mvn test`
 4. send me a pull request
+
+Citing Archistar
+----------------------
+
+If you find Archistar useful for your work or if you use Archistar in a project, paper, website, etc., 
+please cite the software as
+
+T. Lorünser, A. Happe, D. Slamanig (2014). “ARCHISTAR – A framework for secure distributed storage”. GNU General Public License. http://ARCHISTAR.at
