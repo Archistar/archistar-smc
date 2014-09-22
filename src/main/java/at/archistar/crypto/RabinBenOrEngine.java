@@ -3,8 +3,8 @@ package at.archistar.crypto;
 import at.archistar.crypto.data.SerializableShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.VSSShare;
-import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
 import at.archistar.crypto.decode.DecoderFactory;
+import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.informationchecking.InformationChecking;
@@ -35,7 +35,7 @@ public class RabinBenOrEngine implements CryptoEngine {
         /* component selection */
         RandomSource rng = new BCDigestRandomSource();
         MacHelper mac = new ShareMacHelper("HMacSHA256");
-        DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
+        DecoderFactory decoderFactory = new ErasureDecoderFactory();
         Encryptor cryptor = new AESEncryptor();
         this.sharing = new KrawczykCSS(n, k, rng, cryptor, decoderFactory);
         this.ic = new RabinBenOrRSS(sharing, mac, rng);
@@ -44,7 +44,7 @@ public class RabinBenOrEngine implements CryptoEngine {
     public RabinBenOrEngine(int n, int k, RandomSource rng) throws NoSuchAlgorithmException, WeakSecurityException {
         /* component selection */
         MacHelper mac = new ShareMacHelper("HMacSHA256");
-        DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
+        DecoderFactory decoderFactory = new ErasureDecoderFactory();
         Encryptor cryptor = new AESEncryptor();
         this.sharing = new KrawczykCSS(n, k, rng, cryptor, decoderFactory);
         this.ic = new RabinBenOrRSS(sharing, mac, rng);
