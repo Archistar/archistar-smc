@@ -60,15 +60,6 @@ public class CustomMatrix extends GF2mMatrix {
         return result;
     }
 
-    /**
-     * Returns the <i>i<sup>th</sup></i> row of the matrix.
-     * @param i index of the row to return
-     * @return the <i>i<sup>th</sup></i> row of the matrix (starting at 0)
-     */
-    public int[] getRow(int i) {
-        return matrix[i];
-    }
-
     public void output() {
         System.err.println("matrix:");
         for (int[] tmp : matrix) {
