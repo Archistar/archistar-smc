@@ -1,13 +1,12 @@
 package at.archistar.crypto.math;
 
+import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
+import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
 import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import de.flexiprovider.common.math.codingtheory.GF2mField;
-import de.flexiprovider.common.math.codingtheory.PolynomialGF2mSmallM;
 
 /**
  * <p>A simple unit-test for {@link GF256Polynomial}.</p>

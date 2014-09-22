@@ -15,12 +15,6 @@
         </repository>
     </repositories>
     <dependencies>
-        <!-- math library -->
-        <dependency>
-            <groupId>de.flexiprovider</groupId>
-            <artifactId>flexiprovider-core</artifactId>
-            <version>1.7p6</version>
-        </dependency>
         <!-- crypto library -->
         <dependency>
             <groupId>org.bouncycastle</groupId>

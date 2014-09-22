@@ -1,5 +1,7 @@
 package at.archistar.crypto.math;
 
+import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
+
 /*
  * The operations in this class are meant to be very fast and efficient.
  * The speed is mainly achieved by using lookup-tables for implementing the otherwise very expensive 
@@ -30,6 +32,8 @@ package at.archistar.crypto.math;
  */
 public class GF256 {
     private static final int GEN_POLY = 0x11D; // a generator polynomial of GF(256); 285
+    
+    public static final GF2mField BC_GEN_POLY = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0) / 285
     
     /* lookup-tables for faster operations */
     private static final int[] LOG_TABLE = new int[256]; // = log_g(index) (log base g)

@@ -1,8 +1,8 @@
 package at.archistar.crypto.math;
 
-import de.flexiprovider.common.math.codingtheory.GF2mField;
-import de.flexiprovider.common.math.linearalgebra.GF2mMatrix;
-import de.flexiprovider.common.util.IntUtils;
+import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
+import org.bouncycastle.pqc.math.linearalgebra.GF2mMatrix;
+import org.bouncycastle.pqc.math.linearalgebra.IntUtils;
 
 /**
  * <p>A matrix operating in GF(256).</p>
