@@ -1,49 +1,44 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package at.archistar.crypto.mac;
 
-import at.archistar.crypto.informationchecking.CevallosUSRSS;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 /**
- *
+ * This is just part of a proof-of-concept of a key-shortener used for an
+ * accurate implementation of the Cevallos-Scheme
+ * 
  * @author andy
  */
 public class BCShortenedMacHelper implements MacHelper {
     
     private final MacHelper mac;
     
-    private final int k;
-    private final int e;
+    private final int keylength;
     
     /**
      * Constructor
      * 
      * @param mac the MAC algorithm to use (for example <i>SHA-256</i>)
+     * @param keylength the actually needed (input and output) keylength
      * @throws NoSuchAlgorithmException thrown if the given algorithm is not supported
      */
-    public BCShortenedMacHelper(MacHelper mac, int k, int e) throws NoSuchAlgorithmException {
+    public BCShortenedMacHelper(MacHelper mac, int keylength) throws NoSuchAlgorithmException {
         this.mac = mac;
-        this.k = k;
-        this.e = e;
+        this.keylength = keylength;
     }
     
-    /**
-     * @see #computeMAC(Share, byte[], int)
-     * Uses algorithms default MAC-length.
-     */
     @Override
     public byte[] computeMAC(byte[] data, byte[] key) throws InvalidKeyException {
         
-        byte[] result = mac.computeMAC(data, key);
-        int length = CevallosUSRSS.computeTagLength(data.length*8, k, e);
-        return Arrays.copyOfRange(result, 0, length);
+        /* create the short key, padded with 0s */
+        byte[] shortKey = new byte[this.mac.keySize()];
+        Arrays.copyOfRange(key, 0, keylength);
+        
+        byte[] result = mac.computeMAC(data, shortKey);
+
+        /* return only keys of a given length */
+        return Arrays.copyOfRange(result, 0, keylength);
     }
     
     /**
@@ -59,9 +54,13 @@ public class BCShortenedMacHelper implements MacHelper {
     public boolean verifyMAC(byte[] data, byte[] tag, byte[] key) {
         boolean valid = false;
         
+        byte[] shortKey = new byte[this.mac.keySize()];
+        Arrays.copyOfRange(key, 0, keylength);        
+        
         try {
-            byte[] newTag = computeMAC(data, key); // compute tag for the given parameters
-            valid = Arrays.equals(tag, newTag); // compare with original tag
+            byte[] newTag = computeMAC(data, shortKey); // compute tag for the given parameters
+            byte[] shortTag = Arrays.copyOfRange(newTag, 0, keylength);
+            valid = Arrays.equals(tag, shortTag); // compare with original tag
         } catch (InvalidKeyException e) {}
         
         return valid;
@@ -69,7 +68,7 @@ public class BCShortenedMacHelper implements MacHelper {
 
     @Override
     public int keySize() {
-        return this.mac.keySize();
+        return this.keylength;
     }
     
     @Override
