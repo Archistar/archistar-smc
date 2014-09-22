@@ -2,10 +2,10 @@ package at.archistar.crypto.decode;
 
 import org.junit.Test;
 
-import de.flexiprovider.common.math.codingtheory.GF2mField;
-import de.flexiprovider.common.math.codingtheory.PolynomialGF2mSmallM;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.random.SHA1PRNG;
+import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
+import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 /**

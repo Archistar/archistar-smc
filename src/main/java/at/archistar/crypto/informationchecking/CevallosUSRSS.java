@@ -93,13 +93,14 @@ public class CevallosUSRSS extends RabinBenOrRSS {
     /**
      * Computes the required MAC-tag-length to achieve a security of <i>e</i> bits.
      * 
-     * @param m the length of the message in bit
-     * @param k the number of shares required for reconstruction
+     * @param m the length of the message in bit (TODO: this should be the blocklength)
+     * @param t amount of "defective" shares
      * @param e the security constant in bit
      * @return the amount of bytes the MAC-tags should have
      */
-    public static int computeTagLength(int m, int k, int e) {
-        return (log2(k) + log2(m) + 2 / k * e + log2(e)) / 8; // result in bytes
+    public static int computeTagLength(int m, int t, int e) {
+        int tagLengthBit = log2(t+1) + log2(m) + 2 / (t+1) * e + log2(e);
+        return tagLengthBit/8;
     }
     
     /**

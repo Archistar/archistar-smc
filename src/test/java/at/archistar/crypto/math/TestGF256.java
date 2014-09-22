@@ -1,10 +1,9 @@
 package at.archistar.crypto.math;
 
+import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-
-import de.flexiprovider.common.math.codingtheory.GF2mField;
 
 /**
  * <p>A simple unit-test for {@link GF256}.</p>

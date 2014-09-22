@@ -4,11 +4,11 @@ import java.util.Arrays;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-import de.flexiprovider.common.math.codingtheory.GF2mField;
-import de.flexiprovider.common.math.codingtheory.PolynomialGF2mSmallM;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.math.CustomMatrix;
 import at.archistar.crypto.math.GF256;
+import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
+import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
 
 /**
  * Reconstructs a polynomial from the given xy-pairs using the 
