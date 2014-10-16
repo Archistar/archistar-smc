@@ -6,6 +6,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * This class represents a simple polynomial in GF(256) and provides basic functionality like evaluating points.
  * 
  * Since this class uses the methods of {@link GF256}, the same rules apply for using this class.
+ * 
+ * TODO: can't this functionality be moved into GF2nPolynomial?
  */
 public class GF256Polynomial {
     private final int[] coeffs; // the coefficients of the polynomial
