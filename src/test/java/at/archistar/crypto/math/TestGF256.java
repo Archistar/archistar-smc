@@ -40,27 +40,12 @@ public class TestGF256 {
 	}
 	
 	@Test
-	public void testDiv() {
-		assertEquals(gf256.mult(a, gf256.inverse(b)), gf.div(a, b));
-	}
-	
-	@Test
 	public void testPow() {
 		assertEquals(gf256.exp(a, b), gf.pow(a, b));
 	}
 	
-	@Test
-	public void testInverse() {
-		assertEquals(gf256.inverse(a), gf.inverse(a));
-	}
-	
 	/* special cases / Exception tests */
 	
-	@Test(expected = ArithmeticException.class)
-	public void divBy0() {
-            gf.div(a, 0);
-	}
-        
         @Test
 	public void testEvaluate() {
             

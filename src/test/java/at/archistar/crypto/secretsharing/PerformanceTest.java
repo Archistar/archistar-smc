@@ -1,5 +1,6 @@
 package at.archistar.crypto.secretsharing;
 
+import at.archistar.crypto.TestHelper;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.ShareMacHelper;
@@ -29,33 +30,16 @@ public class PerformanceTest {
     private final SecretSharing algorithm;
     public static final int size = 100 * 1024 * 1024;
     
-    /**
-     * Creates a byte[] of the given size, with all values set to 42.
-     * @param elementSize the size of the array
-     * @return an array of the given size
-     */
-    private static byte[][] createArray(int elementSize) {
-        byte[][] result = new byte[size / elementSize][elementSize];
-
-        for (int i = 0; i < size / elementSize; i++) {
-            for (int j = 0; j < elementSize; j++) {
-                result[i][j] = 42;
-            }
-        }
-
-        return result;
-    }
-
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
         
         System.err.println("Data-Size per Test: " + size/1024/1024 + "MByte");
 
         byte[][][] secrets = new byte[4][][];
-        secrets[0] = createArray(4 * 1024);       // typical file system block size
-        secrets[1] = createArray(128 * 1024);     // documents
-        secrets[2] = createArray(512 * 1024);     // documents, pictures (jpegs)
-        secrets[3] = createArray(4096 * 1024);    // audio, high-quality pictures
+        secrets[0] = TestHelper.createArray(size, 4 * 1024);       // typical file system block size
+        secrets[1] = TestHelper.createArray(size, 128 * 1024);     // documents
+        secrets[2] = TestHelper.createArray(size, 512 * 1024);     // documents, pictures (jpegs)
+        secrets[3] = TestHelper.createArray(size, 4096 * 1024);    // audio, high-quality pictures
 
         final int n = 4;
         final int k = 3;

@@ -13,6 +13,7 @@ import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.data.ByteUtils;
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.exceptions.ImpossibleException;
+import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GF256;
 import java.util.Arrays;
 
@@ -35,7 +36,7 @@ import java.util.Arrays;
 public class RabinIDS extends SecretSharing {
     private final DecoderFactory decoderFactory;
     
-    private final GF256 gf = new GF256();
+    private final GF gf;
     
     /**
      * Constructor
@@ -46,8 +47,9 @@ public class RabinIDS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public RabinIDS(int n, int k) throws WeakSecurityException {
-        this(n, k, new ErasureDecoderFactory());
+        this(n, k, new ErasureDecoderFactory(new GF256()), new GF256());
     }
+    
     /**
      * Constructor
      * 
@@ -57,8 +59,21 @@ public class RabinIDS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public RabinIDS(int n, int k, DecoderFactory decoderFactory) throws WeakSecurityException {
+        this(n, k, decoderFactory, new GF256());
+    }
+    
+    /**
+     * Constructor
+     * 
+     * @param n the number of shares to create
+     * @param k the minimum number of shares required for reconstruction
+     * @param decoderFactory the solving algorithm to use for reconstructing the secret
+     * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
+     */
+    public RabinIDS(int n, int k, DecoderFactory decoderFactory, GF gf) throws WeakSecurityException {
         super(n, k);
         this.decoderFactory = decoderFactory;
+        this.gf = gf;
     }
 
     @Override

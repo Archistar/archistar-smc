@@ -1,5 +1,6 @@
 package at.archistar.crypto.decode;
 
+import at.archistar.crypto.math.BCGF256;
 import org.junit.Test;
 
 import at.archistar.crypto.random.RandomSource;
@@ -83,7 +84,7 @@ public class TestBerlekampWelchDecoder {
         int[] y = {153, 174, 168, 62}; // 153, 174, 168, 62
         int[] expected = {117, 234};
 
-        Decoder polySolver = new BerlekampWelchDecoder(x, 2);
+        Decoder polySolver = new BerlekampWelchDecoder(x, 2, new BCGF256());
         assertThat(polySolver.decode(y, 0)).isEqualTo(expected);
     }
 
@@ -94,7 +95,7 @@ public class TestBerlekampWelchDecoder {
         int[] y = {153, 174, 244, 62}; // 153, 174, 168, 62
         int[] expected = {117, 234};
 
-        Decoder polySolver = new BerlekampWelchDecoder(x, 2);
+        Decoder polySolver = new BerlekampWelchDecoder(x, 2, new BCGF256());
         assertThat(polySolver.decode(y, 1)).isEqualTo(expected);
     }
 
@@ -105,7 +106,7 @@ public class TestBerlekampWelchDecoder {
         int[] y = {153, 174, 168, 62}; // 153, 174, 168, 62
         int[] expected = {117, 234};
 
-        Decoder polySolver = new BerlekampWelchDecoder(x, 2);
+        Decoder polySolver = new BerlekampWelchDecoder(x, 2, new BCGF256());
         assertThat(polySolver.decode(y, 1)).isEqualTo(expected);
     }
 
@@ -122,7 +123,7 @@ public class TestBerlekampWelchDecoder {
 
         genRandomTest(x, y, expected, coeffs, n, f);
 
-        Decoder polySolver = new BerlekampWelchDecoder(x, coeffs);
+        Decoder polySolver = new BerlekampWelchDecoder(x, coeffs, new BCGF256());
         assertThat(polySolver.decode(y, f)).isEqualTo(expected);
     }
 
@@ -133,7 +134,7 @@ public class TestBerlekampWelchDecoder {
         int[] y = {37, 225, 176, 89, 210}; // 37, 224, 176, 89, 210
         int[] expected = {23, 235, 78};
 
-        Decoder polySolver = new BerlekampWelchDecoder(x, 3);
+        Decoder polySolver = new BerlekampWelchDecoder(x, 3, new BCGF256());
         assertThat(polySolver.decode(y, 1)).isEqualTo(expected);
     }
 
@@ -150,7 +151,7 @@ public class TestBerlekampWelchDecoder {
         
         genRandomTest(x, y, expected, coeffs, n, f);
 
-        Decoder polySolver = new BerlekampWelchDecoder(x, coeffs);
+        Decoder polySolver = new BerlekampWelchDecoder(x, coeffs, new BCGF256());
         polySolver.decode(y, f);
     }
 }

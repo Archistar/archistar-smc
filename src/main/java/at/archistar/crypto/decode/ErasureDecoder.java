@@ -1,25 +1,22 @@
 package at.archistar.crypto.decode;
 
+import at.archistar.crypto.math.BCGF256;
 import at.archistar.crypto.math.CustomMatrix;
-import at.archistar.crypto.math.GF256;
+import at.archistar.crypto.math.GF;
 
 /**
  * Reconstructs a polynomial from the given xy-pairs using the <i>Erasure Decoding</i> scheme.<br>
  * <b>NOTE</b>: This algorithm does assumes all passed points to be correct! 
  *              (use {@link BerlekampWelchDecoder} if you need fault tolerance)
- * 
- * @author Andreas Happe
- * @author Elias Frantar
- * @version 2014-7-25
  */
 public class ErasureDecoder implements Decoder {
     private final CustomMatrix matrix;
     
     private final int k;
     
-    private final GF256 gf = new GF256();
-
-    ErasureDecoder(int[] xValues, int k) {
+    private static final BCGF256 backupBCFG = new BCGF256();
+    
+    ErasureDecoder(int[] xValues, int k, GF gf) {
         
         this.k = k;
         
@@ -30,8 +27,13 @@ public class ErasureDecoder implements Decoder {
                 matrixX[i][j] = gf.pow(xValues[i], j);
             }
         }
-
-        matrix = new CustomMatrix(new CustomMatrix(matrixX).computeInverse().getEncoded());
+        
+        if (gf instanceof BCGF256) {
+            matrix = new CustomMatrix(new CustomMatrix(matrixX, (BCGF256)gf).computeInverse().getEncoded(), (BCGF256)gf);
+        } else {
+            /* TODO: can we create a custom matrix with just GF? */
+            matrix = new CustomMatrix(new CustomMatrix(matrixX, backupBCFG).computeInverse().getEncoded(), backupBCFG);
+        }
     }
     
     @Override

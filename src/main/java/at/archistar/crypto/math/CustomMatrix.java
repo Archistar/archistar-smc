@@ -1,6 +1,5 @@
 package at.archistar.crypto.math;
 
-import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
 import org.bouncycastle.pqc.math.linearalgebra.GF2mMatrix;
 import org.bouncycastle.pqc.math.linearalgebra.IntUtils;
 
@@ -9,33 +8,25 @@ import org.bouncycastle.pqc.math.linearalgebra.IntUtils;
  * 
  * <p>Uses {@link GF256} for optimized operations and provides some additional methods in contrary to the flexiprovider-
  * class.</p>
- *
- * @author Elias Frantar <i>(added documentation)</i>
- * @author Andreas Happe <andreashappe@snikt.net>
- * @version 2014-7-18
  */
 public class CustomMatrix extends GF2mMatrix {
 
-    private static final GF2mField gf256 = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0) / 285
-    
-    private final GF256 gf;
+    private static final BCGF256 gf256 = new BCGF256();
     
     /**
      * Constructor
      * @param data the data to put into the matrix
      */
-    public CustomMatrix(int[][] data) {
-        super(gf256, data);
-        this.gf = new GF256();
+    public CustomMatrix(int[][] data, BCGF256 gf) {
+        super(gf256.getUnderlyingField(), data);
     }
 
     /**
      * Constructor
      * @param encoded the encoded matrix (got via {@link #getEncoded()})
      */
-    public CustomMatrix(byte[] encoded) {
-        super(gf256, encoded);
-        this.gf = new GF256();
+    public CustomMatrix(byte[] encoded, BCGF256 gf) {
+        super(gf256.getUnderlyingField(), encoded);
     }
 
     /**
@@ -56,7 +47,7 @@ public class CustomMatrix extends GF2mMatrix {
         for (int i = 0; i < vec.length; i++) {
             int tmp = 0;
             for (int j = 0; j < vec.length; j++) {
-                tmp = gf.add(tmp, gf.mult(matrix[i][j], vec[j]));
+                tmp = gf256.add(tmp, gf256.mult(matrix[i][j], vec[j]));
             }
             result[i] = tmp;
         }
@@ -145,7 +136,7 @@ public class CustomMatrix extends GF2mMatrix {
             }
         }
         
-        return new CustomMatrix(invMatrix);
+        return new CustomMatrix(invMatrix, gf256);
     }
     
     /*
@@ -159,26 +150,21 @@ public class CustomMatrix extends GF2mMatrix {
     }
     private void multRowWithElementThis(int[] row, int element) {
         for (int i = row.length - 1; i >= 0; i--) {
-            row[i] = gf.mult(row[i], element);
+            row[i] = gf256.mult(row[i], element);
         }
     }
     private int[] multRowWithElement(int[] row, int element) {
         int[] result = new int[row.length];
         
         for (int i = row.length - 1; i >= 0; i--) {
-            result[i] = gf.mult(row[i], element);
+            result[i] = gf256.mult(row[i], element);
         }
 
         return result;
     }
     private void addToRow(int[] fromRow, int[] toRow) {
         for (int i = toRow.length - 1; i >= 0; i--) {
-            toRow[i] = gf.add(fromRow[i], toRow[i]);
+            toRow[i] = gf256.add(fromRow[i], toRow[i]);
         }
-    }
-   
-    @Override
-    public boolean equals(Object o) {
-        return o == this;
     }
 }

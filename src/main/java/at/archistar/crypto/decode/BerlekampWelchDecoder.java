@@ -5,8 +5,9 @@ import java.util.Arrays;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import at.archistar.crypto.exceptions.ImpossibleException;
+import at.archistar.crypto.math.BCGF256;
 import at.archistar.crypto.math.CustomMatrix;
-import at.archistar.crypto.math.GF256;
+import at.archistar.crypto.math.GF;
 import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
 import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
 
@@ -14,10 +15,6 @@ import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
  * Reconstructs a polynomial from the given xy-pairs using the 
  * <a href="http://en.wikipedia.org/wiki/Berlekamp–Welch_algorithm">Berlekamp-Welch algorithm</a>.<br>
  * This algorithm tolerates up to <i>(n - k) / 2</i> errors (wrong points) when reconstructing the polynomial.
- * 
- * @author Andreas Happe
- * @author Elias Frantar
- * @version 2014-7-25
  */
 public class BerlekampWelchDecoder implements Decoder {
     private final int[][] matrix;
@@ -25,16 +22,18 @@ public class BerlekampWelchDecoder implements Decoder {
     private final int f; // max number of allowed errors
     private final int k; // (degree+1), number of reconstructed elements
     
-    private final GF256 gf = new GF256();
+    private final GF gf;
+    
+    private static final BCGF256 backupGF = new BCGF256();
     
     /**
      * Constructor
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public BerlekampWelchDecoder(int[] xValues, int k) {
+    public BerlekampWelchDecoder(int[] xValues, int k, GF gf) {
         
         int n = xValues.length;
-        
+        this.gf = gf;
         this.k = k;
         this.f = (n - k) / 2;
         this.x = xValues;
@@ -77,7 +76,12 @@ public class BerlekampWelchDecoder implements Decoder {
         
         /* finish preparation of the decode-matrix */
         prepareEx(y);
-        CustomMatrix decodeMatrix = new CustomMatrix(matrix).computeInverseElimDepRows();
+        CustomMatrix decodeMatrix;
+        if (gf instanceof BCGF256) {
+            decodeMatrix = new CustomMatrix(matrix, (BCGF256)gf).computeInverseElimDepRows();
+        } else {
+            decodeMatrix = new CustomMatrix(matrix, backupGF).computeInverseElimDepRows();
+        }
         
         int[] coeffs = decodeMatrix.rightMultiply(buildMultVector(x, y, decodeMatrix.getNumRows())); // compute the coefficients
         int[] ret = new int[k];

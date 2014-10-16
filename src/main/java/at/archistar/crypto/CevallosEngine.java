@@ -14,6 +14,7 @@ import at.archistar.crypto.informationchecking.InformationChecking;
 import at.archistar.crypto.mac.BCPoly1305MacHelper;
 import at.archistar.crypto.mac.BCShortenedMacHelper;
 import at.archistar.crypto.mac.MacHelper;
+import at.archistar.crypto.math.GF256;
 import at.archistar.crypto.random.BCDigestRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.SecretSharing;
@@ -36,7 +37,7 @@ public class CevallosEngine implements CryptoEngine {
         /* component selection */
         RandomSource rng = new BCDigestRandomSource();
         MacHelper mac = new BCShortenedMacHelper(new BCPoly1305MacHelper(), CevallosUSRSS.computeTagLength(maxDataLength, 1, CevallosUSRSS.E));
-        DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
+        DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory(new GF256());
 
         this.sharing = new ShamirPSS(n, k, rng, decoderFactory);
         this.ic = new CevallosUSRSS(sharing, mac, rng);
@@ -45,7 +46,7 @@ public class CevallosEngine implements CryptoEngine {
     public CevallosEngine(int n, int k, RandomSource rng) throws NoSuchAlgorithmException, WeakSecurityException {
         /* component selection */
         MacHelper mac = new BCShortenedMacHelper(new BCPoly1305MacHelper(), CevallosUSRSS.computeTagLength(maxDataLength, 1, CevallosUSRSS.E));
-        DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
+        DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory(new GF256());
 
         this.sharing = new ShamirPSS(n, k, rng, decoderFactory);
         this.ic = new CevallosUSRSS(sharing, mac, rng);
