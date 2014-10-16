@@ -25,6 +25,8 @@ public class BerlekampWelchDecoder implements Decoder {
     private final int f; // max number of allowed errors
     private final int k; // (degree+1), number of reconstructed elements
     
+    private final GF256 gf = new GF256();
+    
     /**
      * Constructor
      */
@@ -44,7 +46,7 @@ public class BerlekampWelchDecoder implements Decoder {
         int t = x.length - f;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < t; j++) {
-                matrix[i][j] = GF256.pow(x[i], j);
+                matrix[i][j] = gf.pow(x[i], j);
             }
         }
     }
@@ -57,7 +59,7 @@ public class BerlekampWelchDecoder implements Decoder {
 
         for (int i = 0; i < y.length; i++) {
             for (int j = t; j < y.length; j++) {
-                matrix[i][j] = GF256.mult(y[i], GF256.pow(x[i], j-t));
+                matrix[i][j] = gf.mult(y[i], gf.pow(x[i], j-t));
             }
         }
     }
@@ -113,7 +115,7 @@ public class BerlekampWelchDecoder implements Decoder {
         int[] res = new int[length];
         
         for (int i = 0; i < length; i++) {
-            res[i] = GF256.mult(GF256.pow(x[i], f), y[i]);
+            res[i] = gf.mult(gf.pow(x[i], f), y[i]);
         }
         
         return res;

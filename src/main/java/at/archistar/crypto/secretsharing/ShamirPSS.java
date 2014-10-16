@@ -13,7 +13,7 @@ import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.math.GF256Polynomial;
+import at.archistar.crypto.math.GF256;
 import at.archistar.crypto.random.RandomSource;
 import java.util.Arrays;
 
@@ -33,6 +33,8 @@ import java.util.Arrays;
 public class ShamirPSS extends SecretSharing {
     private final RandomSource rng;
     private final DecoderFactory decoderFactory;
+    
+    private final GF256 gf = new GF256();
     
     /**
      * Constructor
@@ -69,10 +71,10 @@ public class ShamirPSS extends SecretSharing {
 
             /* calculate the x and y values for the shares */
             for (int i = 0; i < data.length; i++) {
-                GF256Polynomial poly = createShamirPolynomial(ByteUtils.toUnsignedByte(data[i]), k-1); // generate a new random polynomial
+                int[] poly = createShamirPolynomial(ByteUtils.toUnsignedByte(data[i]), k-1); // generate a new random polynomial
             
                 for (ShamirShare share : shares) { // evaluate the x-values at the polynomial
-                    share.getY()[i] = (byte) poly.evaluateAt(share.getId());
+                    share.getY()[i] = (byte) gf.evaluateAt(poly, share.getId());
                 }
             }
             return shares;
@@ -115,12 +117,12 @@ public class ShamirPSS extends SecretSharing {
      * @param degree the degree of the polynomial (number of random coefficients, must be <i>k</i>)
      * @return a random polynomial with the specified parameters ready for sharing the secret
      */
-    private GF256Polynomial createShamirPolynomial(int secret, int degree) {
+    private int[] createShamirPolynomial(int secret, int degree) {
         int[] coeffs = new int[degree + 1];
         
         this.rng.fillBytesAsInts(coeffs);
         coeffs[0] = secret;
-        return new GF256Polynomial(coeffs);
+        return coeffs;
     }
 
     /**

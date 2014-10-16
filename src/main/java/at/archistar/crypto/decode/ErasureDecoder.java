@@ -16,6 +16,8 @@ public class ErasureDecoder implements Decoder {
     private final CustomMatrix matrix;
     
     private final int k;
+    
+    private final GF256 gf = new GF256();
 
     ErasureDecoder(int[] xValues, int k) {
         
@@ -25,7 +27,7 @@ public class ErasureDecoder implements Decoder {
 
         for (int i = 0; i < xValues.length; i++) {
             for (int j = 0; j < xValues.length; j++) {
-                matrixX[i][j] = GF256.pow(xValues[i], j);
+                matrixX[i][j] = gf.pow(xValues[i], j);
             }
         }
 

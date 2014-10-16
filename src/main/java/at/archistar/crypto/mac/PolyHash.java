@@ -2,7 +2,6 @@ package at.archistar.crypto.mac;
 
 import java.security.InvalidKeyException;
 import java.util.Arrays;
-import org.bouncycastle.pqc.math.linearalgebra.GF2nField;
 import org.bouncycastle.pqc.math.linearalgebra.GF2nPolynomial;
 import org.bouncycastle.pqc.math.linearalgebra.GF2nPolynomialElement;
 import org.bouncycastle.pqc.math.linearalgebra.GF2nPolynomialField;

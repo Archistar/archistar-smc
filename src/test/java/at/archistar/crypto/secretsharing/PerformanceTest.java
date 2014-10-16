@@ -27,7 +27,7 @@ public class PerformanceTest {
 
     private final byte[][][] input;
     private final SecretSharing algorithm;
-    public static final int size = 20 * 1024 * 1024;
+    public static final int size = 100 * 1024 * 1024;
     
     /**
      * Creates a byte[] of the given size, with all values set to 42.

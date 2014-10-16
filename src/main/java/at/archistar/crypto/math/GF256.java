@@ -80,7 +80,7 @@ public class GF256 {
      * @param b number in range 0 - 255
      * @return the result of <i>a + b</i> in GF(256) (will be in range 0 - 255)
      */
-    public static int add(int a, int b) {
+    public int add(int a, int b) {
         return a ^ b;
     }
     
@@ -92,7 +92,7 @@ public class GF256 {
      * @param b number in range 0 - 255
      * @return the result of <i>a - b</i> in GF(256) (will be in range 0 - 255)
      */
-    public static int sub(int a, int b) {
+    public int sub(int a, int b) {
         return a ^ b;
     }
     
@@ -103,7 +103,7 @@ public class GF256 {
      * @param b number in range 0 - 255
      * @return the result of <i>a × b</i> in GF(256) (will be in range 0 - 255)
      */
-    public static int mult(int a, int b) {
+    public int mult(int a, int b) {
         return ALOG_TABLE[LOG_TABLE[a] + LOG_TABLE[b]];
     }
     
@@ -115,7 +115,7 @@ public class GF256 {
      * @param b number in range 0 - 255
      * @return the result of <i>a / b</i> in GF(256) (will be in range 0 - 255)
      */
-    public static int div(int a, int b) {
+    public int div(int a, int b) {
         if (b == 0) { // a / 0
             throw new ArithmeticException("Division by 0");
         }
@@ -130,7 +130,7 @@ public class GF256 {
      * @param p the exponent; a number in range 0 - 255
      * @return the result of <i>a<sup>p</sup></i> in GF(256) (will be in range 0 - 255)
      */
-    public static int pow(int a, int p) {
+    public int pow(int a, int p) {
         return ALOG_TABLE[p*LOG_TABLE[a] % 255];
     }
     
@@ -140,10 +140,18 @@ public class GF256 {
      * @param a number in range 0 - 255
      * @return the inverse of a <i>(a<sup>-1</sup>)</i> in GF(256) (will be in range 0 - 255)
      */
-    public static int inverse(int a) {
+    public int inverse(int a) {
         return ALOG_TABLE[255 - LOG_TABLE[a]];
     }
-
-     
-    private GF256() {} // to remove constructor field from javadoc
+    
+    public int evaluateAt(int coeffs[], int x) {
+        int degree = coeffs.length -1;
+        
+        /* @author flexiprovider */
+        int result = coeffs[degree];
+        for (int i = degree - 1; i >= 0; i--) {
+            result = add(mult(result, x), coeffs[i]);
+        }
+        return result;
+    }
 }

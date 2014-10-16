@@ -18,12 +18,15 @@ public class CustomMatrix extends GF2mMatrix {
 
     private static final GF2mField gf256 = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0) / 285
     
+    private final GF256 gf;
+    
     /**
      * Constructor
      * @param data the data to put into the matrix
      */
     public CustomMatrix(int[][] data) {
         super(gf256, data);
+        this.gf = new GF256();
     }
 
     /**
@@ -32,6 +35,7 @@ public class CustomMatrix extends GF2mMatrix {
      */
     public CustomMatrix(byte[] encoded) {
         super(gf256, encoded);
+        this.gf = new GF256();
     }
 
     /**
@@ -52,7 +56,7 @@ public class CustomMatrix extends GF2mMatrix {
         for (int i = 0; i < vec.length; i++) {
             int tmp = 0;
             for (int j = 0; j < vec.length; j++) {
-                tmp = GF256.add(tmp, GF256.mult(matrix[i][j], vec[j]));
+                tmp = gf.add(tmp, gf.mult(matrix[i][j], vec[j]));
             }
             result[i] = tmp;
         }
@@ -155,21 +159,26 @@ public class CustomMatrix extends GF2mMatrix {
     }
     private void multRowWithElementThis(int[] row, int element) {
         for (int i = row.length - 1; i >= 0; i--) {
-            row[i] = GF256.mult(row[i], element);
+            row[i] = gf.mult(row[i], element);
         }
     }
     private int[] multRowWithElement(int[] row, int element) {
         int[] result = new int[row.length];
         
         for (int i = row.length - 1; i >= 0; i--) {
-            result[i] = GF256.mult(row[i], element);
+            result[i] = gf.mult(row[i], element);
         }
 
         return result;
     }
     private void addToRow(int[] fromRow, int[] toRow) {
         for (int i = toRow.length - 1; i >= 0; i--) {
-            toRow[i] = GF256.add(fromRow[i], toRow[i]);
+            toRow[i] = gf.add(fromRow[i], toRow[i]);
         }
+    }
+   
+    @Override
+    public boolean equals(Object o) {
+        return o == this;
     }
 }

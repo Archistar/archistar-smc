@@ -10,10 +10,10 @@ import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.data.ByteUtils;
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.exceptions.ImpossibleException;
+import at.archistar.crypto.math.GF256;
 import java.util.Arrays;
 
 /**
@@ -34,6 +34,8 @@ import java.util.Arrays;
  */
 public class RabinIDS extends SecretSharing {
     private final DecoderFactory decoderFactory;
+    
+    private final GF256 gf = new GF256();
     
     /**
      * Constructor
@@ -78,14 +80,12 @@ public class RabinIDS extends SecretSharing {
                     }
                 }
 
-                GF256Polynomial poly = new GF256Polynomial(coeffs);
-
                 /* calculate the share a value for this byte for every share */
                 for (int j = 0; j < n; j++) {
                     if (checkForZeros(coeffs)) { // skip evaluation in case all coefficients are 0
                         shares[j].getY()[fillPosition] = 0;
                     } else {
-                        shares[j].getY()[fillPosition] = (byte)poly.evaluateAt(shares[j].getId());
+                        shares[j].getY()[fillPosition] = (byte)gf.evaluateAt(coeffs, shares[j].getId());
                     }
                 }
                 fillPosition++;
