@@ -14,7 +14,8 @@ import at.archistar.crypto.data.ByteUtils;
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.GF256;
+import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.gf256.GF256Factory;
 import java.util.Arrays;
 
 /**
@@ -25,18 +26,13 @@ import java.util.Arrays;
  *  
  * <p><b>NOTE:</b> This scheme is not secure at all. It should only be used for sharing already encrypted 
  *                 data like for example how it is done in {@link KrawczykCSS}.</p>
- * 
- * @author Elias Frantar <i>(code refactored, documentation added)</i>
- * @author Andreas Happe <andreashappe@snikt.net>
- * @author Fehrenbach Franca-Sofia
- * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
- * 
- * @version 2014-7-25
  */
 public class RabinIDS extends SecretSharing {
     private final DecoderFactory decoderFactory;
     
     private final GF gf;
+    
+    private static final GFFactory defaultGFFactory = new GF256Factory();
     
     /**
      * Constructor
@@ -47,7 +43,7 @@ public class RabinIDS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public RabinIDS(int n, int k) throws WeakSecurityException {
-        this(n, k, new ErasureDecoderFactory(new GF256()), new GF256());
+        this(n, k, new ErasureDecoderFactory(defaultGFFactory), defaultGFFactory.createHelper());
     }
     
     /**
@@ -59,7 +55,7 @@ public class RabinIDS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public RabinIDS(int n, int k, DecoderFactory decoderFactory) throws WeakSecurityException {
-        this(n, k, decoderFactory, new GF256());
+        this(n, k, decoderFactory, defaultGFFactory.createHelper());
     }
     
     /**

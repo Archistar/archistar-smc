@@ -1,6 +1,6 @@
 package at.archistar.crypto.decode;
 
-import at.archistar.crypto.math.GF;
+import at.archistar.crypto.math.GFFactory;
 
 /**
  *
@@ -8,14 +8,14 @@ import at.archistar.crypto.math.GF;
  */
 public class BerlekampWelchDecoderFactory implements DecoderFactory {
     
-    private final GF gf;
+    private final GFFactory gffactory;
     
-    public BerlekampWelchDecoderFactory(GF gf) {
-        this.gf = gf;
+    public BerlekampWelchDecoderFactory(GFFactory gffactory) {
+        this.gffactory = gffactory;
     }
     
     @Override
     public Decoder createDecoder(int[] xValues, int k) {
-        return new BerlekampWelchDecoder(xValues, k, gf);
+        return new BerlekampWelchDecoder(xValues, k, gffactory);
     }
 }

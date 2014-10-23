@@ -28,18 +28,17 @@ public class PerformanceTest {
 
     private final byte[][][] input;
     private final SecretSharing algorithm;
-    public static final int size = 100 * 1024 * 1024;
     
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
         
-        System.err.println("Data-Size per Test: " + size/1024/1024 + "MByte");
+        System.err.println("Data-Size per Test: " + TestHelper.TEST_SIZE/1024/1024 + "MByte");
 
         byte[][][] secrets = new byte[4][][];
-        secrets[0] = TestHelper.createArray(size, 4 * 1024);       // typical file system block size
-        secrets[1] = TestHelper.createArray(size, 128 * 1024);     // documents
-        secrets[2] = TestHelper.createArray(size, 512 * 1024);     // documents, pictures (jpegs)
-        secrets[3] = TestHelper.createArray(size, 4096 * 1024);    // audio, high-quality pictures
+        secrets[0] = TestHelper.createArray(4 * 1024);       // typical file system block size
+        secrets[1] = TestHelper.createArray(128 * 1024);     // documents
+        secrets[2] = TestHelper.createArray(512 * 1024);     // documents, pictures (jpegs)
+        secrets[3] = TestHelper.createArray(4096 * 1024);    // audio, high-quality pictures
 
         final int n = 4;
         final int k = 3;
@@ -84,7 +83,7 @@ public class PerformanceTest {
                 /* test that the reconstructed stuff is the same as the original one */
                 assertThat(reconstructed).isEqualTo(data);
             }
-            System.err.format("Performance(%dkB file size) of %s: share: %.3fkByte/sec, combine: %.2fkByte/sec\n", this.input[i][0].length/1024, this.algorithm, (size / 1024) / (sumShare / 1000.0), (size / 1024) / (sumCombine / 1000.0));
+            System.err.format("Performance(%dkB file size) of %s: share: %.3fkByte/sec, combine: %.2fkByte/sec\n", this.input[i][0].length/1024, this.algorithm, (TestHelper.TEST_SIZE / 1024) / (sumShare / 1000.0), (TestHelper.TEST_SIZE / 1024) / (sumCombine / 1000.0));
         }
     }
 }

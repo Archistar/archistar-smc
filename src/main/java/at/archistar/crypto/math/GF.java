@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package at.archistar.crypto.math;
 
 /**
@@ -18,5 +13,9 @@ public interface GF {
     
     public int pow(int a, int b);
     
+    public int div(int a, int b);
+    
     public int evaluateAt(int coeffs[], int x);
+    
+    public int inverse(int a);
 }

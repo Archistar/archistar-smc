@@ -23,7 +23,8 @@ public class EnginePerformanceTest {
 
     private final byte[][][] input;
     private final CryptoEngine engine;
-    public static final int size = 20 * 1024 * 1024;
+    
+    private static final int size = TestHelper.REDUCED_TEST_SIZE;
     
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {

@@ -1,5 +1,8 @@
 package at.archistar.crypto.math;
 
+import at.archistar.crypto.math.bc.BCGF256;
+import at.archistar.crypto.math.gf256.GF256;
+import at.archistar.crypto.math.bc.BCGFFactory;
 import at.archistar.crypto.TestHelper;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
@@ -7,6 +10,7 @@ import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.ShareMacHelper;
+import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.RabinIDS;
@@ -29,7 +33,11 @@ public class GFPerformanceTest {
     
     private final byte[][][] input;
     private final SecretSharing algorithm;
-    public static final int size = 100 * 1024 * 1024;
+    
+    private static final GFFactory gffactory = new GF256Factory();
+    private static final GFFactory bcgffactory = new BCGFFactory();
+    
+    private static final int size = TestHelper.REDUCED_TEST_SIZE;
     
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
@@ -52,10 +60,10 @@ public class GFPerformanceTest {
         GF bcgf = new BCGF256();
         
         Object[][] data = new Object[][]{
-           {secrets, new RabinIDS(n, k, new ErasureDecoderFactory(gf), gf)},
-           {secrets, new RabinIDS(n, k, new ErasureDecoderFactory(bcgf), bcgf)},
-           {secrets, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(gf), gf)},
-           {secrets, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(bcgf), bcgf)}
+           {secrets, new RabinIDS(n, k, new ErasureDecoderFactory(gffactory), gf)},
+           {secrets, new RabinIDS(n, k, new ErasureDecoderFactory(bcgffactory), bcgf)},
+           {secrets, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(gffactory), gf)},
+           {secrets, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(bcgffactory), bcgf)}
         };
         return Arrays.asList(data);
     }

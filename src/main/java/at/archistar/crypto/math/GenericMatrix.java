@@ -1,44 +1,30 @@
 package at.archistar.crypto.math;
 
-import org.bouncycastle.pqc.math.linearalgebra.GF2mMatrix;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.bouncycastle.pqc.math.linearalgebra.IntUtils;
 
 /**
- * <p>A matrix operating in GF(256).</p>
- * 
- * <p>Uses {@link GF256} for optimized operations and provides some additional methods in contrary to the flexiprovider-
- * class.</p>
+ * generic matrix implementation only depending upon a field
  */
-public class CustomMatrix extends GF2mMatrix {
-
-    private static final BCGF256 gf256 = new BCGF256();
+public class GenericMatrix implements GFMatrix {
     
-    /**
-     * Constructor
-     * @param data the data to put into the matrix
-     */
-    public CustomMatrix(int[][] data, BCGF256 gf) {
-        super(gf256.getUnderlyingField(), data);
+    private final int[][] matrix;
+    
+    private final GF gf;
+
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
+    public GenericMatrix(int input[][], GF gf) {
+        this.gf = gf;
+        this.matrix = input;
+    }
+ 
+    @Override
+    public GFMatrix inverse() {
+        return this.inverse(true);
     }
 
-    /**
-     * Constructor
-     * @param encoded the encoded matrix (got via {@link #getEncoded()})
-     */
-    public CustomMatrix(byte[] encoded, BCGF256 gf) {
-        super(gf256.getUnderlyingField(), encoded);
-    }
-
-    /**
-     * Performs a matrix * vector multiplication.
-     * 
-     * <b>NOTE:</b> Matrix multiplication is not commutative. (A*B != B*A) and so does only work if A(MxN) and B(NxO).
-     *              Throws an {@link ArithmeticException} if this condition is violated.
-     * 
-     * @param vec the vector to multiply the matrix with (a 1D-matrix)
-     * @return the product of the matrix and the given vector <i>(matrix * vector)</i>
-     */
-    public int[] rightMultiply(int vec[]) {
+    @Override
+    public int[] rightMultiply(int[] vec) {
         if (vec.length != matrix.length || vec.length != matrix[0].length) { // multiplication only works if A(MxN) and B(NxO)
             throw new ArithmeticException("when matrix is MxN, vector must be Nx1"); 
         }
@@ -47,38 +33,18 @@ public class CustomMatrix extends GF2mMatrix {
         for (int i = 0; i < vec.length; i++) {
             int tmp = 0;
             for (int j = 0; j < vec.length; j++) {
-                tmp = gf256.add(tmp, gf256.mult(matrix[i][j], vec[j]));
+                tmp = gf.add(tmp, gf.mult(matrix[i][j], vec[j]));
             }
             result[i] = tmp;
         }
 
         return result;
     }
-
-    public void output() {
-        System.err.println("matrix:");
-        for (int[] tmp : matrix) {
-            for (int i : tmp) {
-                System.err.print(" " + i);
-            }
-            System.err.println("");
-        }
-    }
     
-    /**
-     * Computes the inverse of this matrix using <i>Gaussian elimination</i> and eliminating dependent rows. 
-     * (which would otherwise not allow inversion).<br>
-     * Therefore this method should be used for soling matrix-equations.
-     * 
-     * <p>Throws an {@link ArithmeticException} if the matrix is not invertible</p>
-     * 
-     * @return the inverse of this matrix (as a new matrix)
-     */
-    public CustomMatrix computeInverseElimDepRows() {
-        if (numRows != numColumns) {
-            throw new ArithmeticException("Matrix is not invertible.");
-        }
-
+    private GFMatrix inverse(boolean throwException) {
+        
+        int numRows = matrix.length;
+        
         // clone this matrix
         int[][] tmpMatrix = new int[numRows][numRows];
         for (int i = numRows - 1; i >= 0; i--) {
@@ -110,15 +76,18 @@ public class CustomMatrix extends GF2mMatrix {
                 }
                 // if no non-zero element was found
                 if (!foundNonZero) {
-                    // this row is dependent so eliminate it with the corresponding column
-                    numRows--; // this will only happen in the last row
-                    numColumns--;
+                    if (throwException) {
+                        throw new RuntimeException("blub");
+                    } else {
+                        // this row is dependent so eliminate it with the corresponding column
+                        numRows--; // this will only happen in the last row
+                    }
                 }
             }
 
             // normalize i-th row
             int coef = tmpMatrix[i][i];
-            int invCoef = field.inverse(coef);
+            int invCoef = gf.inverse(coef);
             multRowWithElementThis(tmpMatrix[i], invCoef);
             multRowWithElementThis(invMatrix[i], invCoef);
 
@@ -136,7 +105,12 @@ public class CustomMatrix extends GF2mMatrix {
             }
         }
         
-        return new CustomMatrix(invMatrix, gf256);
+        return new GenericMatrix(invMatrix, gf);        
+    }
+
+    @Override
+    public GFMatrix inverseElimDepRows() {
+        return this.inverse(false);
     }
     
     /*
@@ -148,23 +122,31 @@ public class CustomMatrix extends GF2mMatrix {
         matrix[first] = matrix[second];
         matrix[second] = tmp;
     }
+    
     private void multRowWithElementThis(int[] row, int element) {
         for (int i = row.length - 1; i >= 0; i--) {
-            row[i] = gf256.mult(row[i], element);
+            row[i] = gf.mult(row[i], element);
         }
     }
+    
     private int[] multRowWithElement(int[] row, int element) {
         int[] result = new int[row.length];
         
         for (int i = row.length - 1; i >= 0; i--) {
-            result[i] = gf256.mult(row[i], element);
+            result[i] = gf.mult(row[i], element);
         }
 
         return result;
     }
+    
     private void addToRow(int[] fromRow, int[] toRow) {
         for (int i = toRow.length - 1; i >= 0; i--) {
-            toRow[i] = gf256.add(fromRow[i], toRow[i]);
+            toRow[i] = gf.add(fromRow[i], toRow[i]);
         }
+    }
+
+    @Override
+    public int getNumRows() {
+        return this.matrix.length;
     }
 }

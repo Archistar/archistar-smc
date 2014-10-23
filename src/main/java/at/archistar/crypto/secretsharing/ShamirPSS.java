@@ -14,7 +14,8 @@ import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.GF256;
+import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.RandomSource;
 import java.util.Arrays;
 
@@ -27,7 +28,10 @@ import java.util.Arrays;
 public class ShamirPSS extends SecretSharing {
     private final RandomSource rng;
     private final DecoderFactory decoderFactory;
+    
     private final GF gf;
+    
+    private static final GFFactory defaultGFFactory = new GF256Factory();
     
     /**
      * Constructor
@@ -39,7 +43,7 @@ public class ShamirPSS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public ShamirPSS(int n, int k, RandomSource rng) throws WeakSecurityException {
-        this(n, k, rng, new ErasureDecoderFactory(new GF256()), new GF256());
+        this(n, k, rng, new ErasureDecoderFactory(defaultGFFactory), defaultGFFactory.createHelper());
     }
     
     /**
@@ -52,7 +56,7 @@ public class ShamirPSS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public ShamirPSS(int n, int k, RandomSource rng, DecoderFactory decoderFactory) throws WeakSecurityException {
-        this(n, k, rng, decoderFactory, new GF256());
+        this(n, k, rng, decoderFactory, defaultGFFactory.createHelper());
     }
     
     /**

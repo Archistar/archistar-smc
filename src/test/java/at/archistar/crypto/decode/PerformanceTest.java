@@ -4,7 +4,8 @@ import at.archistar.crypto.TestHelper;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.ShareMacHelper;
-import at.archistar.crypto.math.GF256;
+import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.secretsharing.RabinIDS;
 import at.archistar.crypto.secretsharing.SecretSharing;
 import java.security.NoSuchAlgorithmException;
@@ -29,7 +30,9 @@ public class PerformanceTest {
 
     private final byte[][][] input;
     private final SecretSharing algorithm;
-    public static final int size = 20 * 1024 * 1024;
+    private static final int size = TestHelper.REDUCED_TEST_SIZE;
+    
+    private static final GFFactory gffactory  = new GF256Factory();
     
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
@@ -45,8 +48,8 @@ public class PerformanceTest {
         ShareMacHelper mac = new ShareMacHelper("HMacSHA256");
                 
         Object[][] data = new Object[][]{
-           {secrets, new RabinIDS(5, 3, new ErasureDecoderFactory(new GF256()))},
-           {secrets, new RabinIDS(5, 3, new BerlekampWelchDecoderFactory(new GF256()))}
+           {secrets, new RabinIDS(5, 3, new ErasureDecoderFactory(gffactory))},
+           {secrets, new RabinIDS(5, 3, new BerlekampWelchDecoderFactory(gffactory))}
         };
 
         return Arrays.asList(data);

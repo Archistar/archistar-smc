@@ -2,7 +2,6 @@ package at.archistar.crypto.informationchecking;
 
 import at.archistar.crypto.TestHelper;
 import at.archistar.crypto.secretsharing.PerformanceTest;
-import static at.archistar.crypto.secretsharing.PerformanceTest.size;
 import at.archistar.crypto.data.SerializableShare;
 import at.archistar.crypto.data.VSSShare;
 import at.archistar.crypto.exceptions.WeakSecurityException;
@@ -35,13 +34,13 @@ public class Benchmark {
     @Parameterized.Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
         
-        System.err.println("Data-Size per Test: " + PerformanceTest.size/1024/1024 + "MByte");
+        System.err.println("Data-Size per Test: " + TestHelper.TEST_SIZE/1024/1024 + "MByte");
 
         byte[][][] secrets = new byte[4][][];
-        secrets[0] = TestHelper.createArray(size, 4 * 1024);       // typical file system block size
-        secrets[1] = TestHelper.createArray(size, 128 * 1024);     // documents
-        secrets[2] = TestHelper.createArray(size, 512 * 1024);     // documents, pictures (jpegs)
-        secrets[3] = TestHelper.createArray(size, 4096 * 1024);    // audio, high-quality pictures
+        secrets[0] = TestHelper.createArray(4 * 1024);       // typical file system block size
+        secrets[1] = TestHelper.createArray(128 * 1024);     // documents
+        secrets[2] = TestHelper.createArray(512 * 1024);     // documents, pictures (jpegs)
+        secrets[3] = TestHelper.createArray(4096 * 1024);    // audio, high-quality pictures
 
         final int n = 4;
         final int k = 3;
@@ -92,7 +91,7 @@ public class Benchmark {
                 sumCreate += (betweenOperations - beforeCreate);
                 sumCheck += (afterAll - betweenOperations);
             }
-            System.err.format("Performance(%dkB file size) of %s: create: %.3fkByte/sec, check: %.2fkByte/sec\n", this.input[i][0].length/1024, this.algorithm, (size / 1024) / (sumCreate / 1000.0), (size / 1024) / (sumCheck / 1000.0));
+            System.err.format("Performance(%dkB file size) of %s: create: %.3fkByte/sec, check: %.2fkByte/sec\n", this.input[i][0].length/1024, this.algorithm, (TestHelper.TEST_SIZE / 1024) / (sumCreate / 1000.0), (TestHelper.TEST_SIZE / 1024) / (sumCheck / 1000.0));
         }
     }
 }

@@ -1,5 +1,6 @@
 package at.archistar.crypto.math;
 
+import at.archistar.crypto.math.gf256.GF256;
 import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
 import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
 import static org.junit.Assert.*;
