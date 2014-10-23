@@ -105,6 +105,10 @@ public class GF256 implements GF {
      */
     @Override
     public int mult(int a, int b) {
+        if (a < 0 || b < 0) {
+            a = (a + 256) % 256;
+            b = (b + 256) % 256;
+        }
         return ALOG_TABLE[LOG_TABLE[a] + LOG_TABLE[b]];
     }
     

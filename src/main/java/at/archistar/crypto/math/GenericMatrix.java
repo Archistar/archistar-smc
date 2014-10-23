@@ -71,7 +71,6 @@ public class GenericMatrix implements GFMatrix {
                         swapRows(invMatrix, i, j);
                         // ... and quit searching
                         j = numRows;
-                        continue;
                     }
                 }
                 // if no non-zero element was found
