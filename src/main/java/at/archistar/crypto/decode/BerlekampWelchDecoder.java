@@ -8,8 +8,7 @@ import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFMatrix;
 import at.archistar.crypto.math.GFFactory;
-import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
-import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
+import at.archistar.crypto.math.GenericPolyDiv;
 
 /**
  * Reconstructs a polynomial from the given xy-pairs using the 
@@ -24,9 +23,6 @@ public class BerlekampWelchDecoder implements Decoder {
     
     private final GFFactory gffactory;
     private final GF gf;
-    
-    /* oh the uglyness */
-    private static final GF2mField gf256 = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0) / 285
     
     /**
      * Constructor
@@ -88,21 +84,34 @@ public class BerlekampWelchDecoder implements Decoder {
         coeffs[coeffs.length - 1] = 1; // add 1 to coeffs since E(x) = e_0 + e_1*x + ... + x^f
         
         /* construct Q(x) and E(x) */
-        PolynomialGF2mSmallM q = new PolynomialGF2mSmallM(gf256, Arrays.copyOfRange(coeffs, 0, coeffs.length - (f + 1)));
-        PolynomialGF2mSmallM e = new PolynomialGF2mSmallM(gf256, Arrays.copyOfRange(coeffs, coeffs.length - (f + 1), coeffs.length));
+        int[] q = Arrays.copyOfRange(coeffs, 0, coeffs.length - (f + 1));
+        int[] e = Arrays.copyOfRange(coeffs, coeffs.length - (f + 1), coeffs.length);
         
-        /* calculate P(X) = Q(x) / E(x) */
-        PolynomialGF2mSmallM[] divRes = q.div(e);
+        GenericPolyDiv div = new GenericPolyDiv(gf);
+        int[][] divRes = div.polyDiv(q, e);
         
-        if (divRes[1].getDegree() > 0) { // if there is a remainder, reconstruction failed
+        if (getDegree(divRes[1]) > 0) { // if there is a remainder, reconstruction failed
             throw new UnsolvableException();
         }
         
         for (int i = 0; i < k; i++) {
-            ret[i] = divRes[0].getCoefficient(i);
+            if (i < divRes[0].length) {
+                ret[i] = divRes[0][i];
+            } else {
+                ret[i] = 0;
+            }
         }
         
         return ret;
+    }
+    
+    public int getDegree(int[] coefficients) {
+        int d = coefficients.length - 1;
+        if (coefficients[d] == 0)
+        {
+            return -1;
+        }
+        return d;
     }
     
     /**

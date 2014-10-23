@@ -1,7 +1,7 @@
 package at.archistar.crypto.math;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.bouncycastle.pqc.math.linearalgebra.IntUtils;
+import java.util.Arrays;
 
 /**
  * generic matrix implementation only depending upon a field
@@ -46,9 +46,9 @@ public class GenericMatrix implements GFMatrix {
         int numRows = matrix.length;
         
         // clone this matrix
-        int[][] tmpMatrix = new int[numRows][numRows];
+        int[][] tmpMatrix = new int[numRows][];
         for (int i = numRows - 1; i >= 0; i--) {
-            tmpMatrix[i] = IntUtils.clone(matrix[i]);
+            tmpMatrix[i] = Arrays.copyOf(matrix[i], matrix[i].length);
         }
 
         // initialize inverse matrix as unit matrix

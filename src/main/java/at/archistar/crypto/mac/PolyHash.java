@@ -9,6 +9,7 @@ import org.bouncycastle.pqc.math.linearalgebra.GF2nPolynomialField;
 /**
  * a very simple polynomial hash implementation for cevallos
  * 
+ * TODO: convert to generic helper
  */
 public class PolyHash implements MacHelper {
     
