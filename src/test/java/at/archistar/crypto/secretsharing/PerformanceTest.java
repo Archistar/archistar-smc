@@ -1,5 +1,6 @@
 package at.archistar.crypto.secretsharing;
 
+import at.archistar.crypto.TestHelper;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.ShareMacHelper;
@@ -27,35 +28,17 @@ public class PerformanceTest {
 
     private final byte[][][] input;
     private final SecretSharing algorithm;
-    public static final int size = 20 * 1024 * 1024;
     
-    /**
-     * Creates a byte[] of the given size, with all values set to 42.
-     * @param elementSize the size of the array
-     * @return an array of the given size
-     */
-    private static byte[][] createArray(int elementSize) {
-        byte[][] result = new byte[size / elementSize][elementSize];
-
-        for (int i = 0; i < size / elementSize; i++) {
-            for (int j = 0; j < elementSize; j++) {
-                result[i][j] = 42;
-            }
-        }
-
-        return result;
-    }
-
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
         
-        System.err.println("Data-Size per Test: " + size/1024/1024 + "MByte");
+        System.err.println("Data-Size per Test: " + TestHelper.TEST_SIZE/1024/1024 + "MByte");
 
         byte[][][] secrets = new byte[4][][];
-        secrets[0] = createArray(4 * 1024);       // typical file system block size
-        secrets[1] = createArray(128 * 1024);     // documents
-        secrets[2] = createArray(512 * 1024);     // documents, pictures (jpegs)
-        secrets[3] = createArray(4096 * 1024);    // audio, high-quality pictures
+        secrets[0] = TestHelper.createArray(4 * 1024);       // typical file system block size
+        secrets[1] = TestHelper.createArray(128 * 1024);     // documents
+        secrets[2] = TestHelper.createArray(512 * 1024);     // documents, pictures (jpegs)
+        secrets[3] = TestHelper.createArray(4096 * 1024);    // audio, high-quality pictures
 
         final int n = 4;
         final int k = 3;
@@ -100,7 +83,7 @@ public class PerformanceTest {
                 /* test that the reconstructed stuff is the same as the original one */
                 assertThat(reconstructed).isEqualTo(data);
             }
-            System.err.format("Performance(%dkB file size) of %s: share: %.3fkByte/sec, combine: %.2fkByte/sec\n", this.input[i][0].length/1024, this.algorithm, (size / 1024) / (sumShare / 1000.0), (size / 1024) / (sumCombine / 1000.0));
+            System.err.format("Performance(%dkB file size) of %s: share: %.3fkByte/sec, combine: %.2fkByte/sec\n", this.input[i][0].length/1024, this.algorithm, (TestHelper.TEST_SIZE / 1024) / (sumShare / 1000.0), (TestHelper.TEST_SIZE / 1024) / (sumCombine / 1000.0));
         }
     }
 }

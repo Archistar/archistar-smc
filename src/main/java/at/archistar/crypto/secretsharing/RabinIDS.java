@@ -10,10 +10,12 @@ import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.math.GF256Polynomial;
 import at.archistar.crypto.data.ByteUtils;
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.exceptions.ImpossibleException;
+import at.archistar.crypto.math.GF;
+import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.gf256.GF256Factory;
 import java.util.Arrays;
 
 /**
@@ -24,16 +26,13 @@ import java.util.Arrays;
  *  
  * <p><b>NOTE:</b> This scheme is not secure at all. It should only be used for sharing already encrypted 
  *                 data like for example how it is done in {@link KrawczykCSS}.</p>
- * 
- * @author Elias Frantar <i>(code refactored, documentation added)</i>
- * @author Andreas Happe <andreashappe@snikt.net>
- * @author Fehrenbach Franca-Sofia
- * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
- * 
- * @version 2014-7-25
  */
 public class RabinIDS extends SecretSharing {
     private final DecoderFactory decoderFactory;
+    
+    private final GF gf;
+    
+    private static final GFFactory defaultGFFactory = new GF256Factory();
     
     /**
      * Constructor
@@ -44,8 +43,9 @@ public class RabinIDS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public RabinIDS(int n, int k) throws WeakSecurityException {
-        this(n, k, new ErasureDecoderFactory());
+        this(n, k, new ErasureDecoderFactory(defaultGFFactory), defaultGFFactory.createHelper());
     }
+    
     /**
      * Constructor
      * 
@@ -55,8 +55,21 @@ public class RabinIDS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public RabinIDS(int n, int k, DecoderFactory decoderFactory) throws WeakSecurityException {
+        this(n, k, decoderFactory, defaultGFFactory.createHelper());
+    }
+    
+    /**
+     * Constructor
+     * 
+     * @param n the number of shares to create
+     * @param k the minimum number of shares required for reconstruction
+     * @param decoderFactory the solving algorithm to use for reconstructing the secret
+     * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
+     */
+    public RabinIDS(int n, int k, DecoderFactory decoderFactory, GF gf) throws WeakSecurityException {
         super(n, k);
         this.decoderFactory = decoderFactory;
+        this.gf = gf;
     }
 
     @Override
@@ -78,14 +91,12 @@ public class RabinIDS extends SecretSharing {
                     }
                 }
 
-                GF256Polynomial poly = new GF256Polynomial(coeffs);
-
                 /* calculate the share a value for this byte for every share */
                 for (int j = 0; j < n; j++) {
                     if (checkForZeros(coeffs)) { // skip evaluation in case all coefficients are 0
                         shares[j].getY()[fillPosition] = 0;
                     } else {
-                        shares[j].getY()[fillPosition] = (byte)poly.evaluateAt(shares[j].getId());
+                        shares[j].getY()[fillPosition] = (byte)gf.evaluateAt(coeffs, shares[j].getId());
                     }
                 }
                 fillPosition++;

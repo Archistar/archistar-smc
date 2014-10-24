@@ -5,19 +5,15 @@ import java.util.Arrays;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import at.archistar.crypto.exceptions.ImpossibleException;
-import at.archistar.crypto.math.CustomMatrix;
-import at.archistar.crypto.math.GF256;
-import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
-import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
+import at.archistar.crypto.math.GF;
+import at.archistar.crypto.math.GFMatrix;
+import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.GenericPolyDiv;
 
 /**
  * Reconstructs a polynomial from the given xy-pairs using the 
  * <a href="http://en.wikipedia.org/wiki/Berlekamp–Welch_algorithm">Berlekamp-Welch algorithm</a>.<br>
  * This algorithm tolerates up to <i>(n - k) / 2</i> errors (wrong points) when reconstructing the polynomial.
- * 
- * @author Andreas Happe
- * @author Elias Frantar
- * @version 2014-7-25
  */
 public class BerlekampWelchDecoder implements Decoder {
     private final int[][] matrix;
@@ -25,14 +21,18 @@ public class BerlekampWelchDecoder implements Decoder {
     private final int f; // max number of allowed errors
     private final int k; // (degree+1), number of reconstructed elements
     
+    private final GFFactory gffactory;
+    private final GF gf;
+    
     /**
      * Constructor
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public BerlekampWelchDecoder(int[] xValues, int k) {
+    public BerlekampWelchDecoder(int[] xValues, int k, GFFactory gffactory) {
         
         int n = xValues.length;
-        
+        this.gffactory = gffactory;
+        this.gf = gffactory.createHelper();
         this.k = k;
         this.f = (n - k) / 2;
         this.x = xValues;
@@ -44,7 +44,7 @@ public class BerlekampWelchDecoder implements Decoder {
         int t = x.length - f;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < t; j++) {
-                matrix[i][j] = GF256.pow(x[i], j);
+                matrix[i][j] = gf.pow(x[i], j);
             }
         }
     }
@@ -57,7 +57,7 @@ public class BerlekampWelchDecoder implements Decoder {
 
         for (int i = 0; i < y.length; i++) {
             for (int j = t; j < y.length; j++) {
-                matrix[i][j] = GF256.mult(y[i], GF256.pow(x[i], j-t));
+                matrix[i][j] = gf.mult(y[i], gf.pow(x[i], j-t));
             }
         }
     }
@@ -75,8 +75,8 @@ public class BerlekampWelchDecoder implements Decoder {
         
         /* finish preparation of the decode-matrix */
         prepareEx(y);
-        CustomMatrix decodeMatrix = new CustomMatrix(matrix).computeInverseElimDepRows();
         
+        GFMatrix decodeMatrix = gffactory.createMatrix(matrix).inverseElimDepRows();
         int[] coeffs = decodeMatrix.rightMultiply(buildMultVector(x, y, decodeMatrix.getNumRows())); // compute the coefficients
         int[] ret = new int[k];
         
@@ -84,21 +84,34 @@ public class BerlekampWelchDecoder implements Decoder {
         coeffs[coeffs.length - 1] = 1; // add 1 to coeffs since E(x) = e_0 + e_1*x + ... + x^f
         
         /* construct Q(x) and E(x) */
-        PolynomialGF2mSmallM q = new PolynomialGF2mSmallM(new GF2mField(8, 0x11d), Arrays.copyOfRange(coeffs, 0, coeffs.length - (f + 1)));
-        PolynomialGF2mSmallM e = new PolynomialGF2mSmallM(new GF2mField(8, 0x11d), Arrays.copyOfRange(coeffs, coeffs.length - (f + 1), coeffs.length));
+        int[] q = Arrays.copyOfRange(coeffs, 0, coeffs.length - (f + 1));
+        int[] e = Arrays.copyOfRange(coeffs, coeffs.length - (f + 1), coeffs.length);
         
-        /* calculate P(X) = Q(x) / E(x) */
-        PolynomialGF2mSmallM[] divRes = q.div(e);
+        GenericPolyDiv div = new GenericPolyDiv(gf);
+        int[][] divRes = div.polyDiv(q, e);
         
-        if (divRes[1].getDegree() > 0) { // if there is a remainder, reconstruction failed
+        if (getDegree(divRes[1]) > 0) { // if there is a remainder, reconstruction failed
             throw new UnsolvableException();
         }
         
-        for (int i = 0; i < k; i++) { // flexiprovider does not support getCoeffs() ...
-            ret[i] = divRes[0].getCoefficient(i);
+        for (int i = 0; i < k; i++) {
+            if (i < divRes[0].length) {
+                ret[i] = divRes[0][i];
+            } else {
+                ret[i] = 0;
+            }
         }
         
         return ret;
+    }
+    
+    public int getDegree(int[] coefficients) {
+        int d = coefficients.length - 1;
+        if (coefficients[d] == 0)
+        {
+            return -1;
+        }
+        return d;
     }
     
     /**
@@ -113,7 +126,7 @@ public class BerlekampWelchDecoder implements Decoder {
         int[] res = new int[length];
         
         for (int i = 0; i < length; i++) {
-            res[i] = GF256.mult(GF256.pow(x[i], f), y[i]);
+            res[i] = gf.mult(gf.pow(x[i], f), y[i]);
         }
         
         return res;

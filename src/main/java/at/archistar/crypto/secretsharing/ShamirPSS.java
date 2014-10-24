@@ -13,7 +13,9 @@ import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.math.GF256Polynomial;
+import at.archistar.crypto.math.GF;
+import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.RandomSource;
 import java.util.Arrays;
 
@@ -22,17 +24,14 @@ import java.util.Arrays;
  * 
  * <p>For a detailed description of the scheme, 
  * see: <a href='http://en.wikipedia.org/wiki/Shamir's_Secret_Sharing'>http://en.wikipedia.org/wiki/Shamir's_Secret_Sharing</a></p>
- * 
- * @author Elias Frantar <i>(code rewritten, documentation added)</i>
- * @author Andreas Happe <andreashappe@snikt.net>
- * @author Fehrenbach Franca-Sofia
- * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
- * 
- * @version 2014-7-25
  */
 public class ShamirPSS extends SecretSharing {
     private final RandomSource rng;
     private final DecoderFactory decoderFactory;
+    
+    private final GF gf;
+    
+    private static final GFFactory defaultGFFactory = new GF256Factory();
     
     /**
      * Constructor
@@ -44,8 +43,9 @@ public class ShamirPSS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public ShamirPSS(int n, int k, RandomSource rng) throws WeakSecurityException {
-        this(n, k, rng, new ErasureDecoderFactory());
+        this(n, k, rng, new ErasureDecoderFactory(defaultGFFactory), defaultGFFactory.createHelper());
     }
+    
     /**
      * Constructor
      * 
@@ -56,10 +56,24 @@ public class ShamirPSS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public ShamirPSS(int n, int k, RandomSource rng, DecoderFactory decoderFactory) throws WeakSecurityException {
+        this(n, k, rng, decoderFactory, defaultGFFactory.createHelper());
+    }
+    
+    /**
+     * Constructor
+     * 
+     * @param n the number of shares to create
+     * @param k the minimum number of shares required for reconstruction
+     * @param rng the source of randomness to use for generating the coefficients
+     * @param decoderFactory the solving algorithm to use for reconstructing the secret
+     * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
+     */
+    public ShamirPSS(int n, int k, RandomSource rng, DecoderFactory decoderFactory, GF gf) throws WeakSecurityException {
         super(n, k);
         
         this.rng = rng;
         this.decoderFactory = decoderFactory;
+        this.gf = gf;
     }
 
     @Override
@@ -69,10 +83,10 @@ public class ShamirPSS extends SecretSharing {
 
             /* calculate the x and y values for the shares */
             for (int i = 0; i < data.length; i++) {
-                GF256Polynomial poly = createShamirPolynomial(ByteUtils.toUnsignedByte(data[i]), k-1); // generate a new random polynomial
+                int[] poly = createShamirPolynomial(ByteUtils.toUnsignedByte(data[i]), k-1); // generate a new random polynomial
             
                 for (ShamirShare share : shares) { // evaluate the x-values at the polynomial
-                    share.getY()[i] = (byte) poly.evaluateAt(share.getId());
+                    share.getY()[i] = (byte) gf.evaluateAt(poly, share.getId());
                 }
             }
             return shares;
@@ -115,12 +129,12 @@ public class ShamirPSS extends SecretSharing {
      * @param degree the degree of the polynomial (number of random coefficients, must be <i>k</i>)
      * @return a random polynomial with the specified parameters ready for sharing the secret
      */
-    private GF256Polynomial createShamirPolynomial(int secret, int degree) {
+    private int[] createShamirPolynomial(int secret, int degree) {
         int[] coeffs = new int[degree + 1];
         
         this.rng.fillBytesAsInts(coeffs);
         coeffs[0] = secret;
-        return new GF256Polynomial(coeffs);
+        return coeffs;
     }
 
     /**

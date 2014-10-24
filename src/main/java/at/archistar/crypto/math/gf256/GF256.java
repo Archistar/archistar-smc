@@ -1,6 +1,6 @@
-package at.archistar.crypto.math;
+package at.archistar.crypto.math.gf256;
 
-import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
+import at.archistar.crypto.math.GF;
 
 /*
  * The operations in this class are meant to be very fast and efficient.
@@ -30,10 +30,8 @@ import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
  *                 So this class may not be suitable for all use-cases. 
  *                 (but definitively suitable for the <i>Archistar</i>-project)
  */
-public class GF256 {
+public class GF256 implements GF {
     private static final int GEN_POLY = 0x11D; // a generator polynomial of GF(256); 285
-    
-    public static final GF2mField BC_GEN_POLY = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0) / 285
     
     /* lookup-tables for faster operations */
     private static final int[] LOG_TABLE = new int[256]; // = log_g(index) (log base g)
@@ -80,7 +78,8 @@ public class GF256 {
      * @param b number in range 0 - 255
      * @return the result of <i>a + b</i> in GF(256) (will be in range 0 - 255)
      */
-    public static int add(int a, int b) {
+    @Override
+    public int add(int a, int b) {
         return a ^ b;
     }
     
@@ -92,7 +91,8 @@ public class GF256 {
      * @param b number in range 0 - 255
      * @return the result of <i>a - b</i> in GF(256) (will be in range 0 - 255)
      */
-    public static int sub(int a, int b) {
+    @Override
+    public int sub(int a, int b) {
         return a ^ b;
     }
     
@@ -103,24 +103,13 @@ public class GF256 {
      * @param b number in range 0 - 255
      * @return the result of <i>a × b</i> in GF(256) (will be in range 0 - 255)
      */
-    public static int mult(int a, int b) {
-        return ALOG_TABLE[LOG_TABLE[a] + LOG_TABLE[b]];
-    }
-    
-    /**
-     * Performs a division of two numbers in GF(256). (a / b)<br>
-     * Division by 0 throws an ArithmeticException.
-     * 
-     * @param a number in range 0 - 255
-     * @param b number in range 0 - 255
-     * @return the result of <i>a / b</i> in GF(256) (will be in range 0 - 255)
-     */
-    public static int div(int a, int b) {
-        if (b == 0) { // a / 0
-            throw new ArithmeticException("Division by 0");
+    @Override
+    public int mult(int a, int b) {
+        if (a < 0 || b < 0) {
+            a = (a + 256) % 256;
+            b = (b + 256) % 256;
         }
-
-        return ALOG_TABLE[LOG_TABLE[a] + 255 - LOG_TABLE[b]];
+        return ALOG_TABLE[LOG_TABLE[a] + LOG_TABLE[b]];
     }
     
     /**
@@ -130,7 +119,8 @@ public class GF256 {
      * @param p the exponent; a number in range 0 - 255
      * @return the result of <i>a<sup>p</sup></i> in GF(256) (will be in range 0 - 255)
      */
-    public static int pow(int a, int p) {
+    @Override
+    public int pow(int a, int p) {
         return ALOG_TABLE[p*LOG_TABLE[a] % 255];
     }
     
@@ -140,10 +130,30 @@ public class GF256 {
      * @param a number in range 0 - 255
      * @return the inverse of a <i>(a<sup>-1</sup>)</i> in GF(256) (will be in range 0 - 255)
      */
-    public static int inverse(int a) {
-        return ALOG_TABLE[255 - LOG_TABLE[a]];
+    @Override
+    public int inverse(int a) {
+        int tmp = 255 - (LOG_TABLE[a] % 255);
+        return ALOG_TABLE[tmp];
     }
+    
+    @Override
+    public int div(int a, int b) {
+        if (b == 0) { // a / 0
+            throw new ArithmeticException("Division by 0");
+        }
 
-     
-    private GF256() {} // to remove constructor field from javadoc
+        return ALOG_TABLE[LOG_TABLE[a] + 255 - LOG_TABLE[b]];
+    }
+    
+    @Override
+    public int evaluateAt(int coeffs[], int x) {
+        int degree = coeffs.length -1;
+        
+        /* @author flexiprovider */
+        int result = coeffs[degree];
+        for (int i = degree - 1; i >= 0; i--) {
+            result = add(mult(result, x), coeffs[i]);
+        }
+        return result;
+    }
 }

@@ -1,8 +1,11 @@
 package at.archistar.crypto.decode;
 
+import at.archistar.crypto.TestHelper;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.ShareMacHelper;
+import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.secretsharing.RabinIDS;
 import at.archistar.crypto.secretsharing.SecretSharing;
 import java.security.NoSuchAlgorithmException;
@@ -27,41 +30,26 @@ public class PerformanceTest {
 
     private final byte[][][] input;
     private final SecretSharing algorithm;
-    public static final int size = 20 * 1024 * 1024;
+    private static final int size = TestHelper.REDUCED_TEST_SIZE;
     
-    /**
-     * Creates a byte[] of the given size, with all values set to 42.
-     * @param elementSize the size of the array
-     * @return an array of the given size
-     */
-    private static byte[][] createArray(int elementSize) {
-        byte[][] result = new byte[size / elementSize][elementSize];
-
-        for (int i = 0; i < size / elementSize; i++) {
-            for (int j = 0; j < elementSize; j++) {
-                result[i][j] = 42;
-            }
-        }
-
-        return result;
-    }
-
+    private static final GFFactory gffactory  = new GF256Factory();
+    
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
         
         System.err.println("Data-Size per Test: " + size/1024/1024 + "MByte");
 
         byte[][][] secrets = new byte[4][][];
-        secrets[0] = createArray(4 * 1024);       // typical file system block size
-        secrets[1] = createArray(128 * 1024);     // documents
-        secrets[2] = createArray(512 * 1024);     // documents, pictures (jpegs)
-        secrets[3] = createArray(4096 * 1024);    // audio, high-quality pictures
+        secrets[0] = TestHelper.createArray(size, 4 * 1024);       // typical file system block size
+        secrets[1] = TestHelper.createArray(size, 128 * 1024);     // documents
+        secrets[2] = TestHelper.createArray(size, 512 * 1024);     // documents, pictures (jpegs)
+        secrets[3] = TestHelper.createArray(size, 4096 * 1024);    // audio, high-quality pictures
 
         ShareMacHelper mac = new ShareMacHelper("HMacSHA256");
                 
         Object[][] data = new Object[][]{
-           {secrets, new RabinIDS(5, 3, new ErasureDecoderFactory())},
-           {secrets, new RabinIDS(5, 3, new BerlekampWelchDecoderFactory())}
+           {secrets, new RabinIDS(5, 3, new ErasureDecoderFactory(gffactory))},
+           {secrets, new RabinIDS(5, 3, new BerlekampWelchDecoderFactory(gffactory))}
         };
 
         return Arrays.asList(data);

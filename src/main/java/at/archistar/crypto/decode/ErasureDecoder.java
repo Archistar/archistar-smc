@@ -1,35 +1,33 @@
 package at.archistar.crypto.decode;
 
-import at.archistar.crypto.math.CustomMatrix;
-import at.archistar.crypto.math.GF256;
+import at.archistar.crypto.math.GFMatrix;
+import at.archistar.crypto.math.GF;
+import at.archistar.crypto.math.GFFactory;
 
 /**
  * Reconstructs a polynomial from the given xy-pairs using the <i>Erasure Decoding</i> scheme.<br>
  * <b>NOTE</b>: This algorithm does assumes all passed points to be correct! 
  *              (use {@link BerlekampWelchDecoder} if you need fault tolerance)
- * 
- * @author Andreas Happe
- * @author Elias Frantar
- * @version 2014-7-25
  */
 public class ErasureDecoder implements Decoder {
-    private final CustomMatrix matrix;
+    private final GFMatrix matrix;
     
     private final int k;
-
-    ErasureDecoder(int[] xValues, int k) {
+    
+    ErasureDecoder(int[] xValues, int k, GFFactory gffactory) {
         
         this.k = k;
+        GF gf = gffactory.createHelper();
         
         int[][] matrixX = new int[xValues.length][xValues.length];
 
         for (int i = 0; i < xValues.length; i++) {
             for (int j = 0; j < xValues.length; j++) {
-                matrixX[i][j] = GF256.pow(xValues[i], j);
+                matrixX[i][j] = gf.pow(xValues[i], j);
             }
         }
-
-        matrix = new CustomMatrix(new CustomMatrix(matrixX).computeInverse().getEncoded());
+        
+        matrix = gffactory.createMatrix(matrixX).inverse();
     }
     
     @Override
@@ -49,4 +47,7 @@ public class ErasureDecoder implements Decoder {
         
         return matrix.rightMultiply(y);
     }
+    
+    
+    
 }

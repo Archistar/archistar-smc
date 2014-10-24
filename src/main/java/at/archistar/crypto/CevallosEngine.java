@@ -14,6 +14,8 @@ import at.archistar.crypto.informationchecking.InformationChecking;
 import at.archistar.crypto.mac.BCPoly1305MacHelper;
 import at.archistar.crypto.mac.BCShortenedMacHelper;
 import at.archistar.crypto.mac.MacHelper;
+import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.BCDigestRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.SecretSharing;
@@ -31,12 +33,14 @@ public class CevallosEngine implements CryptoEngine {
     
     /* Hack/TODO: just definde the max data length for now, this prevents dynamic key length calculation */
     private static final int maxDataLength = 4 * 1024 * 1024;
-
+    
+    private static final GFFactory gffactory = new GF256Factory();
+    
     public CevallosEngine(int n, int k) throws NoSuchAlgorithmException, WeakSecurityException {
         /* component selection */
         RandomSource rng = new BCDigestRandomSource();
         MacHelper mac = new BCShortenedMacHelper(new BCPoly1305MacHelper(), CevallosUSRSS.computeTagLength(maxDataLength, 1, CevallosUSRSS.E));
-        DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
+        DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory(gffactory);
 
         this.sharing = new ShamirPSS(n, k, rng, decoderFactory);
         this.ic = new CevallosUSRSS(sharing, mac, rng);
@@ -45,7 +49,7 @@ public class CevallosEngine implements CryptoEngine {
     public CevallosEngine(int n, int k, RandomSource rng) throws NoSuchAlgorithmException, WeakSecurityException {
         /* component selection */
         MacHelper mac = new BCShortenedMacHelper(new BCPoly1305MacHelper(), CevallosUSRSS.computeTagLength(maxDataLength, 1, CevallosUSRSS.E));
-        DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory();
+        DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory(gffactory);
 
         this.sharing = new ShamirPSS(n, k, rng, decoderFactory);
         this.ic = new CevallosUSRSS(sharing, mac, rng);

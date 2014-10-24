@@ -9,13 +9,17 @@ import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.informationchecking.InformationChecking;
 import at.archistar.crypto.informationchecking.RabinBenOrRSS;
+import at.archistar.crypto.mac.BCPoly1305MacHelper;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.mac.ShareMacHelper;
+import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.BCDigestRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.KrawczykCSS;
 import at.archistar.crypto.secretsharing.SecretSharing;
 import at.archistar.crypto.symmetric.AESEncryptor;
+import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import at.archistar.crypto.symmetric.Encryptor;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -31,12 +35,15 @@ public class RabinBenOrEngine implements CryptoEngine {
     private final SecretSharing sharing;
     private final InformationChecking ic;
     
+    private static final GFFactory gffactory = new GF256Factory();
+    
     public RabinBenOrEngine(int n, int k) throws NoSuchAlgorithmException, WeakSecurityException {
         /* component selection */
         RandomSource rng = new BCDigestRandomSource();
-        MacHelper mac = new ShareMacHelper("HMacSHA256");
-        DecoderFactory decoderFactory = new ErasureDecoderFactory();
-        Encryptor cryptor = new AESEncryptor();
+        //MacHelper mac = new ShareMacHelper("HMacSHA256");
+        MacHelper mac = new BCPoly1305MacHelper();
+        DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
+        Encryptor cryptor = new ChaCha20Encryptor();
         this.sharing = new KrawczykCSS(n, k, rng, cryptor, decoderFactory);
         this.ic = new RabinBenOrRSS(sharing, mac, rng);
     }
@@ -44,7 +51,7 @@ public class RabinBenOrEngine implements CryptoEngine {
     public RabinBenOrEngine(int n, int k, RandomSource rng) throws NoSuchAlgorithmException, WeakSecurityException {
         /* component selection */
         MacHelper mac = new ShareMacHelper("HMacSHA256");
-        DecoderFactory decoderFactory = new ErasureDecoderFactory();
+        DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
         Encryptor cryptor = new AESEncryptor();
         this.sharing = new KrawczykCSS(n, k, rng, cryptor, decoderFactory);
         this.ic = new RabinBenOrRSS(sharing, mac, rng);
