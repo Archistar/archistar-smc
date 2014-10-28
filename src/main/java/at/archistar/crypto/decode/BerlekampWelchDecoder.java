@@ -8,7 +8,7 @@ import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFMatrix;
 import at.archistar.crypto.math.GFFactory;
-import at.archistar.crypto.math.GenericPolyDiv;
+import at.archistar.crypto.math.GenericPolyHelper;
 
 /**
  * Reconstructs a polynomial from the given xy-pairs using the 
@@ -87,7 +87,7 @@ public class BerlekampWelchDecoder implements Decoder {
         int[] q = Arrays.copyOfRange(coeffs, 0, coeffs.length - (f + 1));
         int[] e = Arrays.copyOfRange(coeffs, coeffs.length - (f + 1), coeffs.length);
         
-        GenericPolyDiv div = new GenericPolyDiv(gf);
+        GenericPolyHelper div = new GenericPolyHelper(gf);
         int[][] divRes = div.polyDiv(q, e);
         
         if (getDegree(divRes[1]) > 0) { // if there is a remainder, reconstruction failed
@@ -105,10 +105,9 @@ public class BerlekampWelchDecoder implements Decoder {
         return ret;
     }
     
-    public int getDegree(int[] coefficients) {
+    private static int getDegree(int[] coefficients) {
         int d = coefficients.length - 1;
-        if (coefficients[d] == 0)
-        {
+        if (coefficients[d] == 0) {
             return -1;
         }
         return d;
