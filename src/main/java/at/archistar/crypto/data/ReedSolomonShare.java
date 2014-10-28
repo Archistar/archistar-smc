@@ -10,6 +10,7 @@ import java.util.Arrays;
  * Represents a share for {@link RabinIDS}.
  */
 public final class ReedSolomonShare extends BaseShare implements Comparable<ReedSolomonShare> {
+    
     private final int originalLength;
     
     /**
@@ -103,5 +104,9 @@ public final class ReedSolomonShare extends BaseShare implements Comparable<Reed
     public int hashCode() {
         assert false : "hashCode not designed";
         return 42;
+    }
+
+    public void setNewSize(int i) {
+        this.y = Arrays.copyOf(this.y, i);
     }
 }

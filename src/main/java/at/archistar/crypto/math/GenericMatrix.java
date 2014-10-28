@@ -97,8 +97,9 @@ public class GenericMatrix implements GFMatrix {
                     if (coef != 0) {
                         int[] tmpRow = multRowWithElement(tmpMatrix[i], coef);
                         int[] tmpInvRow = multRowWithElement(invMatrix[i], coef);
-                        addToRow(tmpRow, tmpMatrix[j]);
-                        addToRow(tmpInvRow, invMatrix[j]);
+                        
+                        subFromRow(tmpRow, tmpMatrix[j]);
+                        subFromRow(tmpInvRow, invMatrix[j]);
                     }
                 }
             }
@@ -138,9 +139,15 @@ public class GenericMatrix implements GFMatrix {
         return result;
     }
     
-    private void addToRow(int[] fromRow, int[] toRow) {
+    public void addToRow(int[] fromRow, int[] toRow) {
         for (int i = toRow.length - 1; i >= 0; i--) {
             toRow[i] = gf.add(fromRow[i], toRow[i]);
+        }
+    }
+    
+    public void subFromRow(int[] fromRow, int[] toRow) {
+        for (int i = toRow.length - 1; i >= 0; i--) {
+            toRow[i] = gf.sub(toRow[i], fromRow[i]);
         }
     }
 

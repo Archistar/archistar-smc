@@ -35,7 +35,12 @@ public class GF257 implements GF {
 
     @Override
     public int pow(int a, int b) {
-        return ((int)Math.pow(a, b)) % 257;
+        int result = 1;
+        
+        for (int i = 0; i < b; i++) {
+            result = mult(result, a);
+        }
+        return result;
     }
 
     @Override
