@@ -33,9 +33,6 @@ public class GenericMatrix implements GFMatrix {
         for (int i = 0; i < vec.length; i++) {
             int tmp = 0;
             for (int j = 0; j < vec.length; j++) {
-                assert(gf.mult(matrix[i][j], vec[j]) >= 0 && gf.mult(matrix[i][j], vec[j]) <= gf.getFieldSize());
-                assert(tmp >= 0 && tmp < gf.getFieldSize());
-                
                 tmp = gf.add(tmp, gf.mult(matrix[i][j], vec[j]));
             }
             result[i] = tmp;
@@ -44,7 +41,6 @@ public class GenericMatrix implements GFMatrix {
     }
     
     /* where is the dead store? */
-    @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
     private GFMatrix inverse(boolean throwException) {
         
         int numRows = matrix.length;
@@ -99,7 +95,6 @@ public class GenericMatrix implements GFMatrix {
                 if (j != i) {
                     coef = tmpMatrix[j][i];
                     if (coef != 0) {
-                        assert(coef >= 0 && coef < gf.getFieldSize());
                         multAndSubstract(tmpMatrix[j], tmpMatrix[i], coef);
                         multAndSubstract(invMatrix[j], invMatrix[i], coef);
                     }
@@ -111,9 +106,6 @@ public class GenericMatrix implements GFMatrix {
     }
     
     private void multAndSubstract(int[] row, int[] normalized, int coef) {
-        
-        assert(row.length == normalized.length);
-        
         for (int i = 0; i < row.length; i++) {
             row[i] = gf.sub(row[i], gf.mult(normalized[i], coef));
         }
@@ -140,14 +132,7 @@ public class GenericMatrix implements GFMatrix {
     }
 
     private void normalizeRow(int[] tmpMatrix, int[] invMatrix, int element) {
-        
-        assert(element >= 0 && element < gf.getFieldSize());
-        assert(tmpMatrix.length == invMatrix.length);
-        
         for (int i = tmpMatrix.length - 1; i >= 0; i--) {
-            assert(tmpMatrix[i] >= 0 && tmpMatrix[i] < gf.getFieldSize());
-            assert(invMatrix[i] >= 0 && invMatrix[i] < gf.getFieldSize());
-            
             tmpMatrix[i] = gf.mult(tmpMatrix[i], element);
             invMatrix[i] = gf.mult(invMatrix[i], element);
         }

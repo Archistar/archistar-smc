@@ -25,7 +25,7 @@ public class PolyHash implements MacHelper {
     private static int[] createIntArrayFromByte(byte[] a) {
         int[] b = new int[a.length];
         for (int i = 0; i < a.length; i++) {
-            b[i] = a[i];
+            b[i] = (a[i] < 0) ? a[i]+256 : a[i];
         }
         return b;
     }
@@ -57,12 +57,10 @@ public class PolyHash implements MacHelper {
 
             /* expand to keylength */
             next = Arrays.copyOf(next, keylength);
-            System.err.println("" + result.length + " vs " + next.length);
             result = polyHelper.add(result, next);
         }
 
         /* add a */
-        System.err.println("" + result.length + " vs " + a.length);
         result = polyHelper.add(result, a);
 
         /* extract result into a byte[] array */

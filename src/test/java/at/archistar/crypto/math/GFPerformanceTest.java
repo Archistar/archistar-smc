@@ -50,7 +50,7 @@ public class GFPerformanceTest {
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
         
-        byte[][] secrets256 = createArray(256);
+        byte[][] secrets256 = createArray(4 * 1024);
 
         final int n = 4;
         final int k = 3;
@@ -61,7 +61,7 @@ public class GFPerformanceTest {
            {"Erasure mit GF257", secrets256, new RabinIDS(n, k, new ErasureDecoderFactory(gf257factory), gf257factory.createHelper())},
            {"BW mit GF256", secrets256, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(gf256factory), gf256factory.createHelper())},
            {"BW mit BCGF256", secrets256, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(bcgffactory), bcgffactory.createHelper())},
-           //{"BW mit GF257", secrets256, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(gf257factory), gf257factory.createHelper())}
+           {"BW mit GF257", secrets256, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(gf257factory), gf257factory.createHelper())}
         };
         return Arrays.asList(data);
     }
@@ -80,9 +80,6 @@ public class GFPerformanceTest {
         double fullSize = 0;
         
         for (byte[] data : this.input) {
-            
-            System.err.println("now checking " + data[0]);
-            
             fullSize += data.length;
             
             /* test construction */

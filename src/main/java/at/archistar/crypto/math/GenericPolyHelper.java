@@ -35,8 +35,8 @@ public class GenericPolyHelper {
             int n = computeDegree(result[1]) - df;
             q = multWithMonomial(q, n);
             coeff = multWithMonomial(coeff, n);
-            result[0] = add(coeff, result[0]);
-            result[1] = add(q, result[1]);
+            result[0] = sub(coeff, result[0]);
+            result[1] = sub(q, result[1]);
         }
         return result;
     }
@@ -82,6 +82,27 @@ public class GenericPolyHelper {
         }
         return degree;
     }
+     
+     public int[] sub(int[] a, int[] b) {
+        // TODO: optimize
+        //assert(a.length == b.length);
+        int[] result, addend;
+        if (a.length < b.length) {
+            result = new int[b.length];
+            System.arraycopy(b, 0, result, 0, b.length);
+            addend = a;
+        } else {
+            result = new int[a.length];
+            System.arraycopy(a, 0, result, 0, a.length);
+            addend = b;
+        }
+
+        for (int i = addend.length - 1; i >= 0; i--) {
+            result[i] = gf.sub(result[i], addend[i]);
+        }
+
+        return result;         
+     }
      
     public int[] add(int[] a, int[] b) {
 

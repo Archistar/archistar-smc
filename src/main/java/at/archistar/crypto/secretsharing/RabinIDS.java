@@ -102,17 +102,12 @@ public class RabinIDS extends SecretSharing {
                         shares[j].getY()[fillPosition[j]] = 0;
                     } else {
                         int value = gf.evaluateAt(coeffs, shares[j].getId());
-                        
-                        assert(value >= 0);
-                        
                         if (gf instanceof GF257 && value >= 0xff) {
-                            assert(value >= 255 && value <= 256);
                             shares[j].setNewSize(shares[j].getY().length+1);
                             /* 0xff == -1 */
                             shares[j].getY()[fillPosition[j]++] = (byte)-1;
                             value -= 255;
                         }
-                        assert(value >= 0 && value <= 255);
                         shares[j].getY()[fillPosition[j]] = (byte)(value & 0xff);
                     }
                     fillPosition[j]++;
@@ -149,7 +144,6 @@ public class RabinIDS extends SecretSharing {
                 if (gf instanceof GF257 && tmp == -1) {
                     tmp = rsshares[j].getY()[++pos[j]];
                     yValues[j] = tmp + 255;
-                    assert(yValues[j] == 255 || yValues[j] == 256);
                 } else {
                     if (tmp < 0) {
                         /* always use 256 as this is the byte conversion, not
