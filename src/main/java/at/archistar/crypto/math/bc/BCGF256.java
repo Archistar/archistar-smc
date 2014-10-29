@@ -56,4 +56,9 @@ public class BCGF256 implements GF {
     public int inverse(int a) {
         return gf256.inverse(a);
     }
+
+    @Override
+    public int getFieldSize() {
+        return 256;
+    }
 }

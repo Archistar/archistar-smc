@@ -10,7 +10,6 @@ import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.data.ByteUtils;
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.math.GF;
@@ -82,12 +81,16 @@ public class RabinIDS extends SecretSharing {
 
             /* compute share values */
             int coeffs[] = new int[k];
-            int fillPosition = 0;
+            int fillPosition[] = new int[n];
 
             for (int i = 0; i < data.length; i += k) {
                 for (int j = 0; j < k; j++) { // let k coefficients be the secret in this polynomial
                     if ((i + j) < data.length) {
-                        coeffs[j] = data[i+j];
+                         /* always use 256 as this is the byte conversion, not
+                         * the conversion from GF(2^8) into whatever field we're
+                         * using.
+                         */
+                        coeffs[j] = (data[i+j] >= 0) ? data[i+j] : data[i+j] + 256;
                     } else {
                         coeffs[j] = 0;
                     }
@@ -96,24 +99,24 @@ public class RabinIDS extends SecretSharing {
                 /* calculate the share a value for this byte for every share */
                 for (int j = 0; j < n; j++) {
                     if (checkForZeros(coeffs)) { // skip evaluation in case all coefficients are 0
-                        shares[j].getY()[fillPosition] = 0;
+                        shares[j].getY()[fillPosition[j]] = 0;
                     } else {
                         int value = gf.evaluateAt(coeffs, shares[j].getId());
                         
+                        assert(value >= 0);
+                        
                         if (gf instanceof GF257 && value >= 0xff) {
-                            assert(value >= 0 && value <= 256);
+                            assert(value >= 255 && value <= 256);
                             shares[j].setNewSize(shares[j].getY().length+1);
                             /* 0xff == -1 */
-                            shares[j].getY()[fillPosition++] = (byte)-1;
-                            System.err.println("set value:" + shares[j].getY()[fillPosition-1]);
-                            shares[j].getY()[fillPosition] = (byte)(value - 0xff);
-                            System.err.println("set value:" + shares[j].getY()[fillPosition]);
-                        } else {
-                            shares[j].getY()[fillPosition] = (byte)(value & 0xff);
+                            shares[j].getY()[fillPosition[j]++] = (byte)-1;
+                            value -= 255;
                         }
+                        assert(value >= 0 && value <= 255);
+                        shares[j].getY()[fillPosition[j]] = (byte)(value & 0xff);
                     }
-                }
-                fillPosition++;
+                    fillPosition[j]++;
+                } 
             }
 
             return shares;
@@ -133,35 +136,40 @@ public class RabinIDS extends SecretSharing {
         int xValues[] = Arrays.copyOfRange(BaseShare.extractXVals(rsshares), 0, k); // we only need k x-values for reconstruction
         byte result[] = new byte[rsshares[0].getOriginalLength()];
         
-        int index = 0;
+        int pos[] = new int[k];
             
         Decoder decoder = decoderFactory.createDecoder(xValues, k);
-        for (int i = 0; i < rsshares[0].getY().length; i++) {
+        int posResult = 0;
+        while (posResult < rsshares[0].getOriginalLength()) {
             int yValues[] = new int[k];
             for (int j = 0; j < k; j++) { // extract only k y-values (so we have k xy-pairs)
-                 int tmp = rsshares[j].getY()[i];
+                 int tmp = rsshares[j].getY()[pos[j]];
                 
                 /* -1 == 0xff, I pray for an unsigned byte data type */
                 if (gf instanceof GF257 && tmp == -1) {
-                    assert(false);
-                    yValues[j] = ((rsshares[j].getY()[++i] & 0xff) + 0xff) & 0xff;
+                    tmp = rsshares[j].getY()[++pos[j]];
+                    yValues[j] = tmp + 255;
+                    assert(yValues[j] == 255 || yValues[j] == 256);
                 } else {
-                    if (tmp < 0 && gf instanceof GF257) {
-                        yValues[j] = tmp + 257;
-                    } else if (tmp < 0) {
+                    if (tmp < 0) {
+                        /* always use 256 as this is the byte conversion, not
+                         * the conversion from GF(2^8) into whatever field we're
+                         * using.
+                         */
                         yValues[j] = tmp + 256;
                     } else {
                         yValues[j] = tmp;
                     }
                 }
+                pos[j]++;
             }
                 
             /* perform matrix-multiplication to compute the coefficients */
             try {
                 int resultMatrix[] = decoder.decode(yValues, 0);
             
-                for (int j = resultMatrix.length - 1; j >= 0 && index < rsshares[0].getOriginalLength(); j--) {
-                    result[index++] = (byte)resultMatrix[resultMatrix.length - 1 - j];
+                for (int j = resultMatrix.length - 1; j >= 0 && posResult < rsshares[0].getOriginalLength(); j--) {
+                    result[posResult++] = (byte)resultMatrix[resultMatrix.length - 1 - j];
                 }
             } catch (UnsolvableException e) {
                 throw new ReconstructionException();

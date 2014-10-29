@@ -107,10 +107,12 @@ public class BerlekampWelchDecoder implements Decoder {
     
     private static int getDegree(int[] coefficients) {
         int d = coefficients.length - 1;
-        if (coefficients[d] == 0) {
+        
+        if (coefficients.length == 0 || coefficients[d] == 0) {
             return -1;
+        } else {
+            return d;
         }
-        return d;
     }
     
     /**

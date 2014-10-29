@@ -1,6 +1,5 @@
 package at.archistar.crypto.math;
 
-import at.archistar.crypto.TestHelper;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
@@ -35,23 +34,34 @@ public class GFPerformanceTest {
     private static final GFFactory bcgffactory = new BCGFFactory();
     private static final GFFactory gf257factory = new GF257Factory();
     
-    private static final int size = TestHelper.REDUCED_TEST_SIZE;
+    private static final int size = 1024;
+    
+    private static byte[][] createArray(int testSize) {
+        byte[][] result = new byte[testSize][size];
+
+        for (int i = 0; i < testSize; i++) {
+            for (int j = 0; j < size; j++) {
+                result[i][j] = (byte)i;
+            }
+        }
+        return result;
+    }
     
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
         
-        byte[][] secrets = TestHelper.createArray(size, 4*1024);
+        byte[][] secrets256 = createArray(256);
 
         final int n = 4;
         final int k = 3;
 
         Object[][] data = new Object[][]{
-           {"Erasure mit GF256", secrets, new RabinIDS(n, k, new ErasureDecoderFactory(gf256factory), gf256factory.createHelper())},
-           {"Erasure mit BCGF256", secrets, new RabinIDS(n, k, new ErasureDecoderFactory(bcgffactory), bcgffactory.createHelper())},
-           {"Erasure mit GF257", secrets, new RabinIDS(n, k, new ErasureDecoderFactory(gf257factory), gf257factory.createHelper())},
-           {"BW mit GF256", secrets, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(gf256factory), gf256factory.createHelper())},
-           {"BW mit BCGF256", secrets, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(bcgffactory), bcgffactory.createHelper())},
-           //{"BW mit GF257", secrets, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(gf257factory), gf257factory.createHelper())}
+           {"Erasure mit GF256", secrets256, new RabinIDS(n, k, new ErasureDecoderFactory(gf256factory), gf256factory.createHelper())},
+           {"Erasure mit BCGF256", secrets256, new RabinIDS(n, k, new ErasureDecoderFactory(bcgffactory), bcgffactory.createHelper())},
+           {"Erasure mit GF257", secrets256, new RabinIDS(n, k, new ErasureDecoderFactory(gf257factory), gf257factory.createHelper())},
+           {"BW mit GF256", secrets256, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(gf256factory), gf256factory.createHelper())},
+           {"BW mit BCGF256", secrets256, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(bcgffactory), bcgffactory.createHelper())},
+           //{"BW mit GF257", secrets256, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(gf257factory), gf257factory.createHelper())}
         };
         return Arrays.asList(data);
     }
@@ -67,7 +77,14 @@ public class GFPerformanceTest {
         double sumShare = 0;
         double sumCombine = 0;
 
+        double fullSize = 0;
+        
         for (byte[] data : this.input) {
+            
+            System.err.println("now checking " + data[0]);
+            
+            fullSize += data.length;
+            
             /* test construction */
             long beforeShare = System.currentTimeMillis();
             Share[] shares = algorithm.share(data);
@@ -78,10 +95,13 @@ public class GFPerformanceTest {
 
             sumShare += (betweenOperations - beforeShare);
             sumCombine += (afterAll - betweenOperations);
+            
+            assert(reconstructed.length == data.length);
 
             /* test that the reconstructed stuff is the same as the original one */
             assertThat(reconstructed).isEqualTo(data);
         }
-        System.err.format("Performance(%dkB file size) of %s: share: %.3fkByte/sec, combine: %.2fkByte/sec\n", this.input[0].length / 1024, this.name, (size / 1024) / (sumShare / 1000.0), (size / 1024) / (sumCombine / 1000.0));
+        fullSize /= 1024;
+        System.err.format("Performance(%.1fkB file size) of %s: share: %.3fkByte/sec, combine: %.2fkByte/sec\n", fullSize, this.name, fullSize / (sumShare / 1000.0), fullSize / (sumCombine / 1000.0));
     }
 }

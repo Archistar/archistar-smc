@@ -18,4 +18,6 @@ public interface GF {
     public int evaluateAt(int coeffs[], int x);
     
     public int inverse(int a);
+    
+    public int getFieldSize();
 }

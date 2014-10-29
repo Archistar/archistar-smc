@@ -156,4 +156,9 @@ public class GF256 implements GF {
         }
         return result;
     }
+
+    @Override
+    public int getFieldSize() {
+        return 256;
+    }
 }

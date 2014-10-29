@@ -1,61 +1,101 @@
 package at.archistar.crypto.math;
 
+import at.archistar.crypto.math.bc.BCGF256;
 import at.archistar.crypto.math.gf256.GF256;
-import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
-import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
-import static org.junit.Assert.*;
+import static org.fest.assertions.api.Assertions.*;
 
 import org.junit.Test;
 
 /**
- * <p>A simple unit-test for {@link GF256}.</p>
- * 
- * <p>All arithmetic operations are tested by comparing the result with the reference-result of the flexiprovider-API
- * (which is expected to work properly).</p>
+ * <p>
+ * A simple unit-test for {@link GF256} and {@link BCGF256}.</p>
  */
 public class TestGF256 {
-	/* reference GF */
-	private final GF2mField gf256 = new GF2mField(8, 0x11d); // Galois-Field (x^8 + x^4 + x^3 + x + 1 = 0)
-        
-        private final GF256 gf = new GF256();
-	
-	/* test values */
-	private final int a = 117;
-	private final int b = 98;
-	
-	/* basic operation tests */
-	
-	@Test
-	public void testAdd() {
-		assertEquals(gf256.add(a, b), gf.add(a, b));
-	}
-	
-	@Test
-	public void testSubtract() {
-		assertEquals(gf256.add(a, b), gf.sub(a, b));
-	}
-	
-	@Test
-	public void testMult() {
-		assertEquals(gf256.mult(a, b), gf.mult(a, b));
-	}
-	
-	@Test
-	public void testPow() {
-		assertEquals(gf256.exp(a, b), gf.pow(a, b));
-	}
-	
-	/* special cases / Exception tests */
-	
-        @Test
-	public void testEvaluate() {
-            
-            final int[] coeffs = {1, 2, 3, 4, 5, 6};
-            final int x = 117;
-	
-            /* the reference implementation of flexiprovider */
-            final PolynomialGF2mSmallM refPoly = new PolynomialGF2mSmallM(new GF2mField(8, 0x11d), coeffs);
+    private final BCGF256 gf256 = new BCGF256();
 
-            assertEquals(refPoly.evaluateAt(x), gf.evaluateAt(coeffs, x));
-	}
+    private final GF256 gf = new GF256();
+
+    @Test
+    public void testAdd() {
+        for (int i = 0; i < gf.getFieldSize(); i++) {
+            for (int j = 0; j < gf.getFieldSize(); j++) {
+                int tmp = gf.add(i, j);
+                assertThat(gf256.add(i, j)).isEqualTo(tmp);
+                assert (tmp >= 0 && tmp < gf.getFieldSize());
+            }
+        }
+    }
+
+    @Test
+    public void testSubtract() {
+        for (int i = 0; i < gf.getFieldSize(); i++) {
+            for (int j = 0; j < gf.getFieldSize(); j++) {
+                int tmp = gf.sub(i, j);
+                assertThat(gf256.sub(i, j)).isEqualTo(tmp);
+                assert (tmp >= 0 && tmp < gf.getFieldSize());
+            }
+        }
+    }
+
+    @Test
+    public void testMult() {
+        for (int i = 0; i < gf.getFieldSize(); i++) {
+            for (int j = 0; j < gf.getFieldSize(); j++) {
+                int tmp = gf.mult(i, j);
+                assertThat(gf256.mult(i, j)).isEqualTo(tmp);
+                assert (tmp >= 0 && tmp < gf.getFieldSize());
+            }
+        }
+    }
+
+    @Test
+    public void testDiv() {
+        for (int i = 0; i < gf.getFieldSize(); i++) {
+            for (int j = 1; j < gf.getFieldSize(); j++) {
+                int tmp = gf.div(i, j);
+                assertThat(gf256.div(i, j)).isEqualTo(tmp);
+                assert (tmp >= 0 && tmp < gf.getFieldSize());
+            }
+        }
+    }
+
+    @Test
+    public void testInverse() {
+        for (int i = 1; i < gf.getFieldSize(); i++) {
+            int tmp = gf.inverse(i);
+            assertThat(gf256.inverse(i)).isEqualTo(tmp);
+            assert (tmp >= 0 && tmp < gf.getFieldSize());
+        }
+    }
+
+    @Test
+    public void testInverseValue() {
+        for (int i = 1; i < gf.getFieldSize(); i++) {
+            assertThat(gf.mult(gf.inverse(i), i) == 1);
+            assertThat(gf256.mult(gf256.inverse(i), i) == 1);
+        }
+    }
+
+    @Test
+    public void testPow() {
+        for (int i = 0; i < gf.getFieldSize(); i++) {
+            for (int j = 0; j < 8; j++) {
+                if (i != 0 && j != 0) {
+                    int tmp = gf.pow(i, j);
+                    assertThat(gf256.pow(i, j)).isEqualTo(tmp);
+                    assert (tmp >= 0 && tmp < gf.getFieldSize());
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testEvaluate() {
+
+        final int[] coeffs = {1, 2, 3, 4, 5, 6};
+
+        for (int x = 1; x < gf.getFieldSize(); x++) {
+            assertThat(gf256.evaluateAt(coeffs, x)).isEqualTo(gf.evaluateAt(coeffs, x));
+        }
+    }
 }

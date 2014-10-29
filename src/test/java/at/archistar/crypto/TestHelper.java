@@ -15,7 +15,7 @@ public class TestHelper {
 
         for (int i = 0; i < size / elementSize; i++) {
             for (int j = 0; j < elementSize; j++) {
-                result[i][j] = 42;
+                result[i][j] = 1;
             }
         }
 

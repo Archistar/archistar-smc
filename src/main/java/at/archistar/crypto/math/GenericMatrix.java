@@ -33,14 +33,18 @@ public class GenericMatrix implements GFMatrix {
         for (int i = 0; i < vec.length; i++) {
             int tmp = 0;
             for (int j = 0; j < vec.length; j++) {
+                assert(gf.mult(matrix[i][j], vec[j]) >= 0 && gf.mult(matrix[i][j], vec[j]) <= gf.getFieldSize());
+                assert(tmp >= 0 && tmp < gf.getFieldSize());
+                
                 tmp = gf.add(tmp, gf.mult(matrix[i][j], vec[j]));
             }
             result[i] = tmp;
         }
-
         return result;
     }
     
+    /* where is the dead store? */
+    @SuppressFBWarnings("DLS_DEAD_LOCAL_STORE")
     private GFMatrix inverse(boolean throwException) {
         
         int numRows = matrix.length;
@@ -87,25 +91,32 @@ public class GenericMatrix implements GFMatrix {
             // normalize i-th row
             int coef = tmpMatrix[i][i];
             int invCoef = gf.inverse(coef);
-            multRowWithElementThis(tmpMatrix[i], invCoef);
-            multRowWithElementThis(invMatrix[i], invCoef);
+            
+            normalizeRow(tmpMatrix[i], invMatrix[i], invCoef);
 
-            // normalize all other rows
+            // subtract from all other rows
             for (int j = 0; j < numRows; j++) {
                 if (j != i) {
                     coef = tmpMatrix[j][i];
                     if (coef != 0) {
-                        int[] tmpRow = multRowWithElement(tmpMatrix[i], coef);
-                        int[] tmpInvRow = multRowWithElement(invMatrix[i], coef);
-                        
-                        subFromRow(tmpRow, tmpMatrix[j]);
-                        subFromRow(tmpInvRow, invMatrix[j]);
+                        assert(coef >= 0 && coef < gf.getFieldSize());
+                        multAndSubstract(tmpMatrix[j], tmpMatrix[i], coef);
+                        multAndSubstract(invMatrix[j], invMatrix[i], coef);
                     }
                 }
             }
         }
         
         return new GenericMatrix(invMatrix, gf);        
+    }
+    
+    private void multAndSubstract(int[] row, int[] normalized, int coef) {
+        
+        assert(row.length == normalized.length);
+        
+        for (int i = 0; i < row.length; i++) {
+            row[i] = gf.sub(row[i], gf.mult(normalized[i], coef));
+        }
     }
 
     @Override
@@ -123,36 +134,22 @@ public class GenericMatrix implements GFMatrix {
         matrix[second] = tmp;
     }
     
-    private void multRowWithElementThis(int[] row, int element) {
-        for (int i = row.length - 1; i >= 0; i--) {
-            row[i] = gf.mult(row[i], element);
-        }
-    }
-    
-    private int[] multRowWithElement(int[] row, int element) {
-        int[] result = new int[row.length];
-        
-        for (int i = row.length - 1; i >= 0; i--) {
-            result[i] = gf.mult(row[i], element);
-        }
-
-        return result;
-    }
-    
-    public void addToRow(int[] fromRow, int[] toRow) {
-        for (int i = toRow.length - 1; i >= 0; i--) {
-            toRow[i] = gf.add(fromRow[i], toRow[i]);
-        }
-    }
-    
-    public void subFromRow(int[] fromRow, int[] toRow) {
-        for (int i = toRow.length - 1; i >= 0; i--) {
-            toRow[i] = gf.sub(toRow[i], fromRow[i]);
-        }
-    }
-
     @Override
     public int getNumRows() {
         return this.matrix.length;
+    }
+
+    private void normalizeRow(int[] tmpMatrix, int[] invMatrix, int element) {
+        
+        assert(element >= 0 && element < gf.getFieldSize());
+        assert(tmpMatrix.length == invMatrix.length);
+        
+        for (int i = tmpMatrix.length - 1; i >= 0; i--) {
+            assert(tmpMatrix[i] >= 0 && tmpMatrix[i] < gf.getFieldSize());
+            assert(invMatrix[i] >= 0 && invMatrix[i] < gf.getFieldSize());
+            
+            tmpMatrix[i] = gf.mult(tmpMatrix[i], element);
+            invMatrix[i] = gf.mult(invMatrix[i], element);
+        }
     }
 }
