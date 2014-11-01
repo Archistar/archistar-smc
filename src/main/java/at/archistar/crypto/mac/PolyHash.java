@@ -22,7 +22,7 @@ public class PolyHash implements MacHelper {
     
     private static int[] createIntArrayFromByte(byte[] a) {
         int[] b = new int[a.length];
-        for (int i=0; i < a.length; i++) {
+        for (int i = 0; i < a.length; i++) {
             b[i] = a[i];
         }
         return b;
