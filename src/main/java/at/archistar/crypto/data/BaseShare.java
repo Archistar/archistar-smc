@@ -8,7 +8,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 public abstract class BaseShare extends SerializableShare {
     
     protected final byte x;
-    protected final byte[] y;
+    protected byte[] y;
     
     
     @SuppressFBWarnings("EI_EXPOSE_REP2")

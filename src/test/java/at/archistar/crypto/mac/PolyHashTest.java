@@ -23,16 +23,8 @@ public class PolyHashTest {
         }
         
         MacHelper mac = new PolyHash(64/8, new GF256());
-        
         byte[] hash = mac.computeMAC(data, key);
-        
-        System.out.print("hash: ");
-        assert(hash.length == 8);
-        for(int i=0; i < hash.length; i++) {
-            System.out.print(hash[i] + " ");
-        }
-        System.out.println();
-        
+        assertThat(hash.length).isEqualTo(8);
         assertThat(mac.verifyMAC(data, hash, key)).isEqualTo(true);
     }
 }

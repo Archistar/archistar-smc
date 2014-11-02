@@ -37,10 +37,10 @@ public class GenericMatrix implements GFMatrix {
             }
             result[i] = tmp;
         }
-
         return result;
     }
     
+    /* where is the dead store? */
     private GFMatrix inverse(boolean throwException) {
         
         int numRows = matrix.length;
@@ -87,24 +87,28 @@ public class GenericMatrix implements GFMatrix {
             // normalize i-th row
             int coef = tmpMatrix[i][i];
             int invCoef = gf.inverse(coef);
-            multRowWithElementThis(tmpMatrix[i], invCoef);
-            multRowWithElementThis(invMatrix[i], invCoef);
+            
+            normalizeRow(tmpMatrix[i], invMatrix[i], invCoef);
 
-            // normalize all other rows
+            // subtract from all other rows
             for (int j = 0; j < numRows; j++) {
                 if (j != i) {
                     coef = tmpMatrix[j][i];
                     if (coef != 0) {
-                        int[] tmpRow = multRowWithElement(tmpMatrix[i], coef);
-                        int[] tmpInvRow = multRowWithElement(invMatrix[i], coef);
-                        addToRow(tmpRow, tmpMatrix[j]);
-                        addToRow(tmpInvRow, invMatrix[j]);
+                        multAndSubstract(tmpMatrix[j], tmpMatrix[i], coef);
+                        multAndSubstract(invMatrix[j], invMatrix[i], coef);
                     }
                 }
             }
         }
         
         return new GenericMatrix(invMatrix, gf);        
+    }
+    
+    private void multAndSubstract(int[] row, int[] normalized, int coef) {
+        for (int i = 0; i < row.length; i++) {
+            row[i] = gf.sub(row[i], gf.mult(normalized[i], coef));
+        }
     }
 
     @Override
@@ -122,30 +126,15 @@ public class GenericMatrix implements GFMatrix {
         matrix[second] = tmp;
     }
     
-    private void multRowWithElementThis(int[] row, int element) {
-        for (int i = row.length - 1; i >= 0; i--) {
-            row[i] = gf.mult(row[i], element);
-        }
-    }
-    
-    private int[] multRowWithElement(int[] row, int element) {
-        int[] result = new int[row.length];
-        
-        for (int i = row.length - 1; i >= 0; i--) {
-            result[i] = gf.mult(row[i], element);
-        }
-
-        return result;
-    }
-    
-    private void addToRow(int[] fromRow, int[] toRow) {
-        for (int i = toRow.length - 1; i >= 0; i--) {
-            toRow[i] = gf.add(fromRow[i], toRow[i]);
-        }
-    }
-
     @Override
     public int getNumRows() {
         return this.matrix.length;
+    }
+
+    private void normalizeRow(int[] tmpMatrix, int[] invMatrix, int element) {
+        for (int i = tmpMatrix.length - 1; i >= 0; i--) {
+            tmpMatrix[i] = gf.mult(tmpMatrix[i], element);
+            invMatrix[i] = gf.mult(invMatrix[i], element);
+        }
     }
 }

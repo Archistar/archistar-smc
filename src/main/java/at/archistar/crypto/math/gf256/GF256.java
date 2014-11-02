@@ -2,15 +2,11 @@ package at.archistar.crypto.math.gf256;
 
 import at.archistar.crypto.math.GF;
 
-/*
+/**
  * The operations in this class are meant to be very fast and efficient.
  * The speed is mainly achieved by using lookup-tables for implementing the otherwise very expensive 
  * mult(), div(), pow() and inverse() operations.
- */
-
-/* NOTE: Performing parameter-checks would decrease the performance of this class by around 60%! */
-
-/**
+ *
  * <p>This class implements all basic arithmetic operations in a finite field, more precisely a Galois-Field 256 
  * (short <i>GF(256)</i>).</p>
  * 
@@ -105,10 +101,6 @@ public class GF256 implements GF {
      */
     @Override
     public int mult(int a, int b) {
-        if (a < 0 || b < 0) {
-            a = (a + 256) % 256;
-            b = (b + 256) % 256;
-        }
         return ALOG_TABLE[LOG_TABLE[a] + LOG_TABLE[b]];
     }
     
@@ -132,8 +124,7 @@ public class GF256 implements GF {
      */
     @Override
     public int inverse(int a) {
-        int tmp = 255 - (LOG_TABLE[a] % 255);
-        return ALOG_TABLE[tmp];
+        return ALOG_TABLE[255 - (LOG_TABLE[a] % 255)];
     }
     
     @Override
@@ -155,5 +146,10 @@ public class GF256 implements GF {
             result = add(mult(result, x), coeffs[i]);
         }
         return result;
+    }
+
+    @Override
+    public int getFieldSize() {
+        return 256;
     }
 }

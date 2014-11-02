@@ -10,12 +10,12 @@ import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.data.ByteUtils;
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
+import at.archistar.crypto.math.gf257.GF257;
 import java.util.Arrays;
 
 /**
@@ -64,6 +64,7 @@ public class RabinIDS extends SecretSharing {
      * @param n the number of shares to create
      * @param k the minimum number of shares required for reconstruction
      * @param decoderFactory the solving algorithm to use for reconstructing the secret
+     * @param gf the field within which we will be doing all our computation
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public RabinIDS(int n, int k, DecoderFactory decoderFactory, GF gf) throws WeakSecurityException {
@@ -76,16 +77,20 @@ public class RabinIDS extends SecretSharing {
     public Share[] share(byte[] data) {
         
         try {
-            ReedSolomonShare shares[] = RabinIDS.createReedSolomonShares(n, (data.length + k-1) / k, data.length);
+            ReedSolomonShare shares[] = createReedSolomonShares(n, (data.length + k-1) / k, data.length);
 
             /* compute share values */
             int coeffs[] = new int[k];
-            int fillPosition = 0;
+            int fillPosition[] = new int[n];
 
             for (int i = 0; i < data.length; i += k) {
                 for (int j = 0; j < k; j++) { // let k coefficients be the secret in this polynomial
                     if ((i + j) < data.length) {
-                        coeffs[j] = ByteUtils.toUnsignedByte(data[i + j]);
+                         /* always use 256 as this is the byte conversion, not
+                         * the conversion from GF(2^8) into whatever field we're
+                         * using.
+                         */
+                        coeffs[j] = (data[i+j] >= 0) ? data[i+j] : data[i+j] + 256;
                     } else {
                         coeffs[j] = 0;
                     }
@@ -94,12 +99,19 @@ public class RabinIDS extends SecretSharing {
                 /* calculate the share a value for this byte for every share */
                 for (int j = 0; j < n; j++) {
                     if (checkForZeros(coeffs)) { // skip evaluation in case all coefficients are 0
-                        shares[j].getY()[fillPosition] = 0;
+                        shares[j].getY()[fillPosition[j]] = 0;
                     } else {
-                        shares[j].getY()[fillPosition] = (byte)gf.evaluateAt(coeffs, shares[j].getId());
+                        int value = gf.evaluateAt(coeffs, shares[j].getId());
+                        if (gf instanceof GF257 && value >= 0xff) {
+                            shares[j].setNewSize(shares[j].getY().length+1);
+                            /* 0xff == -1 */
+                            shares[j].getY()[fillPosition[j]++] = (byte)-1;
+                            value -= 255;
+                        }
+                        shares[j].getY()[fillPosition[j]] = (byte)(value & 0xff);
                     }
-                }
-                fillPosition++;
+                    fillPosition[j]++;
+                } 
             }
 
             return shares;
@@ -119,21 +131,39 @@ public class RabinIDS extends SecretSharing {
         int xValues[] = Arrays.copyOfRange(BaseShare.extractXVals(rsshares), 0, k); // we only need k x-values for reconstruction
         byte result[] = new byte[rsshares[0].getOriginalLength()];
         
-        int index = 0;
+        int pos[] = new int[k];
             
         Decoder decoder = decoderFactory.createDecoder(xValues, k);
-        for (int i = 0; i < rsshares[0].getY().length; i++) {
+        int posResult = 0;
+        while (posResult < rsshares[0].getOriginalLength()) {
             int yValues[] = new int[k];
             for (int j = 0; j < k; j++) { // extract only k y-values (so we have k xy-pairs)
-                yValues[j] = ByteUtils.toUnsignedByte(rsshares[j].getY()[i]);
+                 int tmp = rsshares[j].getY()[pos[j]];
+                
+                /* -1 == 0xff, I pray for an unsigned byte data type */
+                if (gf instanceof GF257 && tmp == -1) {
+                    tmp = rsshares[j].getY()[++pos[j]];
+                    yValues[j] = tmp + 255;
+                } else {
+                    if (tmp < 0) {
+                        /* always use 256 as this is the byte conversion, not
+                         * the conversion from GF(2^8) into whatever field we're
+                         * using.
+                         */
+                        yValues[j] = tmp + 256;
+                    } else {
+                        yValues[j] = tmp;
+                    }
+                }
+                pos[j]++;
             }
                 
             /* perform matrix-multiplication to compute the coefficients */
             try {
                 int resultMatrix[] = decoder.decode(yValues, 0);
             
-                for (int j = resultMatrix.length - 1; j >= 0 && index < rsshares[0].getOriginalLength(); j--) {
-                    result[index++] = (byte) resultMatrix[resultMatrix.length - 1 - j];
+                for (int j = resultMatrix.length - 1; j >= 0 && posResult < rsshares[0].getOriginalLength(); j--) {
+                    result[posResult++] = (byte)resultMatrix[resultMatrix.length - 1 - j];
                 }
             } catch (UnsolvableException e) {
                 throw new ReconstructionException();
@@ -147,7 +177,7 @@ public class RabinIDS extends SecretSharing {
      * @param a the array to check
      * @return true if yes; false otherwise
      */
-    private boolean checkForZeros(int[] a) {
+    private static boolean checkForZeros(int[] a) {
         for (int i = 0; i < a.length; i++) {
             if (a[i] != 0) {
                 return false;
@@ -163,7 +193,7 @@ public class RabinIDS extends SecretSharing {
      * @param shareLength the length of all shares
      * @return an array with the created shares
      */
-    public static ReedSolomonShare[] createReedSolomonShares(int n, int shareLength, int originalLength) throws InvalidParametersException {
+    private static ReedSolomonShare[] createReedSolomonShares(int n, int shareLength, int originalLength) throws InvalidParametersException {
         ReedSolomonShare[] rsshares = new ReedSolomonShare[n];
         
         for (int i = 0; i < n; i++) {
