@@ -25,6 +25,6 @@ public abstract class AbstractNTT {
     }
     
     public int calcUnitySquare(int n) {
-        throw new RuntimeException("not implemented yet");
+        return 256;
     }
 }
