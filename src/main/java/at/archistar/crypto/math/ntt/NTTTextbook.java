@@ -1,4 +1,6 @@
-package at.archistar.crypto.math;
+package at.archistar.crypto.math.ntt;
+
+import at.archistar.crypto.math.GF;
 
 /**
  * @author andy
