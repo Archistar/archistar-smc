@@ -56,7 +56,7 @@ public class GF257 implements GF {
 
     @Override
     public int div(int a, int b) {
-        return (a/b)%257;
+        return mult(a, inverse(b));
     }
 
     @Override

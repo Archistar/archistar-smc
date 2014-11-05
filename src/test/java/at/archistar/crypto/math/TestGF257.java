@@ -16,7 +16,8 @@ public class TestGF257 {
         for (int i = 0; i < gf.getFieldSize(); i++) {
             for (int j = 0; j < gf.getFieldSize(); j++) {
                 int tmp = gf.add(i, j);
-                assert (tmp >= 0 && tmp < gf.getFieldSize());
+                assertThat(tmp).isGreaterThanOrEqualTo(0);
+                assertThat(tmp).isLessThan(gf.getFieldSize());
             }
         }
     }
@@ -26,7 +27,8 @@ public class TestGF257 {
         for (int i = 0; i < gf.getFieldSize(); i++) {
             for (int j = 0; j < gf.getFieldSize(); j++) {
                 int tmp = gf.sub(i, j);
-                assert (tmp >= 0 && tmp < gf.getFieldSize());
+                assertThat(tmp).isGreaterThanOrEqualTo(0);
+                assertThat(tmp).isLessThan(gf.getFieldSize());
             }
         }
     }
@@ -36,8 +38,9 @@ public class TestGF257 {
         for (int i = 0; i < gf.getFieldSize(); i++) {
             for (int j = 0; j < gf.getFieldSize(); j++) {
                 int tmp = gf.mult(i, j);
-                assert (tmp >= 0 && tmp < gf.getFieldSize());
-            }
+                assertThat(tmp).isGreaterThanOrEqualTo(0);
+                assertThat(tmp).isLessThan(gf.getFieldSize());
+           }
         }
     }
 
@@ -55,14 +58,15 @@ public class TestGF257 {
     public void testInverse() {
         for (int i = 1; i < gf.getFieldSize(); i++) {
             int tmp = gf.inverse(i);
-            assert (tmp >= 0 && tmp < gf.getFieldSize());
+            assertThat(tmp).isGreaterThanOrEqualTo(0);
+            assertThat(tmp).isLessThan(gf.getFieldSize());
         }
     }
 
     @Test
     public void testInverseValue() {
         for (int i = 1; i < gf.getFieldSize(); i++) {
-            assertThat(gf.mult(gf.inverse(i), i) == 1);
+            assertThat(gf.mult(gf.inverse(i), i)).isEqualTo(1);
         }
     }
 
@@ -72,7 +76,8 @@ public class TestGF257 {
             for (int j = 0; j < 8; j++) {
                 if (i != 0 && j != 0) {
                     int tmp = gf.pow(i, j);
-                    assert (tmp >= 0 && tmp < gf.getFieldSize());
+                    assertThat(tmp).isGreaterThanOrEqualTo(0);
+                    assertThat(tmp).isLessThan(gf.getFieldSize());
                 }
             }
         }

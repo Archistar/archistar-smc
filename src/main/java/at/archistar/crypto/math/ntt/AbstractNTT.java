@@ -17,7 +17,9 @@ public abstract class AbstractNTT {
     
     public int[] intt(int a[], int w) {
         int n = a.length;
-        int[] m = ntt(a, gf.div(1, w));
+        
+        int tmp = gf.div(1, w);
+        int[] m = ntt(a, tmp);
         
         for (int i = 0; i < m.length; i++) {
             m[i] = gf.div(m[i], n);
