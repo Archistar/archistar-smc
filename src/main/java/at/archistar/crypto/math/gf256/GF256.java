@@ -113,6 +113,11 @@ public class GF256 implements GF {
      */
     @Override
     public int pow(int a, int p) {
+        // The use of 512 for LOG[0] and the all-zero last half of ALOG cleverly
+        // avoids testing 0 in mult, but can't survive arbitrary p*...%255 here.
+        if (0 == a && 0 != p) {
+          return 0;
+        }
         return ALOG_TABLE[p*LOG_TABLE[a] % 255];
     }
     
