@@ -13,6 +13,7 @@ import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
@@ -79,15 +80,28 @@ public class ShamirPSS extends SecretSharing {
     @Override
     public Share[] share(byte[] data) {
         try {
-            ShamirShare shares[] = createShamirShares(n, data.length);
+            int xValues[] = new int[n];
+            for (int i = 0; i < n; i++) {
+                xValues[i] = i+1;
+            }
+            
+            EncodingConverter output[] = new EncodingConverter[n];
+            for (int i = 0; i < n; i++) {
+                output[i] = new EncodingConverter(data.length, gf);
+            }
 
             /* calculate the x and y values for the shares */
             for (int i = 0; i < data.length; i++) {
                 int[] poly = createShamirPolynomial(ByteUtils.toUnsignedByte(data[i]), k-1); // generate a new random polynomial
-            
-                for (ShamirShare share : shares) { // evaluate the x-values at the polynomial
-                    share.getY()[i] = (byte) gf.evaluateAt(poly, share.getId());
+    
+                for (int j = 0; j < n; j++) {
+                    output[j].append(gf.evaluateAt(poly, xValues[j]));
                 }
+            }
+            
+            ShamirShare shares[] = new ShamirShare[n];
+            for (int j = 0; j < n; j++) {
+                shares[j] = new ShamirShare((byte)xValues[j], output[j].getEncodedData());
             }
             return shares;
         } catch (InvalidParametersException ex) {
@@ -104,12 +118,20 @@ public class ShamirPSS extends SecretSharing {
         /* you cannot cast arrays to arrays of subtype in java7 */
         ShamirShare[] sshares = Arrays.copyOf(shares, shares.length, ShamirShare[].class); // we need access to the inner fields
         
+        EncodingConverter input[] = new EncodingConverter[shares.length];
+        for (int i = 0; i < shares.length; i++) {
+            input[i] = new EncodingConverter(sshares[i].getY(), gf);
+        }
+
         byte[] result = new byte[sshares[0].getY().length];
         int[] xVals = BaseShare.extractXVals(sshares);
         
         Decoder decoder = decoderFactory.createDecoder(xVals, k);
         for (int i = 0; i < result.length; i++) { // reconstruct all individual parts of the secret
-            int[] yVals = ShamirShare.extractYVals(sshares, i);
+            int[] yVals = new int[input.length];
+            for (int j = 0; j < input.length; j++) {
+                yVals[j] = input[j].readNext();
+            }
             
             try {
                 result[i] = (byte) decoder.decode(yVals, 0)[0];
@@ -135,23 +157,6 @@ public class ShamirPSS extends SecretSharing {
         this.rng.fillBytesAsInts(coeffs);
         coeffs[0] = secret;
         return coeffs;
-    }
-
-    /**
-     * Creates <i>n</i> ShamirShares with the given share-length.
-     * 
-     * @param n the number of ShamirShares to create
-     * @param shareLength the length of all shares
-     * @return an array with the created shares
-     */
-    public static ShamirShare[] createShamirShares(int n, int shareLength) throws InvalidParametersException {
-        ShamirShare[] sshares = new ShamirShare[n];
-        
-        for (int i = 0; i < n; i++) {
-            sshares[i] = new ShamirShare((byte) (i+1), new byte[shareLength]);
-        }
-        
-        return sshares;
     }
     
     @Override

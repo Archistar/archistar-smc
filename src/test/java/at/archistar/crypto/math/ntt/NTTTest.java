@@ -25,7 +25,6 @@ public class NTTTest {
         
         Object[][] data = new Object[][]{
            {new NTTSlow(gf257), 241, new int[] {1, 1, 1, 0}, new int[] {3, 241, 1, 16}},
-            {new NTTSlow(gf257), 1, new int[] {1, 1, 1, 1, 1}, new int[] {3, 241, 1, 16}},
            {new NTTTextbook(gf257), 241, new int[] {1, 1, 1, 0}, new int[] {3, 241, 1, 16}},
         };
         return Arrays.asList(data);

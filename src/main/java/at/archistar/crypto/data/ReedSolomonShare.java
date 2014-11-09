@@ -105,8 +105,4 @@ public final class ReedSolomonShare extends BaseShare implements Comparable<Reed
         assert false : "hashCode not designed";
         return 42;
     }
-
-    public void setNewSize(int i) {
-        this.y = Arrays.copyOf(this.y, i);
-    }
 }

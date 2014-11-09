@@ -55,23 +55,6 @@ public final class ShamirShare extends BaseShare implements Comparable<ShamirSha
         return  !(x == 0 || y == null); // x cannot be < 0 because it is an unsigned byte
     }
     
-        /**
-     * Extracts all i<sup>th</sup> y-values from the given Share[].
-     * 
-     * @param shares the shares to extract the y-values from
-     * @param i the index of the y-value to extract from each share
-     * @return an array with all i<sup>th</sup> y-values from the given shares (in same order as the given Share[])
-     */
-    public static int[] extractYVals(ShamirShare[] shares, int i) {
-        int[] y = new int[shares.length];
-        
-        for (int j = 0; j < y.length; j++) {
-            y[j] = ByteUtils.toUnsignedByte(shares[j].getY()[i]);
-        }
-        
-        return y;
-    }
-
     @Override
     public void serializeBody(DataOutputStream os) throws IOException {
         os.writeInt(y.length);

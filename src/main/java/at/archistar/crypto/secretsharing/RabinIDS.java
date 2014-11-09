@@ -12,10 +12,10 @@ import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.exceptions.ImpossibleException;
+import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
-import at.archistar.crypto.math.gf257.GF257;
 import java.util.Arrays;
 
 /**
@@ -76,21 +76,25 @@ public class RabinIDS extends SecretSharing {
     @Override
     public Share[] share(byte[] data) {
         
+        int xValues[] = new int[n];
+        for (int i = 0; i < n; i++) {
+            xValues[i] = i+1;
+        }
+        
         try {
-            ReedSolomonShare shares[] = createReedSolomonShares(n, (data.length + k-1) / k, data.length);
-
             /* compute share values */
             int coeffs[] = new int[k];
-            int fillPosition[] = new int[n];
+            EncodingConverter output[] = new EncodingConverter[n];
+            for (int i = 0; i < n; i++) {
+                output[i] = new EncodingConverter((data.length + k -1)/k, gf);
+            }
 
             for (int i = 0; i < data.length; i += k) {
-                for (int j = 0; j < k; j++) { // let k coefficients be the secret in this polynomial
-                    if ((i + j) < data.length) {
-                         /* always use 256 as this is the byte conversion, not
-                         * the conversion from GF(2^8) into whatever field we're
-                         * using.
-                         */
-                        coeffs[j] = (data[i+j] >= 0) ? data[i+j] : data[i+j] + 256;
+                for (int j = 0; j < k; j++) {
+                    // let k coefficients be the secret in this polynomial
+                    // todo: optimize, use array copy
+                    if ((i+j) < data.length) {
+                        coeffs[j] = (data[i+j] < 0) ? data[i+j] + 256 : data[i+j];
                     } else {
                         coeffs[j] = 0;
                     }
@@ -98,20 +102,14 @@ public class RabinIDS extends SecretSharing {
 
                 /* calculate the share a value for this byte for every share */
                 for (int j = 0; j < n; j++) {
-                    if (checkForZeros(coeffs)) { // skip evaluation in case all coefficients are 0
-                        shares[j].getY()[fillPosition[j]] = 0;
-                    } else {
-                        int value = gf.evaluateAt(coeffs, shares[j].getId());
-                        if (gf instanceof GF257 && value >= 0xff) {
-                            shares[j].setNewSize(shares[j].getY().length+1);
-                            /* 0xff == -1 */
-                            shares[j].getY()[fillPosition[j]++] = (byte)-1;
-                            value -= 255;
-                        }
-                        shares[j].getY()[fillPosition[j]] = (byte)(value & 0xff);
-                    }
-                    fillPosition[j]++;
-                } 
+                    // skip evaluation in case all coefficients are 0
+                    output[j].append(checkForZeros(coeffs) ? 0 : gf.evaluateAt(coeffs, xValues[j]));
+                }
+            }
+            
+            ReedSolomonShare shares[] = new ReedSolomonShare[n];
+            for (int i = 0; i < n; i++) {
+                shares[i] = new ReedSolomonShare((byte)xValues[i], output[i].getEncodedData(), data.length);
             }
 
             return shares;
@@ -131,31 +129,17 @@ public class RabinIDS extends SecretSharing {
         int xValues[] = Arrays.copyOfRange(BaseShare.extractXVals(rsshares), 0, k); // we only need k x-values for reconstruction
         byte result[] = new byte[rsshares[0].getOriginalLength()];
         
-        int pos[] = new int[k];
+        EncodingConverter input[] = new EncodingConverter[shares.length];
+        for (int i = 0; i < shares.length; i++) {
+            input[i] = new EncodingConverter(rsshares[i].getY(), gf);
+        }
             
         Decoder decoder = decoderFactory.createDecoder(xValues, k);
         int posResult = 0;
         while (posResult < rsshares[0].getOriginalLength()) {
             int yValues[] = new int[k];
             for (int j = 0; j < k; j++) { // extract only k y-values (so we have k xy-pairs)
-                 int tmp = rsshares[j].getY()[pos[j]];
-                
-                /* -1 == 0xff, I pray for an unsigned byte data type */
-                if (gf instanceof GF257 && tmp == -1) {
-                    tmp = rsshares[j].getY()[++pos[j]];
-                    yValues[j] = tmp + 255;
-                } else {
-                    if (tmp < 0) {
-                        /* always use 256 as this is the byte conversion, not
-                         * the conversion from GF(2^8) into whatever field we're
-                         * using.
-                         */
-                        yValues[j] = tmp + 256;
-                    } else {
-                        yValues[j] = tmp;
-                    }
-                }
-                pos[j]++;
+                yValues[j] = input[j].readNext();
             }
                 
             /* perform matrix-multiplication to compute the coefficients */
@@ -184,23 +168,6 @@ public class RabinIDS extends SecretSharing {
             }
         }
         return true;
-    }
-    
-    /**
-     * Creates <i>n</i> ReedSolomonShares with the given share- and original-length.
-     * 
-     * @param n the number of ReedSolomonShare to create
-     * @param shareLength the length of all shares
-     * @return an array with the created shares
-     */
-    private static ReedSolomonShare[] createReedSolomonShares(int n, int shareLength, int originalLength) throws InvalidParametersException {
-        ReedSolomonShare[] rsshares = new ReedSolomonShare[n];
-        
-        for (int i = 0; i < n; i++) {
-            rsshares[i] = new ReedSolomonShare((byte) (i+1), new byte[shareLength], originalLength);
-        }
-        
-        return rsshares;
     }
     
     @Override
