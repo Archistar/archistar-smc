@@ -34,7 +34,8 @@ public class StreamPRNG implements RandomSource {
     public static final String HC128 = "HC128";
     
     
-    private static byte[] dummy = new byte[16]; // we are only interested in the key-stream (so fill with 0s)
+    private static final byte[] dummy = new byte[16]; // we are only interested in the key-stream (so fill with 0s)
+    
     static {
         Security.addProvider(new BouncyCastleProvider()); // we need to add the "bouncycastle"-provider only once
     }

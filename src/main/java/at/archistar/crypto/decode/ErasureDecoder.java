@@ -14,7 +14,7 @@ public class ErasureDecoder implements Decoder {
     
     private final int k;
     
-    ErasureDecoder(int[] xValues, int k, GFFactory gffactory) {
+    public ErasureDecoder(int[] xValues, int k, GFFactory gffactory) {
         
         this.k = k;
         GF gf = gffactory.createHelper();
