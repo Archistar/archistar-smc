@@ -12,19 +12,18 @@ public class GF257 implements GF {
     
     private static final int exp[][];
     
-    private static final int precalcExp = 6;
-    
     static {
         invTable = new int[257];
         for (int i = 0; i < 257; i++) {
             invTable[i] = calcInverse(i);
         }
         
-        exp = new int[257][precalcExp];
+        exp = new int[257][257];
         
         for (int i = 0; i < 257; i++) {
-            for (int j = 0; j < precalcExp; j++) {
-                exp[i][j] = ((int)Math.pow(i, j)) % 257;
+            exp[i][0] = 1;
+            for (int j = 1; j < 257; j++) {
+                exp[i][j] = (exp[i][j-1] * i) % 257;
             }
         }
     }
@@ -47,11 +46,7 @@ public class GF257 implements GF {
 
     @Override
     public int pow(int a, int b) {
-        if (b < precalcExp) {
-            return exp[a][b];
-        } else {
-            return ((int)Math.pow(a, b)) % 257;
-        }
+        return exp[a][b];
     }
 
     @Override

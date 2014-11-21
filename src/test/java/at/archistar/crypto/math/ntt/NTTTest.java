@@ -6,6 +6,7 @@ import at.archistar.crypto.math.gf257.GF257;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Random;
 import org.junit.Test;
 
 import static org.fest.assertions.api.Assertions.*;
@@ -51,5 +52,20 @@ public class NTTTest {
     public void simpleInverseNTTTest() {
         assertThat(ntt.intt(output, w)).isEqualTo(input);
     }
-
+    
+    @Test
+    public void testRandomValues() {
+        int[] tmp = new int[4];
+        Random random = new Random();
+        
+        for (int i = 0; i < 1000; i++) {
+            tmp[0] = random.nextInt(257);
+            tmp[1] = random.nextInt(257);
+            tmp[2] = random.nextInt(257);
+            tmp[3] = random.nextInt(257);
+            
+            int[] tmpOut = ntt.ntt(tmp, w);
+            assertThat(ntt.intt(tmpOut, w)).isEqualTo(tmp);
+        }
+    }
 }
