@@ -2,12 +2,15 @@ package at.archistar.crypto.decode;
 
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
+import at.archistar.crypto.math.gf257.GF257Factory;
 import org.junit.Test;
 
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.random.SHA1PRNG;
+import at.archistar.crypto.secretsharing.NTTShamirPSS;
 import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
 import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
+import org.bouncycastle.util.Arrays;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
@@ -144,9 +147,9 @@ public class TestBerlekampWelchDecoder {
     @Test(expected = UnsolvableException.class)
     public void testErrorDecode85WrongFail() throws UnsolvableException {
         
-        int n = 8;
-        int f = 5;
-        int coeffs = 2;
+        final int n = 8;
+        final int f = 5;
+        final int coeffs = 2;
         
         int[] x = new int[n];
         int[] y = new int[n];
@@ -156,5 +159,26 @@ public class TestBerlekampWelchDecoder {
 
         Decoder polySolver = new BerlekampWelchDecoder(x, coeffs, gffactory);
         polySolver.decode(y, f);
+    }
+    
+    /**
+     * test if a GF257 Decoder can be built
+     */
+    @Test
+    public void tryBuildGF257Decoder() {
+        final int NTTBlockLength = 256;
+        final int n = 7;
+        final int k = 3;
+        final int minLength = (NTTBlockLength/n)*k;
+        
+        final GFFactory gf257factory = new GF257Factory();
+        int[] xValues = NTTShamirPSS.prepareXValuesFor(minLength, gf257factory.createHelper());
+        
+        /* limit to k results */
+        int[] resultXValues = Arrays.copyOf(xValues, minLength);
+        
+        /* create decoder */
+        Decoder decoder = new BerlekampWelchDecoder(resultXValues, minLength, gf257factory);
+        assertThat(decoder).isNotNull();
     }
 }
