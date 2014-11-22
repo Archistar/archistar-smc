@@ -1,5 +1,23 @@
+Version 0.2
+===========
+
+WIP:
+
+* switch from flexiprovider to bouncy-castle (which would include
+  the same library anyways)
+* drop support for java 1.6 -- it's not maintained anymore
+* restructure class hierarchy
+* introduce CevallosEngine and RabinBenOrEngine, those two provide
+  a very simple high-level interface for working with archistar-smc*
+* make mathematic helper modular and introduce different implementations.
+  this reduces performance for now but should lead to a cleaner
+	implementation in the long term
+* introduce GF(257) mathematics. This was needed for the also newly
+  introduced NTT-based encoder/decoders
+
 Version 0.1
-###########
+===========
+
 
 Andreas Happe (39):
       remove some compile warnings
@@ -98,7 +116,7 @@ Gary Ye (10):
 
 
 Version 0.0.3 (2014-04-30)
-##########################
+==========================
 
 Andreas Happe (14):
       update readme.md
@@ -122,7 +140,7 @@ Charles Zhao (2):
 
 
 Version 0.0.2 (2013-11-06)
-##########################
+==========================
 
 Andreas Happe (2):
       add travis configuration
@@ -130,7 +148,7 @@ Andreas Happe (2):
 
 
 Version 0.0.1 (2013-11-06)
-##########################
+==========================
 
 Andreas Happe (1):
       add initial crypto algorithms
@@ -140,7 +158,7 @@ Thomas Lorünser (1):
 
 
 Version 0.0.0
-#############
+=============
 
 Franca-Sofia Fehrenbach wrote an initial prototype. It was not incorporated
 into the current software project in its then form ao I am adding this so
