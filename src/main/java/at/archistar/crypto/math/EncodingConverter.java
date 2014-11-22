@@ -85,4 +85,15 @@ public class EncodingConverter {
         }
         data[writePosition++] = (byte)(value & 0xff);
     }
+
+    public int[] getDecodedData() {
+        int[] tmp = new int[data.length];
+        
+        int pos = 0;
+        while (!atEnd()) {
+            tmp[pos++] = readNext();
+        }
+        
+        return Arrays.copyOf(tmp, pos);
+    }
 }

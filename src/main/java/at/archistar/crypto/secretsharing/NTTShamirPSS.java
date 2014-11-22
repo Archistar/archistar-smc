@@ -1,23 +1,25 @@
 package at.archistar.crypto.secretsharing;
 
+import at.archistar.crypto.data.InvalidParametersException;
+import at.archistar.crypto.data.NTTShamirShare;
+import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.Decoder;
+import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ImpossibleException;
+import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.ntt.AbstractNTT;
 import at.archistar.crypto.random.RandomSource;
-import org.bouncycastle.util.Arrays;
+import java.util.Arrays;
 
 /**
  * @author andy
  */
-public class NTTShamirPSS {
-    
-    private final int n;
-    
-    private final int k;
+public class NTTShamirPSS extends SecretSharing {
     
     private final int generator;
     
@@ -34,15 +36,15 @@ public class NTTShamirPSS {
     /** size in bytes of the NTT block (i.e. block that will be put into
      *  the ntt operation).
      */
-    private final int NTTBlockLength = 256;
+    private final int nttBlockLength = 256;
     
     private final int[] xValues;
     
-    private final Decoder decoder;
+    private final DecoderFactory decoderFactory;
     
-    public NTTShamirPSS(int n, int k, int generator, GFFactory factory, RandomSource rng, AbstractNTT ntt, Decoder decoder) throws WeakSecurityException {
-        this.n = n;
-        this.k = k;
+    public NTTShamirPSS(int n, int k, int generator, GFFactory factory, RandomSource rng, AbstractNTT ntt, DecoderFactory decoderFactory) throws WeakSecurityException {
+        
+        super(n, k);
         
         if (k >= n) {
             throw new WeakSecurityException("k must be < n");
@@ -51,21 +53,21 @@ public class NTTShamirPSS {
         this.factory = factory;
         this.gf = factory.createHelper();
         
-        if (NTTBlockLength != (gf.getFieldSize() -1 )) {
+        if (nttBlockLength != (gf.getFieldSize() -1)) {
             throw new ImpossibleException("GF(n) must equal NTT(n+1)");
         }
         
         /** how much (in bytes) can we fit per share (n shares must fit into
           * a NTTBlock)
           */
-        blockCount = NTTBlockLength / n;
+        blockCount = nttBlockLength / n;
         
         this.rng = rng;
         this.ntt = ntt;
         
         this.generator = generator;
         this.xValues = prepareXValuesFor(generator, gf);
-        this.decoder = decoder;
+        this.decoderFactory = decoderFactory;
     }
     
     /**
@@ -73,7 +75,7 @@ public class NTTShamirPSS {
      */
     public static int[] prepareXValuesFor(int generator, GF gf) {
          
-        int[] tmp= new int[256];
+        int[] tmp = new int[256];
         
         tmp[0] = 1;
         for (int i = 1; i < 256; i++) {
@@ -83,7 +85,7 @@ public class NTTShamirPSS {
     }
     
     protected int[] encodeData(int[] data, int offset, int length) {
-        int[] tmp = new int[NTTBlockLength]; // initialized with 0
+        int[] tmp = new int[nttBlockLength]; // initialized with 0
 
         System.arraycopy(data, offset, tmp, 0, length);
 
@@ -96,7 +98,7 @@ public class NTTShamirPSS {
         return tmp;
     }
     
-    public int[][] encode(int[] data) {
+    protected int[][] encode(int[] data) {
         
         int resultSize = ((data.length / blockCount)+1)*blockCount;
                 
@@ -113,12 +115,44 @@ public class NTTShamirPSS {
                 System.arraycopy(conv, j*blockCount, output[j], i*blockCount, blockCount);
             }
         }
-        return output;        
+        return output;
     }
+    
+    /* TODO: encode gf(257) -> byte ! */
+    @Override
+    public Share[] share(byte[] data) {
+        int[] dataInt = new int[data.length];
+        for (int i = 0; i < data.length; i++) {
+            dataInt[i] = (data[i] < 0) ? data[i]+256 : data[i];
+        }
+        
+        EncodingConverter output[] = new EncodingConverter[n];
+        for (int i = 0; i < n; i++) {
+            output[i] = new EncodingConverter(data.length, gf);
+        }
+       
+        int[][] encoded = encode(dataInt);
+        
+        NTTShamirShare shares[] = new NTTShamirShare[n];
+        for (int j = 0; j < n; j++) {
+            EncodingConverter ec = new EncodingConverter(encoded[j].length, gf);
+            for (int i = 0; i < encoded[j].length; i++) {
+                ec.append(encoded[j][i]);
+            }
+            try {
+                shares[j] = new NTTShamirShare((byte)(j+1), ec.getEncodedData(), blockCount, data.length);
+            } catch (InvalidParametersException ex) {
+                throw new ImpossibleException("sharing failed (" + ex.getMessage() + ")");
+            }
+        }
+        
+        return shares;
+    }
+
     
     public int[] reconstruct(int[][] encoded, int[] xValues, int origLength) throws UnsolvableException {
 
-        int minLength = (NTTBlockLength/n)*k;
+        int minLength = (nttBlockLength/n)*k;
         
         /* expect a minimum of k parts */
         assert(encoded.length >= k);
@@ -133,6 +167,8 @@ public class NTTShamirPSS {
         
         int result[] = new int[origLength];
         int resultPos = 0;
+        
+        Decoder decoder = decoderFactory.createDecoder(xValues, minLength);
 
         for (int i = 0; i < length/blockCount; i++) {
             
@@ -158,5 +194,54 @@ public class NTTShamirPSS {
             result = Arrays.copyOf(result, origLength);
         }
         return result;
+    }
+
+    @Override
+    public byte[] reconstruct(Share[] shares) throws ReconstructionException {
+        
+        /* you cannot cast arrays to arrays of subtype in java7 */
+        NTTShamirShare[] sshares = Arrays.copyOf(shares, shares.length, NTTShamirShare[].class); // we need access to the inner fields
+        
+        /* extract original length */
+        int origLength = sshares[0].getOriginalLength();
+        for (int i = 1; i < sshares.length; i++) {
+            if (sshares[i].getOriginalLength() != origLength) {
+                throw new ReconstructionException("originalLenghts are different");
+            }
+        }
+        
+        /* extract share count */
+        int shareCount = sshares[0].getShareCount();
+        for (int i = 1; i < sshares.length; i++) {
+            if (sshares[i].getShareCount() != shareCount) {
+                throw new ReconstructionException("shareCount are different");
+            }
+        }
+        
+        /* create encoded array */
+        int [][] encoded = new int[sshares.length][];
+        for (int i = 0; i < sshares.length; i++) {
+            EncodingConverter ec = new EncodingConverter(sshares[i].getY(), gf);
+            encoded[i] = ec.getDecodedData();
+        }
+        
+        /* prepare xValues */
+        int[] selectedXValues = new int[shareCount * sshares.length];
+        for (int i = 0; i < sshares.length; i++) {
+            int offset = (sshares[i].getId() -1) * shareCount;
+            System.arraycopy(xValues, offset, selectedXValues, i*shareCount, shareCount);
+        }
+        
+        try {
+            int[] decoded = reconstruct(encoded, selectedXValues, origLength);
+            
+            byte[] result = new byte[decoded.length];
+            for (int i = 0; i < result.length; i++) {
+                result[i] = (byte)(decoded[i]);
+            }
+            return result;
+        } catch (UnsolvableException ex) {
+            throw new ReconstructionException(ex.getLocalizedMessage());
+        }
     }
 }
