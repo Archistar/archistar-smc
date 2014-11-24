@@ -11,7 +11,7 @@ import java.util.Arrays;
 /**
  * Represents a share for {@link ShamirPSS}.
  */
-public final class NTTShamirShare extends BaseShare implements Comparable<NTTShamirShare> {
+public final class NTTShare extends BaseShare implements Comparable<NTTShare> {
     
     private final int shareCount;
     
@@ -25,7 +25,7 @@ public final class NTTShamirShare extends BaseShare implements Comparable<NTTSha
      * @throws InvalidParametersException if x == null or y == 0
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public NTTShamirShare(byte x, byte[] y, int xCount, int originalLength) throws InvalidParametersException {
+    public NTTShare(byte x, byte[] y, int xCount, int originalLength) throws InvalidParametersException {
         super(x, y);
         if (!isValid()) {
             throw new InvalidParametersException();
@@ -34,13 +34,13 @@ public final class NTTShamirShare extends BaseShare implements Comparable<NTTSha
         this.originalLength = originalLength;
     }
     
-    public static NTTShamirShare deserialize(DataInputStream in, int version, byte x) throws IOException, InvalidParametersException {
+    public static NTTShare deserialize(DataInputStream in, int version, byte x) throws IOException, InvalidParametersException {
         int length = in.readInt();
         int tmpShareCount = in.readInt();
         int tmpOrigLength = in.readInt();
         byte[] tmpY = new byte[length];
         if (in.read(tmpY) == length) {
-            return new NTTShamirShare(x, tmpY, tmpShareCount, tmpOrigLength);
+            return new NTTShare(x, tmpY, tmpShareCount, tmpOrigLength);
         } else {
             throw new InvalidParametersException("not enough data during deserialization");
         }
@@ -73,7 +73,7 @@ public final class NTTShamirShare extends BaseShare implements Comparable<NTTSha
     }
 
     @Override
-    public int compareTo(NTTShamirShare t) {
+    public int compareTo(NTTShare t) {
         if (t.getId() == getId() && Arrays.equals(t.getY(), getY())) {
             return 0;
         } else {
@@ -83,8 +83,8 @@ public final class NTTShamirShare extends BaseShare implements Comparable<NTTSha
     
     @Override
     public boolean equals(Object o) {
-        if (o instanceof NTTShamirShare) {
-            return compareTo((NTTShamirShare)o) == 0;
+        if (o instanceof NTTShare) {
+            return compareTo((NTTShare)o) == 0;
         } else {
             return false;
         }

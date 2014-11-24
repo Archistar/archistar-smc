@@ -1,20 +1,16 @@
 package at.archistar.crypto.secretsharing;
 
-import at.archistar.crypto.TestHelper;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.bc.BCGF256;
 import at.archistar.crypto.math.gf256.GF256;
-import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.math.gf257.GF257;
 import at.archistar.crypto.math.gf257.GF257Factory;
 import at.archistar.crypto.math.ntt.AbstractNTT;
 import at.archistar.crypto.math.ntt.NTTSlow;
 import at.archistar.crypto.math.ntt.NTTTextbook;
-import at.archistar.crypto.random.FakeRandomSource;
-import at.archistar.crypto.random.RandomSource;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,8 +23,7 @@ import org.junit.runners.Parameterized;
  * @author andy
  */
 @RunWith(value = Parameterized.class)
-
-public class NTTPerformanceEvaluation {
+public class NTTRabinPerformance {
     
     private final String description;
     private final byte[][][] input;
@@ -62,8 +57,6 @@ public class NTTPerformanceEvaluation {
         final int n = 4;
         final int k = 3;
 
-        RandomSource rng = new FakeRandomSource();
-        
         GFFactory gffactory = new GF257Factory();
         int generator = 3;
         AbstractNTT nttSlow = new NTTSlow(gffactory.createHelper());
@@ -71,17 +64,17 @@ public class NTTPerformanceEvaluation {
         DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
         
         Object[][] data = new Object[][]{
-           {"shamir, gf256", secrets, new ShamirPSS(n, k, rng, decoderFactory, new GF256())},
-           {"shamir, bcgf256", secrets, new ShamirPSS(n, k, rng, decoderFactory, new BCGF256())},
-           {"shamir, gf257", secrets, new ShamirPSS(n, k, rng, decoderFactory, new GF257())},
-           {"ntt-shamir, gf257, NTTSlow", secrets, new NTTShamirPSS(n, k, generator, gffactory, rng, nttSlow, decoderFactory)},
-           {"ntt-shamir, gf257, NTTTextbook", secrets, new NTTShamirPSS(n, k, generator, gffactory, rng, nttTextbook, decoderFactory)},
+           {"rabin, gf256", secrets, new RabinIDS(n, k, decoderFactory, new GF256())},
+           {"rabin, bcgf256", secrets, new RabinIDS(n, k, decoderFactory, new BCGF256())},
+           {"rabin, gf257", secrets, new RabinIDS(n, k, decoderFactory, new GF257())},
+           {"ntt-rabin, gf257, NTTSlow", secrets, new NTTRabinIDS(n, k, generator, gffactory, nttSlow, decoderFactory)},
+           {"ntt-rabin, gf257, NTTTextbook", secrets, new NTTRabinIDS(n, k, generator, gffactory, nttTextbook, decoderFactory)},
         };
 
         return Arrays.asList(data);
     }
 
-    public NTTPerformanceEvaluation(String description, byte[][][] input, SecretSharing algorithm) {
+    public NTTRabinPerformance(String description, byte[][][] input, SecretSharing algorithm) {
         this.description = description;
         this.input = input;
         this.algorithm = algorithm;

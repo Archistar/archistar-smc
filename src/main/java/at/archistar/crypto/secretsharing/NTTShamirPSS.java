@@ -1,7 +1,7 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.InvalidParametersException;
-import at.archistar.crypto.data.NTTShamirShare;
+import at.archistar.crypto.data.NTTShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
@@ -23,12 +23,8 @@ public class NTTShamirPSS extends SecretSharing {
     
     private final int generator;
     
-    private final GFFactory factory;
-    
     private final GF gf;
-    
-    private final int blockCount;
-    
+        
     private final RandomSource rng;
     
     private final AbstractNTT ntt;
@@ -36,11 +32,15 @@ public class NTTShamirPSS extends SecretSharing {
     /** size in bytes of the NTT block (i.e. block that will be put into
      *  the ntt operation).
      */
-    private final int nttBlockLength = 256;
+    protected final int nttBlockLength = 256;
     
     private final int[] xValues;
     
     private final DecoderFactory decoderFactory;
+    
+    protected int shareSize;
+    
+    protected int dataPerNTT;
     
     public NTTShamirPSS(int n, int k, int generator, GFFactory factory, RandomSource rng, AbstractNTT ntt, DecoderFactory decoderFactory) throws WeakSecurityException {
         
@@ -50,7 +50,6 @@ public class NTTShamirPSS extends SecretSharing {
             throw new WeakSecurityException("k must be < n");
         }
         
-        this.factory = factory;
         this.gf = factory.createHelper();
         
         if (nttBlockLength != (gf.getFieldSize() -1)) {
@@ -60,7 +59,8 @@ public class NTTShamirPSS extends SecretSharing {
         /** how much (in bytes) can we fit per share (n shares must fit into
           * a NTTBlock)
           */
-        blockCount = nttBlockLength / n;
+        shareSize = nttBlockLength / n;
+        dataPerNTT = nttBlockLength / n * 1;
         
         this.rng = rng;
         this.ntt = ntt;
@@ -94,28 +94,28 @@ public class NTTShamirPSS extends SecretSharing {
         int[] random = new int[length * (k - 1)];
         rng.fillBytesAsInts(random);
 
-        System.arraycopy(random, 0, tmp, blockCount, random.length);
+        System.arraycopy(random, 0, tmp, dataPerNTT, random.length);
         
         return tmp;
     }
     
     protected int[][] encode(int[] data) {
         
-        int resultSize = ((data.length / blockCount)+1)*blockCount;
+        int resultSize = ((data.length / dataPerNTT)+1)*shareSize;
 
         int[] encodedData = new int[nttBlockLength]; // initialized with 0
         int[][] output = new int[n][resultSize];
         
-        for (int i = 0; i < (data.length / blockCount)+1; i++) {
+        for (int i = 0; i < (data.length / dataPerNTT)+1; i++) {
             
-            int copyLength = (blockCount * (i+1) < data.length) ? blockCount : (data.length % blockCount);
-            int offset = i * blockCount;
+            int copyLength = (dataPerNTT * (i+1) < data.length) ? dataPerNTT : (data.length % dataPerNTT);
+            int offset = i * dataPerNTT;
             
             encodeData(encodedData, data, offset, copyLength);
             int[] conv = ntt.ntt(encodedData, generator);
             
             for (int j = 0; j < n; j++) {
-                System.arraycopy(conv, j*blockCount, output[j], i*blockCount, blockCount);
+                System.arraycopy(conv, j*shareSize, output[j], i*shareSize, shareSize);
             }
         }
         return output;
@@ -130,12 +130,12 @@ public class NTTShamirPSS extends SecretSharing {
         }
         
         int[][] encoded = encode(dataInt);
-        NTTShamirShare shares[] = new NTTShamirShare[n];
+        NTTShare shares[] = new NTTShare[n];
         
         try {
             for (int j = 0; j < n; j++) {
                 byte[] result = EncodingConverter.encodeAll(encoded[j], gf);
-                shares[j] = new NTTShamirShare((byte)(j+1), result, blockCount, data.length);
+                shares[j] = new NTTShare((byte)(j+1), result, shareSize, data.length);
             }
         } catch (InvalidParametersException ex) {
             throw new ImpossibleException("sharing failed (" + ex.getMessage() + ")");
@@ -164,19 +164,19 @@ public class NTTShamirPSS extends SecretSharing {
         
         Decoder decoder = decoderFactory.createDecoder(xValues, minLength);
 
-        for (int i = 0; i < length/blockCount; i++) {
+        for (int i = 0; i < length/shareSize; i++) {
             
             int yValues[] = new int[minLength];
             
             /* assume everything to be in the same order and xValues start with 1 */
             for (int j = 0; j < encoded.length; j++) {
-              System.arraycopy(encoded[j], i*blockCount, yValues, j*blockCount, blockCount);
+              System.arraycopy(encoded[j], i*shareSize, yValues, j*shareSize, shareSize);
             }
             
             int[] tmp = decoder.decode(yValues, 0);
             
-            int copyLength = blockCount;
-            if (blockCount > (origLength - resultPos)) {
+            int copyLength = dataPerNTT;
+            if (copyLength > (origLength - resultPos)) {
                 copyLength = origLength - resultPos;
             }
             
@@ -194,7 +194,7 @@ public class NTTShamirPSS extends SecretSharing {
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
         
         /* you cannot cast arrays to arrays of subtype in java7 */
-        NTTShamirShare[] sshares = Arrays.copyOf(shares, shares.length, NTTShamirShare[].class); // we need access to the inner fields
+        NTTShare[] sshares = Arrays.copyOf(shares, shares.length, NTTShare[].class); // we need access to the inner fields
         
         /* extract original length */
         int origLength = sshares[0].getOriginalLength();
@@ -220,11 +220,7 @@ public class NTTShamirPSS extends SecretSharing {
         }
         
         /* prepare xValues */
-        int[] selectedXValues = new int[shareCount * sshares.length];
-        for (int i = 0; i < sshares.length; i++) {
-            int offset = (sshares[i].getId() -1) * shareCount;
-            System.arraycopy(xValues, offset, selectedXValues, i*shareCount, shareCount);
-        }
+        int[] selectedXValues = setupXValues(shares, shareCount);
         
         try {
             int[] decoded = reconstruct(encoded, selectedXValues, origLength);
@@ -237,5 +233,14 @@ public class NTTShamirPSS extends SecretSharing {
         } catch (UnsolvableException ex) {
             throw new ReconstructionException(ex.getLocalizedMessage());
         }
+    }
+    
+    protected int[] setupXValues(Share[] sshares, int shareSize) {
+        int[] selectedXValues = new int[shareSize * sshares.length];
+        for (int i = 0; i < sshares.length; i++) {
+            int offset = (sshares[i].getId() -1) * shareSize;
+            System.arraycopy(xValues, offset, selectedXValues, i*shareSize, shareSize);
+        }
+        return selectedXValues;
     }
 }
