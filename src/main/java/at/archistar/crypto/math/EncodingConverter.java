@@ -35,6 +35,50 @@ public class EncodingConverter {
         this.gf = gf;
     }
     
+    public static int[] decodeAll(byte[] input, GF gf) {
+        
+        int[] output = new int[input.length];
+        int outputPos = 0;
+        
+        int readPosition = 0;
+        while (readPosition < input.length) {
+            int tmp = input[readPosition++];
+        
+            /* -1 == 0xff, I pray for an unsigned byte data type */
+            if (gf instanceof GF257 && tmp == -1) {
+                output[outputPos++] = input[readPosition++] + 255;
+            } else {
+                /* always use 256 as this is the byte conversion, not
+                * the conversion from GF(2^8) into whatever field we're
+                * using.
+                */
+                output[outputPos++] = (tmp < 0) ? tmp + 256 : tmp;
+            }
+        }
+        return Arrays.copyOf(output, outputPos);
+    }
+    
+    public static byte[] encodeAll(int[] input, GF gf) {
+        
+        byte[] output = new byte[input.length];
+        int outputPos = 0;
+        
+        int readPosition = 0;
+        while (readPosition < input.length) {
+            int tmp = input[readPosition++];
+            
+            if (gf instanceof GF257 && tmp >= 0xff) {
+                output = Arrays.copyOf(output, output.length +1);
+            
+                /* 0xff == -1 */
+                output[outputPos++] = (byte)-1;
+                tmp -= 255;
+            }
+            output[outputPos++] = (byte)(tmp & 0xff);
+        }
+        return Arrays.copyOf(output, outputPos);
+    }
+    
     /**
      * @return encoded data
      */

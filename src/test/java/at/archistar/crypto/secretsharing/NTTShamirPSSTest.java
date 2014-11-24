@@ -94,7 +94,8 @@ public class NTTShamirPSSTest {
 
         /* encode */
         NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
-        int[] encodedData = nttPSS.encodeData(data, 0, 1);        
+        int[] encodedData = new int[NTTBlockLength];
+        nttPSS.encodeData(encodedData, data, 0, 1);        
         int[] encoded = ntt.ntt(encodedData, generator);
         
         /* decode */
@@ -125,7 +126,8 @@ public class NTTShamirPSSTest {
 
         /* encode */
         NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
-        int[] encodedData = nttPSS.encodeData(data, 0, blockCount);
+        int[] encodedData = new int[NTTBlockLength];
+        nttPSS.encodeData(encodedData, data, 0, blockCount);
         int[] encoded = ntt.ntt(encodedData, generator);
         
         /* decode */
@@ -233,32 +235,4 @@ public class NTTShamirPSSTest {
         
         assertThat(result).isEqualTo(data);
     }
-    
-    @Test
-    public void performanceTest() throws WeakSecurityException, ReconstructionException {
-        
-        double sumShare = 0;
-        
-        int fileSize = 1024 * 128;
-        int count = 10;
-        
-        byte[] data = createDataByte(fileSize);
-        DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
-        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
-        
-        for (int i=0; i < count; i++) {
-        
-            long beforeShare = System.currentTimeMillis();
-            Share[] shares = nttPSS.share(data);
-            long betweenOperations = System.currentTimeMillis();
-        
-            sumShare += (betweenOperations - beforeShare);
-        }
-        
-        double testSize = ((double)fileSize)/1024 * count;
-        double shareSpeed = testSize / (sumShare / 1000.0);
-        
-        System.err.format("Performance(%dkB file size): share: %.3fkByte/sec\n", fileSize, shareSpeed);
-    }
-
 }

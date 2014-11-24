@@ -72,6 +72,9 @@ public class NTTShamirPSS extends SecretSharing {
     
     /**
      * prepare all possible xValues
+     * @param generator the generator to be sued
+     * @param gf within which gf should we compute the xValues
+     * @return an array of possible xValues
      */
     public static int[] prepareXValuesFor(int generator, GF gf) {
          
@@ -84,9 +87,7 @@ public class NTTShamirPSS extends SecretSharing {
         return tmp;
     }
     
-    protected int[] encodeData(int[] data, int offset, int length) {
-        int[] tmp = new int[nttBlockLength]; // initialized with 0
-
+    protected int[] encodeData(int tmp[], int[] data, int offset, int length) {
         System.arraycopy(data, offset, tmp, 0, length);
 
         /* (k-1) -- shamir uses 1 byte secret and (k-1) byte randomness */
@@ -101,14 +102,16 @@ public class NTTShamirPSS extends SecretSharing {
     protected int[][] encode(int[] data) {
         
         int resultSize = ((data.length / blockCount)+1)*blockCount;
-                
+
+        int[] encodedData = new int[nttBlockLength]; // initialized with 0
         int[][] output = new int[n][resultSize];
+        
         for (int i = 0; i < (data.length / blockCount)+1; i++) {
             
             int copyLength = (blockCount * (i+1) < data.length) ? blockCount : (data.length % blockCount);
             int offset = i * blockCount;
             
-            int[] encodedData = encodeData(data, offset, copyLength);
+            encodeData(encodedData, data, offset, copyLength);
             int[] conv = ntt.ntt(encodedData, generator);
             
             for (int j = 0; j < n; j++) {
@@ -126,26 +129,17 @@ public class NTTShamirPSS extends SecretSharing {
             dataInt[i] = (data[i] < 0) ? data[i]+256 : data[i];
         }
         
-        EncodingConverter output[] = new EncodingConverter[n];
-        for (int i = 0; i < n; i++) {
-            output[i] = new EncodingConverter(data.length, gf);
-        }
-       
         int[][] encoded = encode(dataInt);
-        
         NTTShamirShare shares[] = new NTTShamirShare[n];
-        for (int j = 0; j < n; j++) {
-            EncodingConverter ec = new EncodingConverter(encoded[j].length, gf);
-            for (int i = 0; i < encoded[j].length; i++) {
-                ec.append(encoded[j][i]);
-            }
-            try {
-                shares[j] = new NTTShamirShare((byte)(j+1), ec.getEncodedData(), blockCount, data.length);
-            } catch (InvalidParametersException ex) {
-                throw new ImpossibleException("sharing failed (" + ex.getMessage() + ")");
-            }
-        }
         
+        try {
+            for (int j = 0; j < n; j++) {
+                byte[] result = EncodingConverter.encodeAll(encoded[j], gf);
+                shares[j] = new NTTShamirShare((byte)(j+1), result, blockCount, data.length);
+            }
+        } catch (InvalidParametersException ex) {
+            throw new ImpossibleException("sharing failed (" + ex.getMessage() + ")");
+        }
         return shares;
     }
 
