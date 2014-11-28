@@ -18,7 +18,21 @@ import org.junit.runners.Parameterized;
  */
 @RunWith(value = Parameterized.class)
 public class NTTTest {
-    
+
+    /* existing nth primitive roots for GF(257) */
+    /* FIXME: we take first root from sage implementation. Future versions    */
+    /* should check if w is primitive nth root of unity for given vector      */
+    /* lenght or calculate it for the input field                             */
+    private final int[][] primitiveRootsOfUnity = new int[][] 
+        {{2, 256},  
+        {4, 241}, 
+        {8, 64},
+        {16, 249},
+        {32, 136},
+        {64, 81}, 
+        {128, 9},
+        {256, 3}};
+        
     @Parameterized.Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
         
@@ -55,17 +69,21 @@ public class NTTTest {
     
     @Test
     public void testRandomValues() {
-        int[] tmp = new int[4];
+        
+        int testcase = 7; // 256th root of unity is 3
+        int vecLen = primitiveRootsOfUnity[testcase][0];
+        int wLocal = primitiveRootsOfUnity[testcase][1];
+        
+        int[] tmp = new int[vecLen];
         Random random = new Random();
         
-        for (int i = 0; i < 1000; i++) {
-            tmp[0] = random.nextInt(257);
-            tmp[1] = random.nextInt(257);
-            tmp[2] = random.nextInt(257);
-            tmp[3] = random.nextInt(257);
+        for (int i = 0; i < 10; i++) {
+            for (int j =0; j < vecLen; j++) {
+                tmp[j] = random.nextInt(257);
+            }
             
-            int[] tmpOut = ntt.ntt(tmp, w);
-            assertThat(ntt.intt(tmpOut, w)).isEqualTo(tmp);
+            int[] tmpOut = ntt.ntt(tmp, wLocal);
+            assertThat(ntt.intt(tmpOut, wLocal)).isEqualTo(tmp);
         }
     }
 }
