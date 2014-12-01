@@ -15,6 +15,7 @@ import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.gf256.GF256Factory;
 import java.util.Arrays;
 
@@ -84,9 +85,9 @@ public class RabinIDS extends SecretSharing {
         try {
             /* compute share values */
             int coeffs[] = new int[k];
-            EncodingConverter output[] = new EncodingConverter[n];
+            OutputEncoderConverter output[] = new OutputEncoderConverter[n];
             for (int i = 0; i < n; i++) {
-                output[i] = new EncodingConverter((data.length + k -1)/k, gf);
+                output[i] = new OutputEncoderConverter((data.length + k -1)/k, gf);
             }
 
             for (int i = 0; i < data.length; i += k) {

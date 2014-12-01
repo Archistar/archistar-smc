@@ -108,5 +108,4 @@ public class NTTShamirPerformance {
             System.err.format("Performance(%s, %.1fkB fragment size): share: %.3fkByte/sec\n", description, fragmentSize, shareSpeed);
         }
     }
-
 }

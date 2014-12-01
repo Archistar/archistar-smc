@@ -1,11 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package at.archistar.crypto.random;
 
+import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA1Digest;
 import org.bouncycastle.crypto.prng.DigestRandomGenerator;
 
@@ -19,6 +14,10 @@ public class BCDigestRandomSource implements RandomSource {
     
     public BCDigestRandomSource() {
         this.drng = new DigestRandomGenerator(new SHA1Digest());
+    }
+    
+    public BCDigestRandomSource(Digest digest) {
+        this.drng = new DigestRandomGenerator(digest);
     }
 
     @Override

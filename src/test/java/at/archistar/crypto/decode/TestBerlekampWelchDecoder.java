@@ -6,7 +6,7 @@ import at.archistar.crypto.math.gf257.GF257Factory;
 import org.junit.Test;
 
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.random.SHA1PRNG;
+import at.archistar.crypto.random.JavaSecureRandom;
 import at.archistar.crypto.secretsharing.NTTShamirPSS;
 import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
 import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
@@ -33,7 +33,7 @@ public class TestBerlekampWelchDecoder {
     void generateRandomIntegerArray(int ret[], int n, int r) {
         assert (n <= r && r <= 256);
 
-        RandomSource rng = new SHA1PRNG();
+        RandomSource rng = new JavaSecureRandom();
         int num[] = new int[r];
 
         for (int i = 0; i < r; i++) {
@@ -61,7 +61,7 @@ public class TestBerlekampWelchDecoder {
      * @param f the number of faulty points
      */
     private void genRandomTest(int x[], int y[], int expected[], int coeffs, int n, int f) {
-        RandomSource rng = new SHA1PRNG();
+        RandomSource rng = new JavaSecureRandom();
         rng.fillBytesAsInts(expected);
 
         PolynomialGF2mSmallM poly = new PolynomialGF2mSmallM(new GF2mField(8, 0x11d), expected);

@@ -1,7 +1,6 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.BaseShare;
-import at.archistar.crypto.data.ByteUtils;
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
@@ -16,6 +15,7 @@ import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.RandomSource;
 import java.util.Arrays;
@@ -85,14 +85,14 @@ public class ShamirPSS extends SecretSharing {
                 xValues[i] = i+1;
             }
             
-            EncodingConverter output[] = new EncodingConverter[n];
+            OutputEncoderConverter output[] = new OutputEncoderConverter[n];
             for (int i = 0; i < n; i++) {
-                output[i] = new EncodingConverter(data.length, gf);
+                output[i] = new OutputEncoderConverter(data.length, gf);
             }
 
             /* calculate the x and y values for the shares */
             for (int i = 0; i < data.length; i++) {
-                int[] poly = createShamirPolynomial(ByteUtils.toUnsignedByte(data[i]), k-1); // generate a new random polynomial
+                int[] poly = createShamirPolynomial((byte)(data[i] & 0xff), k-1); // generate a new random polynomial
     
                 for (int j = 0; j < n; j++) {
                     output[j].append(gf.evaluateAt(poly, xValues[j]));

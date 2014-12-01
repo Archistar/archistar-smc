@@ -40,6 +40,6 @@ public abstract class BaseShare extends SerializableShare {
     
     @Override
     public int getId() {
-        return ByteUtils.toUnsignedByte(x);
+        return x;
     }
 }

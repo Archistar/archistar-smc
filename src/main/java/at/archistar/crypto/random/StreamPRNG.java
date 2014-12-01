@@ -9,7 +9,6 @@ import javax.crypto.KeyGenerator;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import at.archistar.crypto.exceptions.CryptoException;
-import at.archistar.crypto.data.ByteUtils;
 
 /**
  * This is a stream-cipher RNG outputting the key-stream of a stream-cipher as random numbers.<br>
@@ -81,7 +80,7 @@ public class StreamPRNG implements RandomSource {
             }
         } while ((b = cache[counter++]) == 0); // result must not be 0
         
-        return ByteUtils.toUnsignedByte(b);
+        return b & 0xff;
     }
     
     @Override

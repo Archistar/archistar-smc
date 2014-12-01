@@ -3,6 +3,8 @@ package at.archistar.crypto.random;
 import at.archistar.crypto.exceptions.CryptoException;
 import java.util.Arrays;
 import java.util.Collection;
+import org.bouncycastle.crypto.engines.HC128Engine;
+import org.bouncycastle.jcajce.provider.symmetric.Salsa20;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,8 +34,8 @@ public class RNGPerformanceTest {
             {new StreamPRNG(StreamPRNG.SALSA20)},
             {new StreamPRNG(StreamPRNG.HC128)},
             {new CTRPRNG()},
-            {new SHA1PRNG()},
-            {new BCDigestRandomSource()}
+            {new JavaSecureRandom()},
+            {new BCDigestRandomSource()},
         };
 
         return Arrays.asList(data);

@@ -12,6 +12,7 @@ import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.ntt.AbstractNTT;
 import at.archistar.crypto.random.RandomSource;
 import java.util.Arrays;
@@ -99,12 +100,15 @@ public class NTTShamirPSS extends SecretSharing {
         return tmp;
     }
     
-    protected int[][] encode(int[] data) {
+    protected OutputEncoderConverter[] encode(int[] data) {
         
         int resultSize = ((data.length / dataPerNTT)+1)*shareSize;
 
         int[] encodedData = new int[nttBlockLength]; // initialized with 0
-        int[][] output = new int[n][resultSize];
+        OutputEncoderConverter[] output = new OutputEncoderConverter[n];
+        for (int i = 0; i < n; i++) {
+            output[i] = new OutputEncoderConverter(resultSize, gf);
+        }
         
         for (int i = 0; i < (data.length / dataPerNTT)+1; i++) {
             
@@ -115,13 +119,12 @@ public class NTTShamirPSS extends SecretSharing {
             ntt.inplaceNTT(encodedData, generator);
             
             for (int j = 0; j < n; j++) {
-                System.arraycopy(encodedData, j*shareSize, output[j], i*shareSize, shareSize);
+                output[j].append(encodedData, j * shareSize, shareSize);
             }
         }
         return output;
     }
     
-    /* TODO: encode gf(257) -> byte ! */
     @Override
     public Share[] share(byte[] data) {
         int[] dataInt = new int[data.length];
@@ -129,14 +132,12 @@ public class NTTShamirPSS extends SecretSharing {
             dataInt[i] = (data[i] < 0) ? data[i]+256 : data[i];
         }
         
-        int[][] encoded = encode(dataInt);
-        
+        OutputEncoderConverter[] encoded = encode(dataInt);
         NTTShare shares[] = new NTTShare[n];
         
         try {
             for (int j = 0; j < n; j++) {
-                byte[] result = EncodingConverter.encodeAll(encoded[j], gf);
-                shares[j] = new NTTShare((byte)(j+1), result, shareSize, data.length);
+                shares[j] = new NTTShare((byte)(j+1), encoded[j].getEncodedData(), shareSize, data.length);
             }
         } catch (InvalidParametersException ex) {
             throw new ImpossibleException("sharing failed (" + ex.getMessage() + ")");

@@ -13,10 +13,6 @@ public class BCGFFactory implements GFFactory {
     
     private static final BCGF256 gf256 = new BCGF256();
     
-    static {
-        System.err.println("creating new BCGFfactory!");
-    }
-    
     @Override
     public GF createHelper() {
         return gf256;
