@@ -112,10 +112,10 @@ public class NTTShamirPSS extends SecretSharing {
             int offset = i * dataPerNTT;
             
             encodeData(encodedData, data, offset, copyLength);
-            int[] conv = ntt.ntt(encodedData, generator);
+            ntt.inplaceNTT(encodedData, generator);
             
             for (int j = 0; j < n; j++) {
-                System.arraycopy(conv, j*shareSize, output[j], i*shareSize, shareSize);
+                System.arraycopy(encodedData, j*shareSize, output[j], i*shareSize, shareSize);
             }
         }
         return output;
@@ -130,6 +130,7 @@ public class NTTShamirPSS extends SecretSharing {
         }
         
         int[][] encoded = encode(dataInt);
+        
         NTTShare shares[] = new NTTShare[n];
         
         try {

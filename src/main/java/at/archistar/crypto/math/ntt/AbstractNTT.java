@@ -15,6 +15,10 @@ public abstract class AbstractNTT {
     
     public abstract int[] ntt(int a[], int w);
     
+    public void inplaceNTT(int a[], int w) {
+        throw new RuntimeException("not implemented yet");
+    }
+    
     public int[] intt(int a[], int w) {
         int n = a.length;
         
@@ -26,9 +30,5 @@ public abstract class AbstractNTT {
         }
         
         return m;
-    }
-    
-    public int calcUnitySquare(int n) {
-        return 256;
     }
 }

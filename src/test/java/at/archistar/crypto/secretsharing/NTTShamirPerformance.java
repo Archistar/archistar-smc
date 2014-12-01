@@ -1,16 +1,15 @@
 package at.archistar.crypto.secretsharing;
 
-import at.archistar.crypto.TestHelper;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.bc.BCGF256;
 import at.archistar.crypto.math.gf256.GF256;
-import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.math.gf257.GF257;
 import at.archistar.crypto.math.gf257.GF257Factory;
 import at.archistar.crypto.math.ntt.AbstractNTT;
+import at.archistar.crypto.math.ntt.NTTDit2;
 import at.archistar.crypto.math.ntt.NTTSlow;
 import at.archistar.crypto.math.ntt.NTTTextbook;
 import at.archistar.crypto.random.FakeRandomSource;
@@ -66,16 +65,17 @@ public class NTTShamirPerformance {
         
         GFFactory gffactory = new GF257Factory();
         int generator = 3;
-        AbstractNTT nttSlow = new NTTSlow(gffactory.createHelper());
-        AbstractNTT nttTextbook = new NTTTextbook(gffactory.createHelper());
+        //AbstractNTT nttSlow = new NTTSlow(gffactory.createHelper());
+        //AbstractNTT nttTextbook = new NTTTextbook(gffactory.createHelper());
         DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
         
         Object[][] data = new Object[][]{
            {"shamir, gf256", secrets, new ShamirPSS(n, k, rng, decoderFactory, new GF256())},
            {"shamir, bcgf256", secrets, new ShamirPSS(n, k, rng, decoderFactory, new BCGF256())},
            {"shamir, gf257", secrets, new ShamirPSS(n, k, rng, decoderFactory, new GF257())},
-           {"ntt-shamir, gf257, NTTSlow", secrets, new NTTShamirPSS(n, k, generator, gffactory, rng, nttSlow, decoderFactory)},
-           {"ntt-shamir, gf257, NTTTextbook", secrets, new NTTShamirPSS(n, k, generator, gffactory, rng, nttTextbook, decoderFactory)},
+           //{"ntt-shamir, gf257, NTTSlow", secrets, new NTTShamirPSS(n, k, generator, gffactory, rng, nttSlow, decoderFactory)},
+           //{"ntt-shamir, gf257, NTTTextbook", secrets, new NTTShamirPSS(n, k, generator, gffactory, rng, nttTextbook, decoderFactory)},
+           {"ntt-shamir, gf257, NTTDit2", secrets, new NTTShamirPSS(n, k, generator, gffactory, rng, new NTTDit2(gffactory.createHelper()), decoderFactory)},
         };
 
         return Arrays.asList(data);

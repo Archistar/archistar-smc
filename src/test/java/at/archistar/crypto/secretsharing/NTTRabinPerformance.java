@@ -9,6 +9,7 @@ import at.archistar.crypto.math.gf256.GF256;
 import at.archistar.crypto.math.gf257.GF257;
 import at.archistar.crypto.math.gf257.GF257Factory;
 import at.archistar.crypto.math.ntt.AbstractNTT;
+import at.archistar.crypto.math.ntt.NTTDit2;
 import at.archistar.crypto.math.ntt.NTTSlow;
 import at.archistar.crypto.math.ntt.NTTTextbook;
 import java.security.NoSuchAlgorithmException;
@@ -69,6 +70,7 @@ public class NTTRabinPerformance {
            {"rabin, gf257", secrets, new RabinIDS(n, k, decoderFactory, new GF257())},
            {"ntt-rabin, gf257, NTTSlow", secrets, new NTTRabinIDS(n, k, generator, gffactory, nttSlow, decoderFactory)},
            {"ntt-rabin, gf257, NTTTextbook", secrets, new NTTRabinIDS(n, k, generator, gffactory, nttTextbook, decoderFactory)},
+           {"ntt-rabin, gf257, NTTDit2", secrets, new NTTRabinIDS(n, k, generator, gffactory, new NTTDit2(gffactory.createHelper()), decoderFactory)},
         };
 
         return Arrays.asList(data);

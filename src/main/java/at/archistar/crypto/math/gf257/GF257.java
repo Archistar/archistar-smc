@@ -104,4 +104,26 @@ public class GF257 implements GF {
     public int getFieldSize() {
         return 257;
     }
+    
+    private static final int primitiveRoots[][] = {
+        {2, 256},
+        {4, 241},
+        {8, 64},
+        {16, 249},
+        {32, 136},
+        {64, 81},
+        {128, 9},
+        {256, 3}
+    };
+    
+    public int primitiveRootOfUnity(int a) {
+        for (int[] primitiveRoot : primitiveRoots) {
+            if (primitiveRoot[0] == a) {
+                return primitiveRoot[1];
+            }
+        }
+        assert(false);
+        /* this can never happen -- assertion should be called before */
+        return 0;
+    }
 }

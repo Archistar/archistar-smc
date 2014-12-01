@@ -27,7 +27,7 @@ import at.archistar.crypto.math.GF;
  *                 (but definitively suitable for the <i>Archistar</i>-project)
  */
 public class GF256 implements GF {
-    private static final int GEN_POLY = 0x11D; // a generator polynomial of GF(256); 285
+    private static final int GEN_POLY = 0x11D; // a generator polynomial of GF(256)
     
     /* lookup-tables for faster operations */
     private static final int[] LOG_TABLE = new int[256]; // = log_g(index) (log base g)
