@@ -8,11 +8,10 @@ import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
-import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.math.GF;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.Encryptor;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -36,8 +35,11 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
  * @version 2014-7-28
  */
 public class KrawczykCSS extends BaseSecretSharing {
+    
     private final EncryptionAlgorithm alg = EncryptionAlgorithm.AES;
+    
     private final RandomSource rng;
+    
     private final BaseSecretSharing shamir;
     private final BaseSecretSharing rs;
     private final Encryptor cryptor;
@@ -49,46 +51,14 @@ public class KrawczykCSS extends BaseSecretSharing {
      * @param n the number of shares
      * @param k the minimum number of shares required for reconstruction
      * @param rng the RandomSource to be used for the underlying Shamir-scheme
-     * @throws WeakSecurityException thrown if this scheme is not secure for the given parameters
-     */
-    public KrawczykCSS(int n, int k, RandomSource rng) throws WeakSecurityException {
-        this(n, k, rng, new AESEncryptor());
-    }
-
-    /**
-     * Constructor
-     * (Applying the default settings for the Shamir-RNG and the decoders: {@link SHA1PRNG} and {@link ErasureDecoder})
-     * 
-     * @param n the number of shares
-     * @param k the minimum number of shares required for reconstruction
-     * @param rng the RandomSource to be used for the underlying Shamir-scheme
      * @param cryptor the to be used encryption algorithms
      * @throws WeakSecurityException thrown if this scheme is not secure for the given parameters
      */
-    public KrawczykCSS(int n, int k, RandomSource rng, Encryptor cryptor) throws WeakSecurityException {
+    public KrawczykCSS(int n, int k, RandomSource rng, Encryptor cryptor, DecoderFactory decFactory, GF gf) throws WeakSecurityException {
         super(n, k);
         
-        this.shamir = new ShamirPSS(n, k, rng); // use a SharmirSecretSharing share generator to share the key and the content
-        this.rs = new RabinIDS(n, k); // use RabinIDS for sharing Content 
-        this.cryptor = cryptor;
-        this.rng = rng;
-    }
-    
-        /**
-     * Constructor
-     * (Applying the default settings for the Shamir-RNG and the decoders: {@link SHA1PRNG} and {@link ErasureDecoder})
-     * 
-     * @param n the number of shares
-     * @param k the minimum number of shares required for reconstruction
-     * @param rng the RandomSource to be used for the underlying Shamir-scheme
-     * @param cryptor the to be used encryption algorithms
-     * @throws WeakSecurityException thrown if this scheme is not secure for the given parameters
-     */
-    public KrawczykCSS(int n, int k, RandomSource rng, Encryptor cryptor, DecoderFactory decFactory) throws WeakSecurityException {
-        super(n, k);
-        
-        this.shamir = new ShamirPSS(n, k, rng, decFactory); // use a SharmirSecretSharing share generator to share the key and the content
-        this.rs = new RabinIDS(n, k, decFactory); // use RabinIDS for sharing Content 
+        this.shamir = new ShamirPSS(n, k, rng, decFactory, gf); // use a SharmirSecretSharing share generator to share the key and the content
+        this.rs = new RabinIDS(n, k, decFactory, gf); // use RabinIDS for sharing Content 
         this.cryptor = cryptor;
         this.rng = rng;
     }
@@ -107,9 +77,9 @@ public class KrawczykCSS extends BaseSecretSharing {
 
             //Generate a new array of encrypted shares
             return createKrawczykShares((ShamirShare[]) keyShares, (ReedSolomonShare[]) contentShares, alg);
-        } catch (GeneralSecurityException | InvalidCipherTextException | IOException | ImpossibleException | InvalidParametersException e) { 
+        } catch (GeneralSecurityException | InvalidCipherTextException | IOException | InvalidParametersException e) { 
             // encryption should actually never fail
-            throw new ImpossibleException("sharing failed (" + e.getMessage() + ")");
+            throw new RuntimeException("impossible: sharing failed (" + e.getMessage() + ")");
         }
     }
 
@@ -124,7 +94,7 @@ public class KrawczykCSS extends BaseSecretSharing {
             return cryptor.decrypt(encShare, key);
         } catch (GeneralSecurityException | IOException | IllegalStateException | InvalidCipherTextException | InvalidParametersException e) {
             // dencryption should actually never fail
-            throw new ImpossibleException("reconstruction failed (" + e.getMessage() + ")");
+            throw new RuntimeException("impossible: reconstruction failed (" + e.getMessage() + ")");
         }
     }
 

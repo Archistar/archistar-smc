@@ -6,16 +6,13 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
-import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.DynamicOutputEncoderConverter;
 import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.StaticOutputEncoderConverter;
-import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.math.gf257.GF257;
 import static at.archistar.crypto.secretsharing.BaseSecretSharing.validateShareCount;
 import java.util.Arrays;
@@ -82,7 +79,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
             
             return createShares(xValues, output, data.length);
         } catch (InvalidParametersException ex) {
-            throw new ImpossibleException("share failed: " + ex.getMessage());
+            throw new RuntimeException("impossible: share failed: " + ex.getMessage());
         }
     }
     

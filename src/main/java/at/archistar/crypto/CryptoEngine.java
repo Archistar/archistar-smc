@@ -1,7 +1,6 @@
 package at.archistar.crypto;
 
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 
@@ -12,7 +11,7 @@ import at.archistar.crypto.exceptions.WeakSecurityException;
  */
 public interface CryptoEngine {
     
-    public abstract Share[] share(byte[] data) throws WeakSecurityException, ImpossibleException;
+    public abstract Share[] share(byte[] data) throws WeakSecurityException;
 
     public abstract byte[] reconstruct(Share[] shares) throws ReconstructionException;
 }

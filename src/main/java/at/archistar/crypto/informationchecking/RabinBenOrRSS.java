@@ -2,7 +2,6 @@ package at.archistar.crypto.informationchecking;
 
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.data.VSSShare;
-import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
@@ -38,7 +37,7 @@ public class RabinBenOrRSS implements InformationChecking {
         this.rng = rng;
         
         if (sharing instanceof RabinIDS) {
-            throw new ImpossibleException("Reed-Solomon-Code is not secure!");
+            throw new WeakSecurityException("Reed-Solomon-Code is not secure!");
         }
     }
     
@@ -55,7 +54,7 @@ public class RabinBenOrRSS implements InformationChecking {
                     share1.getMacs().put((byte) share2.getId(), tag);
                     share2.getMacKeys().put((byte) share1.getId(), key);
                 } catch (InvalidKeyException e) {
-                    throw new ImpossibleException("this cannot happen");
+                    throw new RuntimeException("this cannot happen");
                 }
             }
         }        

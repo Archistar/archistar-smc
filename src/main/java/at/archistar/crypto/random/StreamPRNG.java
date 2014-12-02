@@ -8,8 +8,6 @@ import javax.crypto.KeyGenerator;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import at.archistar.crypto.exceptions.CryptoException;
-
 /**
  * This is a stream-cipher RNG outputting the key-stream of a stream-cipher as random numbers.<br>
  * 
@@ -47,21 +45,17 @@ public class StreamPRNG implements RandomSource {
     /**
      * Constructor
      * @param algorithm the stream-cipher algorithm to use (do only pass constants of this class)
-     * @throws CryptoException thrown if initialization of the RNG failed
+     * @throws GeneralSecurityException thrown if initialization of the RNG failed
      */
-    public StreamPRNG(String algorithm) throws CryptoException {
-        try {
-            cipher = Cipher.getInstance(algorithm, "BC"); // we want implementations from bouncycastle
+    public StreamPRNG(String algorithm) throws GeneralSecurityException {
+        cipher = Cipher.getInstance(algorithm, "BC"); // we want implementations from bouncycastle
                 
-            KeyGenerator kgen = KeyGenerator.getInstance(algorithm, "BC");
-            cipher.init(Cipher.ENCRYPT_MODE, kgen.generateKey());
+        KeyGenerator kgen = KeyGenerator.getInstance(algorithm, "BC");
+        cipher.init(Cipher.ENCRYPT_MODE, kgen.generateKey());
                 
-            counter = 0;
+        counter = 0;
                 
-            fillCache();
-        } catch (GeneralSecurityException e) {
-            throw new CryptoException("initializing the RNG faild (" + e.getMessage() + ")");
-        }
+        fillCache();
     }
     
     /**

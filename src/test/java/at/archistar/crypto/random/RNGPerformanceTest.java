@@ -1,10 +1,8 @@
 package at.archistar.crypto.random;
 
-import at.archistar.crypto.exceptions.CryptoException;
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Collection;
-import org.bouncycastle.crypto.engines.HC128Engine;
-import org.bouncycastle.jcajce.provider.symmetric.Salsa20;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +26,7 @@ public class RNGPerformanceTest {
     }
 
     @Parameters
-    public static Collection<Object[]> data() throws CryptoException {
+    public static Collection<Object[]> data() throws GeneralSecurityException {
         Object[][] data = new Object[][]{
             {new FakeRandomSource()},
             {new StreamPRNG(StreamPRNG.SALSA20)},

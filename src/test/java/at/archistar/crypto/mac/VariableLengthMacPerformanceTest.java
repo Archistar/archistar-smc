@@ -1,6 +1,5 @@
 package at.archistar.crypto.mac;
 
-import at.archistar.crypto.exceptions.CryptoException;
 import at.archistar.crypto.informationchecking.CevallosUSRSS;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
@@ -21,7 +20,7 @@ public class VariableLengthMacPerformanceTest {
     
     private final int t;
 
-    public VariableLengthMacPerformanceTest(byte[] key, byte[] data, int t) throws CryptoException {
+    public VariableLengthMacPerformanceTest(byte[] key, byte[] data, int t) {
         this.key = key;
         this.data = data;
         this.t = t;
@@ -51,7 +50,7 @@ public class VariableLengthMacPerformanceTest {
     }
 
     @Test
-    public void testPerformanceCreateVariableLength() throws InvalidKeyException, NoSuchAlgorithmException {
+    public void testPerformanceCreateVariableLength() throws NoSuchAlgorithmException, InvalidKeyException  {
         
         MacHelper mac = new BCShortenedMacHelper(new BCPoly1305MacHelper(), CevallosUSRSS.computeTagLength(data.length, t, CevallosUSRSS.E));
         

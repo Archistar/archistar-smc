@@ -6,7 +6,6 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
-import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.DynamicOutputEncoderConverter;
@@ -53,7 +52,7 @@ public abstract class NTTSecretSharing extends BaseSecretSharing {
         this.gf = factory.createHelper();
         
         if (nttBlockLength != (gf.getFieldSize() -1)) {
-            throw new ImpossibleException("GF(n) must equal NTT(n+1)");
+            throw new RuntimeException("impossible: GF(n) must equal NTT(n+1)");
         }
         
         this.ntt = ntt;
@@ -134,7 +133,7 @@ public abstract class NTTSecretSharing extends BaseSecretSharing {
                 shares[j] = new NTTShare((byte)(j+1), encoded[j].getEncodedData(), shareSize, data.length);
             }
         } catch (InvalidParametersException ex) {
-            throw new ImpossibleException("sharing failed (" + ex.getMessage() + ")");
+            throw new RuntimeException("impossible: sharing failed (" + ex.getMessage() + ")");
         }
         return shares;
     }
@@ -151,7 +150,7 @@ public abstract class NTTSecretSharing extends BaseSecretSharing {
         int length = encoded[0].length;
         for (int i = 1; i < encoded.length; i++) {
             if (length != encoded[i].length) {
-                throw new ImpossibleException("encoded[" + i + "] length != encoded[0] length");
+                throw new RuntimeException("impossible: encoded[" + i + "] length != encoded[0] length");
             }
         }
         

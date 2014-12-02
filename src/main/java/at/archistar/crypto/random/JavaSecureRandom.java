@@ -3,8 +3,6 @@ package at.archistar.crypto.random;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
-import at.archistar.crypto.exceptions.ImpossibleException;
-
 /**
  * A wrapper class for the internal java PRNG
  * 
@@ -24,7 +22,7 @@ public class JavaSecureRandom implements RandomSource {
         try { 
             rng = SecureRandom.getInstance(ALGORITHM); 
         } catch (NoSuchAlgorithmException e) { // this should never happen
-            throw new ImpossibleException(e);
+            throw new RuntimeException(e);
         }
         
         rng.nextBoolean(); // force the rng to seed itself

@@ -44,7 +44,7 @@ public class RabinBenOrEngine implements CryptoEngine {
         MacHelper mac = new BCPoly1305MacHelper();
         DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
         Encryptor cryptor = new ChaCha20Encryptor();
-        this.sharing = new KrawczykCSS(n, k, rng, cryptor, decoderFactory);
+        this.sharing = new KrawczykCSS(n, k, rng, cryptor, decoderFactory, gffactory.createHelper());
         this.ic = new RabinBenOrRSS(sharing, mac, rng);
     }
     
@@ -53,7 +53,7 @@ public class RabinBenOrEngine implements CryptoEngine {
         MacHelper mac = new ShareMacHelper("HMacSHA256");
         DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
         Encryptor cryptor = new AESEncryptor();
-        this.sharing = new KrawczykCSS(n, k, rng, cryptor, decoderFactory);
+        this.sharing = new KrawczykCSS(n, k, rng, cryptor, decoderFactory, gffactory.createHelper());
         this.ic = new RabinBenOrRSS(sharing, mac, rng);
     }
 

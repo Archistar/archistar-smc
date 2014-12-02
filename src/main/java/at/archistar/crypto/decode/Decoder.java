@@ -1,7 +1,5 @@
 package at.archistar.crypto.decode;
 
-import at.archistar.crypto.exceptions.ImpossibleException;
-
 /**
  * Reconstruct/Decode a polynomial from n given points.
  * 

@@ -1,5 +1,6 @@
 package at.archistar.crypto;
 
+import at.archistar.TestHelper;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
@@ -41,7 +42,7 @@ public class EnginePerformanceTest {
         
         Object[][] data = new Object[][]{
            {secrets, new RabinBenOrEngine(4, 3, rng)},
-           {secrets, new CevallosEngine(5, 3, rng)}
+           {secrets, new RabinBenOrEngine(7, 3, rng)},
         };
 
         return Arrays.asList(data);

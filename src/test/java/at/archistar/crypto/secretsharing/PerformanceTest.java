@@ -1,9 +1,14 @@
 package at.archistar.crypto.secretsharing;
 
-import at.archistar.crypto.TestHelper;
+import at.archistar.TestHelper;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.decode.DecoderFactory;
+import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.ShareMacHelper;
+import at.archistar.crypto.math.GF;
+import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
@@ -46,12 +51,16 @@ public class PerformanceTest {
         RandomSource rng = new FakeRandomSource();
         ShareMacHelper mac = new ShareMacHelper("HMacSHA256");
         
+        GFFactory gffactory = new GF256Factory();
+        DecoderFactory df = new ErasureDecoderFactory(gffactory);
+        GF gf = gffactory.createHelper();
+        
         Object[][] data = new Object[][]{
-           {secrets, new ShamirPSS(n, k, rng)},
-           {secrets, new RabinIDS(n, k)},
-           {secrets, new KrawczykCSS(n, k, rng, new AESEncryptor())},
-           {secrets, new KrawczykCSS(n, k, rng, new AESGCMEncryptor())},
-           {secrets, new KrawczykCSS(n, k, rng, new ChaCha20Encryptor())}
+           {secrets, new ShamirPSS(n, k, rng, df, gf)},
+           {secrets, new RabinIDS(n, k, df, gf)},
+           {secrets, new KrawczykCSS(n, k, rng, new AESEncryptor(), df, gf)},
+           {secrets, new KrawczykCSS(n, k, rng, new AESGCMEncryptor(), df, gf)},
+           {secrets, new KrawczykCSS(n, k, rng, new ChaCha20Encryptor(), df, gf)}
         };
 
         return Arrays.asList(data);

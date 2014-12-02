@@ -4,14 +4,10 @@ import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
-import at.archistar.crypto.decode.ErasureDecoder;
-import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.OutputEncoderConverter;
-import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.RandomSource;
 import java.util.Arrays;
 
@@ -24,36 +20,6 @@ import java.util.Arrays;
 public class ShamirPSS extends GeometricSecretSharing {
     
     private final RandomSource rng;
-    
-    private static final GFFactory defaultGFFactory = new GF256Factory();
-    
-    private static final DecoderFactory defaultDecoderFactory = new ErasureDecoderFactory(defaultGFFactory);
-    
-    /**
-     * Constructor
-     * <p>(applying {@link ErasureDecoder} as default reconstruction algorithm)</p>
-     * 
-     * @param n the number of shares to create
-     * @param k the minimum number of shares required for reconstruction
-     * @param rng the source of randomness to use for generating the coefficients
-     * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
-     */
-    public ShamirPSS(int n, int k, RandomSource rng) throws WeakSecurityException {
-        this(n, k, rng, defaultDecoderFactory, defaultGFFactory.createHelper());
-    }
-    
-    /**
-     * Constructor
-     * 
-     * @param n the number of shares to create
-     * @param k the minimum number of shares required for reconstruction
-     * @param rng the source of randomness to use for generating the coefficients
-     * @param decoderFactory the solving algorithm to use for reconstructing the secret
-     * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
-     */
-    public ShamirPSS(int n, int k, RandomSource rng, DecoderFactory decoderFactory) throws WeakSecurityException {
-        this(n, k, rng, decoderFactory, defaultGFFactory.createHelper());
-    }
     
     /**
      * Constructor

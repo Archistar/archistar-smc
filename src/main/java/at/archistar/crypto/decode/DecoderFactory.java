@@ -2,7 +2,7 @@ package at.archistar.crypto.decode;
 
 /**
  * The different algorithms need decoders for the recombine step. Those decoders
- * are exchangeable and are examples of externaly configured dependencies. A
+ * are exchangeable and are examples of externally configured dependencies. A
  * decoder has a state dependent upon its initialization value (as provided by
  * the xValues) which would be typically a constructor parameter.
  * 

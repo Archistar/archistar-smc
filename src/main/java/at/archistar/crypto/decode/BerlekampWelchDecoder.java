@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFMatrix;
 import at.archistar.crypto.math.GFFactory;
@@ -66,7 +65,7 @@ public class BerlekampWelchDecoder implements Decoder {
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public int[] decode(int[] y, int errors) throws UnsolvableException {
         if (x.length != y.length) {
-            throw new ImpossibleException("Number of x-values does not equal number of y-values!");
+            throw new UnsolvableException("Number of x-values does not equal number of y-values!");
         }
         
         if (errors > this.f) {

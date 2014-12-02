@@ -1,6 +1,5 @@
 package at.archistar.crypto.mac;
 
-import at.archistar.crypto.exceptions.CryptoException;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import java.security.InvalidKeyException;
@@ -22,14 +21,14 @@ public class FixedLengthMacPerformanceTest {
     
     private final byte[] data;
 
-    public FixedLengthMacPerformanceTest(byte[] key, byte[] data, MacHelper mac) throws CryptoException {
+    public FixedLengthMacPerformanceTest(byte[] key, byte[] data, MacHelper mac) {
         this.mac = mac;
         this.key = key;
         this.data = data;
     }
 
     @Parameterized.Parameters
-    public static Collection<Object[]> data() throws CryptoException, NoSuchAlgorithmException {
+    public static Collection<Object[]> data() throws NoSuchAlgorithmException {
                 
         RandomSource rng = new FakeRandomSource();
 

@@ -5,8 +5,6 @@ import javax.crypto.KeyGenerator;
 
 import java.security.GeneralSecurityException;
 
-import at.archistar.crypto.exceptions.ImpossibleException;
-
 /**
  * This is a counter-mode-cipher RNG outputting the result of running a symmetric cipher in counter-mode.
  * 
@@ -27,21 +25,17 @@ public class CTRPRNG implements RandomSource {
     /**
      * Constructor
      */
-    public CTRPRNG() {
-        try {
-            cipher = Cipher.getInstance(ALGORITHM + PARAMS);
+    public CTRPRNG() throws GeneralSecurityException {
+        cipher = Cipher.getInstance(ALGORITHM + PARAMS);
             
-            KeyGenerator kgen = KeyGenerator.getInstance(ALGORITHM);
-            cipher.init(Cipher.ENCRYPT_MODE, kgen.generateKey());
+        KeyGenerator kgen = KeyGenerator.getInstance(ALGORITHM);
+        cipher.init(Cipher.ENCRYPT_MODE, kgen.generateKey());
             
-            state = kgen.generateKey().getEncoded(); // simply reuse the keygen to compute an IV
+        state = kgen.generateKey().getEncoded(); // simply reuse the keygen to compute an IV
             
-            counter = 0;
+        counter = 0;
             
-            fillCache();
-        } catch (GeneralSecurityException e) { // should never happen
-            throw new ImpossibleException(e);
-        }
+        fillCache();
     }
     
     /**

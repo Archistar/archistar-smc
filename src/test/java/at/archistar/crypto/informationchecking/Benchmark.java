@@ -1,13 +1,15 @@
 package at.archistar.crypto.informationchecking;
 
-import at.archistar.crypto.TestHelper;
-import at.archistar.crypto.secretsharing.PerformanceTest;
+import at.archistar.TestHelper;
 import at.archistar.crypto.data.SerializableShare;
 import at.archistar.crypto.data.VSSShare;
+import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.BCPoly1305MacHelper;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.mac.ShareMacHelper;
+import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.KrawczykCSS;
@@ -49,11 +51,12 @@ public class Benchmark {
         MacHelper mac = new ShareMacHelper("HMacSHA256");
         MacHelper macPoly1305 = new BCPoly1305MacHelper();
         
-        BaseSecretSharing secretSharing = new KrawczykCSS(5, 3, rng, new ChaCha20Encryptor());
+        GFFactory gffactory = new GF256Factory();
+        BaseSecretSharing secretSharing = new KrawczykCSS(5, 3, rng, new ChaCha20Encryptor(), new ErasureDecoderFactory(gffactory), gffactory.createHelper());
         
         Object[][] data = new Object[][]{
            {secrets, secretSharing, new CevallosUSRSS(secretSharing, mac, rng)},
-           {secrets, secretSharing, new RabinBenOrRSS(secretSharing, macPoly1305, rng)},
+           {secrets, secretSharing, new CevallosUSRSS(secretSharing, macPoly1305, rng)},
            {secrets, secretSharing, new RabinBenOrRSS(secretSharing, mac, rng)},
            {secrets, secretSharing, new RabinBenOrRSS(secretSharing, macPoly1305, rng)}
         };
