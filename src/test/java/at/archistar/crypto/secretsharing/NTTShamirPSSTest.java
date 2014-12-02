@@ -1,13 +1,16 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
 import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
+import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.gf257.GF257Factory;
 import at.archistar.crypto.math.ntt.AbstractNTT;
 import at.archistar.crypto.math.ntt.NTTSlow;
@@ -156,6 +159,7 @@ public class NTTShamirPSSTest {
 
     /**
      * test with odd data count
+     */
     @Test
     public void testUngeradeDatenMenge() throws UnsolvableException, WeakSecurityException {
         
@@ -168,13 +172,15 @@ public class NTTShamirPSSTest {
         NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
         OutputEncoderConverter[] output = nttPSS.encode(data);
         
-        /* copy k Elements 
-        byte[][] tmp = new byte[k][];
+        /* copy k Elements */
+        int[][] tmp = new int[k][];
         for(int i = 0; i < k; i++) {
-            tmp[i] = output[i].getEncodedData();
+            tmp[i] = new EncodingConverter(output[i].getEncodedData(), gf).getDecodedData();
         }
         
-        int[] result = nttPSS.reconstruct(resultOutput, resultXValues, data.length);
+        int[] result = nttPSS.reconstruct(tmp, resultXValues, data.length);
+        
+        //int[] result = nttPSS.reconstruct(resultOutput, resultXValues, data.length);
         assertThat(result).isEqualTo(data);
     }
     
@@ -187,11 +193,18 @@ public class NTTShamirPSSTest {
         DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
         
         NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
-        int[][] output = nttPSS.encode(data);
         
-        /* copy k Elements 
+        OutputEncoderConverter[] output = nttPSS.encode(data);
+        
+        /* copy k Elements */
+        int[][] tmp = new int[k][];
+        for(int i = 0; i < k; i++) {
+            tmp[i] = new EncodingConverter(output[i].getEncodedData(), gf).getDecodedData();
+        }
+        
+        /* copy k Elements */
         int[][] resultOutput = new int[k][];
-        System.arraycopy(output, 0, resultOutput, 0, k);
+        System.arraycopy(tmp, 0, resultOutput, 0, k);
         
         int[] result = nttPSS.reconstruct(resultOutput, resultXValues, data.length);
         assertThat(result).isEqualTo(data);
@@ -207,16 +220,22 @@ public class NTTShamirPSSTest {
         DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory(gffactory);
         
         NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
+
+        OutputEncoderConverter[] output = nttPSS.encode(data);
         
-        int[][] output = nttPSS.encode(data);
+        /* copy k Elements */
+        int[][] tmp = new int[k][];
+        for(int i = 0; i < k; i++) {
+            tmp[i] = new EncodingConverter(output[i].getEncodedData(), gf).getDecodedData();
+        }
         
-        /* copy k Elements 
+        /* copy k Elements */
         int[][] resultOutput = new int[k][];
-        System.arraycopy(output, 0, resultOutput, 0, k);
+        System.arraycopy(tmp, 0, resultOutput, 0, k);
         
         int[] result = nttPSS.reconstruct(resultOutput, resultXValues, data.length);
         assertThat(result).isEqualTo(data);
-    }*/
+    }
     
     @Test
     public void shareReconstructCycle() throws WeakSecurityException, ReconstructionException {

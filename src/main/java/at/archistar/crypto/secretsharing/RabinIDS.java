@@ -1,14 +1,14 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.InvalidParametersException;
-import at.archistar.crypto.data.ReedSolomonShare;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.ShareFactory;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.OutputEncoderConverter;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>This class implements the <i>Rabin IDS</i> (also called <i>Reed Solomon Code</i>) scheme.</p>
@@ -43,6 +43,9 @@ public class RabinIDS extends GeometricSecretSharing {
     
     @Override
     protected void encodeData(int coeffs[], byte[] data, int offset, int length) {
+        
+        /* TODO: replace with array copy */
+        
         for (int j = 0; j < k; j++) {
             // let k coefficients be the secret in this polynomial
             // todo: optimize, use array copy
@@ -61,31 +64,25 @@ public class RabinIDS extends GeometricSecretSharing {
         }
         return offset;
     }
+    
+    private static final byte KEY_ORIGINAL_LENGTH = 1;
 
     @Override
     protected Share[] createShares(int[] xValues, OutputEncoderConverter[] results, int originalLength) throws InvalidParametersException {
-        ReedSolomonShare shares[] = new ReedSolomonShare[n];
+        
+        Share shares[] = new Share[n];
+        Map<Byte, Integer> metadata = new HashMap<>();
+        metadata.put(KEY_ORIGINAL_LENGTH, originalLength);
         
         for (int i = 0; i < n; i++) {
-            shares[i] = new ReedSolomonShare((byte)xValues[i], results[i].getEncodedData(), originalLength);
+            shares[i] = ShareFactory.create(Share.ShareType.REED_SOLOMON, (byte)xValues[i], results[i].getEncodedData(), metadata);
         }
 
         return shares;
     }
 
     @Override
-    protected EncodingConverter[] prepareInput(Share[] shares) {
-        ReedSolomonShare[] rsshares = Arrays.copyOf(shares, shares.length, ReedSolomonShare[].class);
-            
-        EncodingConverter input[] = new EncodingConverter[shares.length];
-        for (int i = 0; i < shares.length; i++) {
-            input[i] = new EncodingConverter(rsshares[i].getY(), gf);
-        }
-        return input;
-    }
-
-    @Override
     protected int retrieveInputLength(Share[] shares) {
-        return ((ReedSolomonShare)shares[0]).getOriginalLength();
+        return shares[0].getMetadata(KEY_ORIGINAL_LENGTH);
     }
 }

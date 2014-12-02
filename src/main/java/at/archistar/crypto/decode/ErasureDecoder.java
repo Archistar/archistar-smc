@@ -19,10 +19,10 @@ public class ErasureDecoder implements Decoder {
         this.k = k;
         GF gf = gffactory.createHelper();
         
-        int[][] matrixX = new int[xValues.length][xValues.length];
+        int[][] matrixX = new int[k][k];
 
-        for (int i = 0; i < xValues.length; i++) {
-            for (int j = 0; j < xValues.length; j++) {
+        for (int i = 0; i < k; i++) {
+            for (int j = 0; j < k; j++) {
                 matrixX[i][j] = gf.pow(xValues[i], j);
             }
         }

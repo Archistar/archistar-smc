@@ -1,162 +1,92 @@
 package at.archistar.crypto.data;
 
-import at.archistar.crypto.data.Share.Algorithm;
-import at.archistar.crypto.secretsharing.KrawczykCSS;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.DataInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Represents a share for {@link KrawczykCSS}.
+ *
+ * @author andy
  */
-public final class KrawczykShare extends BaseShare implements Comparable<KrawczykShare>{
-
-    @Override
-    public int compareTo(KrawczykShare t) {
-        if (t.getId() == getId() && Arrays.equals(t.getY(), getY()) &&
-                t.getOriginalLength() == getOriginalLength() &&
-                Arrays.equals(t.getKeyY(), getKeyY())) {
-            return 0;
-        } else {
-            return t.getId() - getId();
-        }
-    }
-
-    /**
-     * <p>Identifier for the algorithm used for encrypting the content of this share.</p>
-     * 
-     * Provides a method to get the corresponding Java-crypto-parameter-String for a identifier.
-     */
-    public static enum EncryptionAlgorithm {
-        AES("AES/CBC/PKCS5Padding"),
-        AES_GCM_256("AES/GCM/NoPadding");
-        
-        private final String algString;
-
-        private EncryptionAlgorithm(String algString) { this.algString = algString; }
+public class KrawczykShare extends Share {
     
-        public String getAlgString() { return algString; }
-    }
+    public static final byte KEY_ORIGINAL_LENGTH = 1;
     
-    private final int originalLength;
-    private final byte[] keyY;
-    private final EncryptionAlgorithm alg;
+    public static final byte KEY_ENC_ALGORITHM = 2;
     
-    /**
-     * Constructor
-     * 
-     * @param x the x-value (also identifier) of this share
-     * @param y the y-values of this share
-     * @param originalLength the original length of the shared data
-     * @param keyY the y-values of the shared key
-     * @param alg the algorithm used for encrypting the content
-     * @throws InvalidParametersException if validation failed ({@link #validateShare()})
-     */
+    private final byte[] key;
+
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public KrawczykShare(byte x, byte[] y, int originalLength, byte[] keyY, EncryptionAlgorithm alg) throws InvalidParametersException {
-        super(x, y);
-        this.originalLength = originalLength;
-        this.keyY = keyY;
-        this.alg = alg;
-        
-        if (!isValid()) {
-            throw new InvalidParametersException();
-        }
+    KrawczykShare(byte id, byte[] key, byte[] share, Map<Byte, Integer> metadata, ICType ic, Map<Byte, byte[]> macKeys, Map<Byte, byte[]> macs) throws InvalidParametersException {
+        super(ShareType.KRAWCZYK, id, share, metadata, ic, macKeys, macs);
+        this.key = key;
+    }
+
+    KrawczykShare(byte id, byte[] key, byte[] yVals, Map<Byte, Integer> metadata) {
+        super(ShareType.KRAWCZYK, id, yVals, metadata, ICType.NONE, new HashMap<Byte, byte[]>(), new HashMap<Byte, byte[]>());
+        this.key = key;
     }
     
-    /**
-     * Tries to de-serialize a serialized Share.
-     * 
-     * @param in the serialized data
-     * @param version the expected version (as read from the header)
-     * @param x the xValue/key of the share
-     * @return the de-serialized share
-     * @throws IOException in case share wasn't deserializable
-     */
-    public static KrawczykShare deserialize(DataInputStream in, int version, byte x) throws IOException, InvalidParametersException {
-
-        byte algOrdinal = in.readByte();
-        if (algOrdinal < 0 || algOrdinal > (EncryptionAlgorithm.values().length - 1)) {
-            throw new IllegalArgumentException("encryption algorithm does not exist");
-        }
-        EncryptionAlgorithm alg = EncryptionAlgorithm.values()[algOrdinal];
-
-        int originalLength = in.readInt();
-        int yLength = in.readInt();
-        
-        byte[] tmpY = new byte[yLength];
-        assert in.read(tmpY) == yLength;
-        
-        int keyYLength = in.readInt();
-        
-        byte[] tmpYKey = new byte[keyYLength];
-        assert in.read(tmpYKey) == keyYLength;
-        
-        return new KrawczykShare(x, tmpY, originalLength, tmpYKey, alg);
-    }
-
-    @Override
-    public Algorithm getAlgorithm() {
-        return Algorithm.KRAWCZYK;
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public byte[] getKey() {
+        return this.key;
     }
     
     @Override
-    public void serializeBody(DataOutputStream os) throws IOException {
-        os.writeByte((byte) alg.ordinal());
-        os.writeInt(originalLength);
-        os.writeInt(y.length);
-        os.write(y);
-        os.writeInt(keyY.length);
-        os.write(keyY);
+    protected byte[] getBody() throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        DataOutputStream sout = new DataOutputStream(out);
+        
+        sout.writeInt(yValues.length);
+        sout.writeInt(key.length);
+        sout.write(yValues);
+        sout.write(key);
+        
+        return out.toByteArray();
     }
     
-    /**
-     * Validates this share by checking if:
-     * <ul>
-     *  <li>x is not 0
-     *  <li>y is not null
-     *  <li>originalLength is larger than 0
-     *  <li>keyY is not null
-     *  <li>alg is not null
-     * </ul>
-     * @return true if share is valid
-     */
     @Override
     public boolean isValid() {
-        return !(x == 0 || y == null || originalLength <= 0 || keyY == null || alg == null);
-    }
-    
-    /* TODO: those two actually return a reference to the array, not
-     *       sure that we want this security-wise, but performance
-     *       might make this mandatory */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public byte[] getKeyY() {
-        return keyY;
-    }
-
-    public int getOriginalLength() {
-        return originalLength;
-    }
-    
-    public EncryptionAlgorithm getEncryptionAlgorithm() {
-        return alg;
+        return super.isValid() && key != null &&  metadata.containsKey(KEY_ENC_ALGORITHM) && metadata.containsKey(KEY_ORIGINAL_LENGTH);
     }
     
     @Override
+    public int compareTo(Share t) {
+        int parentResult = super.compareTo(t);
+        
+        if (parentResult == 0) {
+            /* this actually must be the case! */
+            if (t instanceof KrawczykShare) {
+                if (Arrays.equals(key, ((KrawczykShare)t).key)) {
+                    return 0;
+                } else {
+                    return t.id - id;
+                }
+            } else {
+                throw new RuntimeException("how can this even be?");
+            }
+        } else {
+            return parentResult;
+        }
+    }
+    
+    @Override
+    @SuppressFBWarnings("EQ_OVERRIDING_EQUALS_NOT_SYMMETRIC")
     public boolean equals(Object o) {
         if (o instanceof KrawczykShare) {
-            return compareTo((KrawczykShare)o) == 0;
+            return ((KrawczykShare)o).compareTo(this) == 0;
         } else {
             return false;
         }
     }
-
+    
     @Override
     public int hashCode() {
-        assert false : "hashCode not designed";
+        assert false : "hashCode not implemented";
         return 42;
     }
-
 }

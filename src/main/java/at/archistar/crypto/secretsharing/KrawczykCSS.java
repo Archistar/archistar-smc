@@ -2,20 +2,26 @@ package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.KrawczykShare;
-import at.archistar.crypto.data.KrawczykShare.EncryptionAlgorithm;
-import at.archistar.crypto.data.ReedSolomonShare;
-import at.archistar.crypto.data.ShamirShare;
+import static at.archistar.crypto.data.KrawczykShare.KEY_ENC_ALGORITHM;
+import static at.archistar.crypto.data.KrawczykShare.KEY_ORIGINAL_LENGTH;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.ShareFactory;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.math.DynamicOutputEncoderConverter;
+import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
+import at.archistar.crypto.math.OutputEncoderConverter;
+import at.archistar.crypto.math.StaticOutputEncoderConverter;
+import at.archistar.crypto.math.gf257.GF257;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.Encryptor;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 /**
@@ -26,23 +32,18 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
  * 
  * <p>For detailed information about this scheme, see: 
  * <a href="http://courses.csail.mit.edu/6.857/2009/handouts/short-krawczyk.pdf">http://courses.csail.mit.edu/6.857/2009/handouts/short-krawczyk.pdf</a></p>
- * 
- * <p><b>NOTE:</b> This implementation uses <i>AES-128 in CBC-mode with PKCS5Padding</i> for encrypting the secret.</p>
- * 
- * @author Elias Frantar
- * @author Andreas Happe <andreashappe@snikt.net>
- * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
- * @version 2014-7-28
  */
 public class KrawczykCSS extends BaseSecretSharing {
     
-    private final EncryptionAlgorithm alg = EncryptionAlgorithm.AES;
-    
     private final RandomSource rng;
     
-    private final BaseSecretSharing shamir;
-    private final BaseSecretSharing rs;
+    private final GeometricSecretSharing shamir;
+    
+    private final GeometricSecretSharing rs;
+    
     private final Encryptor cryptor;
+    
+    private final GF gf;
     
     /**
      * Constructor
@@ -61,6 +62,7 @@ public class KrawczykCSS extends BaseSecretSharing {
         this.rs = new RabinIDS(n, k, decFactory, gf); // use RabinIDS for sharing Content 
         this.cryptor = cryptor;
         this.rng = rng;
+        this.gf = gf;
     }
     
     @Override
@@ -72,12 +74,39 @@ public class KrawczykCSS extends BaseSecretSharing {
             byte[] encSource =  cryptor.encrypt(data, encKey);
 
             /* share key and content */
-            Share[] contentShares = rs.share(encSource); // since the content is encrypted the share does not have to be perfectly secure (-> Reed-Solomon-Code)
-            Share[] keyShares = shamir.share(encKey);
+            OutputEncoderConverter outputContent[] = new OutputEncoderConverter[n];
+            OutputEncoderConverter outputKey[] = new OutputEncoderConverter[n];
+            for (int i = 0; i < n; i++) {
+                if (gf instanceof GF257) {
+                    outputKey[i] = new DynamicOutputEncoderConverter(encKey.length, gf);
+                    outputContent[i] = new DynamicOutputEncoderConverter(data.length, gf);
+                } else {                
+                    outputKey[i] = new StaticOutputEncoderConverter(encKey.length);
+                    outputContent[i] = new StaticOutputEncoderConverter(data.length);
+                }
+            }
 
+            rs.share(outputContent, encSource);
+            shamir.share(outputKey, encKey);
+            
             //Generate a new array of encrypted shares
-            return createKrawczykShares((ShamirShare[]) keyShares, (ReedSolomonShare[]) contentShares, alg);
-        } catch (GeneralSecurityException | InvalidCipherTextException | IOException | InvalidParametersException e) { 
+            Share[] kshares = new Share[n];
+            for (int i = 0; i < kshares.length; i++) {
+                Map<Byte, Integer> metadata = new HashMap<>();
+                /* TODO: add encryptor, keylength, etc. */
+                metadata.put(KEY_ORIGINAL_LENGTH, encSource.length);
+                
+                /** TODO: need to enumerate crypto algorithm somewhere */
+                metadata.put(KEY_ENC_ALGORITHM, 1);
+                
+                kshares[i] = ShareFactory.createKrawczyk((byte)(i+1),
+                                               outputKey[i].getEncodedData(),
+                                               outputContent[i].getEncodedData(),
+                                               metadata);
+            }
+
+            return kshares;
+        } catch (GeneralSecurityException | InvalidCipherTextException | IOException | InvalidParametersException e) {
             // encryption should actually never fail
             throw new RuntimeException("impossible: sharing failed (" + e.getMessage() + ")");
         }
@@ -85,65 +114,31 @@ public class KrawczykCSS extends BaseSecretSharing {
 
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
+        
+        if (shares.length < k) {
+            throw new ReconstructionException("to few shares");
+        }
+        
         try {
-            KrawczykShare[] kshares = Arrays.copyOf(shares, shares.length, KrawczykShare[].class);
-
-            byte[] key = shamir.reconstruct(extractKeyShares(kshares)); // reconstruct the key
-            byte[] encShare = rs.reconstruct(extractContentShares(kshares)); // reconstruct the encrypted share
+            int[] xValues = GeometricSecretSharing.extractXVals(shares);
+            int originalLengthKey = ((KrawczykShare)shares[0]).getKey().length;
+            int originalLengthContent = shares[0].getMetadata(KrawczykShare.KEY_ORIGINAL_LENGTH);
+            
+            EncodingConverter[] ecKey = new EncodingConverter[shares.length];
+            EncodingConverter[] ecContent = new EncodingConverter[shares.length];
+            for (int i = 0; i < shares.length; i++) {
+                ecKey[i] = new EncodingConverter(((KrawczykShare)shares[i]).getKey(), gf);
+                ecContent[i] = new EncodingConverter(shares[i].getYValues(), gf);
+            }
+            
+            byte[] key = shamir.reconstruct(ecKey, xValues, originalLengthKey);
+            byte[] encShare = rs.reconstruct(ecContent, xValues, originalLengthContent);
             
             return cryptor.decrypt(encShare, key);
-        } catch (GeneralSecurityException | IOException | IllegalStateException | InvalidCipherTextException | InvalidParametersException e) {
+        } catch (GeneralSecurityException | IOException | IllegalStateException | InvalidCipherTextException e) {
             // dencryption should actually never fail
             throw new RuntimeException("impossible: reconstruction failed (" + e.getMessage() + ")");
         }
-    }
-
-    /**
-     * Create <i>n</i> KrawczykShares from the given Shamir- and Reed-Solomon shares.
-     * @param sshares the ShamirShares (key-shares)
-     * @param rsshares the ReedSolomonShares (content-shares)
-     * @param algorithm the algorithm used for encryption
-     * @return an array with the created shares
-     */
-    private static KrawczykShare[] createKrawczykShares(ShamirShare[] sshares, ReedSolomonShare[] rsshares, EncryptionAlgorithm algorithm) throws InvalidParametersException {
-        assert sshares.length == rsshares.length; // both Share[] must have the same length
-        
-        KrawczykShare[] kshares = new KrawczykShare[sshares.length];
-        for (int i = 0; i < kshares.length; i++) {
-            kshares[i] = new KrawczykShare((byte) rsshares[i].getId(), rsshares[i].getY(), rsshares[i].getOriginalLength(), sshares[i].getY(), algorithm);
-        }
-        
-        return kshares;
-    }
-    
-    /**
-     * Extracts the key-shares from the given KrawczykShares.
-     * @param kshares the shares to extract the key-shares from
-     * @return an array of the extracted key-shares
-     */
-    private static ShamirShare[] extractKeyShares(KrawczykShare[] kshares) throws InvalidParametersException {
-        ShamirShare[] sshares = new ShamirShare[kshares.length];
-        
-        for (int i = 0; i < kshares.length; i++) {
-            sshares[i] = new ShamirShare((byte) kshares[i].getId(), kshares[i].getKeyY());
-        }
-        
-        return sshares;
-    }
-    
-    /**
-     * Extracts the content-shares from the given KrawczykShares.
-     * @param kshares the shares to extract the content-shares from
-     * @return an array of the extracted content-shares
-     */
-    private static ReedSolomonShare[] extractContentShares(KrawczykShare[] kshares) throws InvalidParametersException {
-        ReedSolomonShare[] rsshares = new ReedSolomonShare[kshares.length];
-        
-        for (int i = 0; i < kshares.length; i++) {
-            rsshares[i] = new ReedSolomonShare((byte) kshares[i].getId(), kshares[i].getY(), kshares[i].getOriginalLength());
-        }
-        
-        return rsshares;
     }
     
     @Override

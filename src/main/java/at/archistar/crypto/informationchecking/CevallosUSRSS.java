@@ -1,7 +1,6 @@
 package at.archistar.crypto.informationchecking;
 
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.data.VSSShare;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
@@ -43,7 +42,7 @@ public class CevallosUSRSS extends RabinBenOrRSS {
     }
     
     @Override
-    public Share[] checkShares(VSSShare[] cshares) throws IOException {
+    public Share[] checkShares(Share[] cshares) throws IOException {
         
         Queue<Integer> queue = new LinkedList<>();
         List<Share> valid = new LinkedList<>();
@@ -55,9 +54,12 @@ public class CevallosUSRSS extends RabinBenOrRSS {
         boolean[][] accepts = new boolean[n + 1][n + 1];
         int a[] = new int[n + 1];
         
-        for (VSSShare s1 : cshares) {
-            for (VSSShare s2 : cshares) {
-                byte[] data = s1.getShare().serialize();
+        for (Share s1 : cshares) {
+            
+            s1.setInformationChecking(Share.ICType.CEVALLOS);
+            
+            for (Share s2 : cshares) {
+                byte[] data = s1.getSerializedForHashing();
                 byte[] mac1 = s1.getMacs().get((byte) s2.getId());
                 byte[] mac2 = s2.getMacKeys().get((byte) s1.getId());
                 
@@ -67,7 +69,7 @@ public class CevallosUSRSS extends RabinBenOrRSS {
                 }
             }
             if (a[s1.getId()] < k) {
-                queue.add(s1.getId());
+                queue.add((int)s1.getId());
             } else {
                 valid.add(s1);
             }
@@ -80,7 +82,7 @@ public class CevallosUSRSS extends RabinBenOrRSS {
                 if (accepts[s2.getId()][s1id]) {
                     a[s2.getId()]--;
                     if (a[s2.getId()] < k) {
-                        queue.add(s2.getId());
+                        queue.add((int)s2.getId());
                         it.remove();
                     }
                 }

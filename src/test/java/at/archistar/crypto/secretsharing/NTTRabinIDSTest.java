@@ -10,6 +10,7 @@ import at.archistar.crypto.math.gf257.GF257Factory;
 import at.archistar.crypto.math.ntt.AbstractNTT;
 import at.archistar.crypto.math.ntt.NTTSlow;
 import static org.fest.assertions.api.Assertions.assertThat;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -18,19 +19,31 @@ import org.junit.Test;
  */
 public class NTTRabinIDSTest {
     
-    private static final GF257Factory gffactory = new GF257Factory();
-    
-    private static final GF gf = gffactory.createHelper();
-    
-    private static final int n = 4;
-    
-    private static final int k = 3;
-    
     private static final int generator = 3;
     
-    private static final AbstractNTT ntt = new NTTSlow(gf);
+    private SecretSharing algorithm;
     
+    private final int n;
+    
+    private final int k;
+    
+    public NTTRabinIDSTest() {
+        //super(4, 3);
+        n = 4;
+        k = 3;
+    }
+    
+    @Before
+    public void setup() throws WeakSecurityException {
+        GF257Factory gffactory = new GF257Factory();
+        DecoderFactory df = new ErasureDecoderFactory(gffactory);
+        GF gf = gffactory.createHelper();
+        AbstractNTT ntt = new NTTSlow(gf);
+        algorithm = new NTTRabinIDS(n, k, generator, gffactory, ntt, df);
+    }
+
     private byte[] createDataByte(int size) {
+                
         byte[] tmp = new byte[size];
         
         /* prepare test data */
@@ -42,19 +55,16 @@ public class NTTRabinIDSTest {
     
     @Test
     public void shareReconstructCycle() throws WeakSecurityException, ReconstructionException {
-        byte[] data = createDataByte(4096);
-        DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
+        byte[] data2 = createDataByte(4096);
         
-        BaseSecretSharing nttPSS = new NTTRabinIDS(n, k, generator, gffactory, ntt, decoderFactory);
-        
-        Share[] shares = nttPSS.share(data);
+        Share[] shares = algorithm.share(data2);
         
         /* take k shares */
         Share[] kShares = new Share[k];
         System.arraycopy(shares, 0, kShares, 0, k);
         
-        byte[] result = nttPSS.reconstruct(kShares);
+        byte[] result = algorithm.reconstruct(kShares);
         
-        assertThat(result).isEqualTo(data);
+        assertThat(result).isEqualTo(data2);
     }
 }

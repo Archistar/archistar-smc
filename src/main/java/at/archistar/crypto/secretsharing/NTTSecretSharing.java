@@ -1,8 +1,9 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.InvalidParametersException;
-import at.archistar.crypto.data.NTTShare;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.Share.ShareType;
+import at.archistar.crypto.data.ShareFactory;
 import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
@@ -15,6 +16,8 @@ import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.ntt.AbstractNTT;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -126,18 +129,24 @@ public abstract class NTTSecretSharing extends BaseSecretSharing {
         }
         
         OutputEncoderConverter[] encoded = encode(dataInt);
-        NTTShare shares[] = new NTTShare[n];
+        Share shares[] = new Share[n];
+        Map<Byte, Integer> metadata = new HashMap<>();
+        metadata.put(KEY_SHARE_SIZE, shareSize);
+        metadata.put(KEY_ORIGINAL_LENGTH, data.length);
         
-        try {
-            for (int j = 0; j < n; j++) {
-                shares[j] = new NTTShare((byte)(j+1), encoded[j].getEncodedData(), shareSize, data.length);
+        for (int j = 0; j < n; j++) {
+            try {
+                shares[j] = ShareFactory.create(ShareType.NTT, (byte)(j+1), encoded[j].getEncodedData(), metadata);
+            } catch (InvalidParametersException ex) {
+                throw new RuntimeException("impossible: cannot happen");
             }
-        } catch (InvalidParametersException ex) {
-            throw new RuntimeException("impossible: sharing failed (" + ex.getMessage() + ")");
         }
         return shares;
     }
 
+    public static final byte KEY_ORIGINAL_LENGTH = 1;
+    
+    public static final byte KEY_SHARE_SIZE = 2;
     
     public int[] reconstruct(int[][] encoded, int[] xValues, int origLength) throws UnsolvableException {
 
@@ -187,29 +196,26 @@ public abstract class NTTSecretSharing extends BaseSecretSharing {
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
         
-        /* you cannot cast arrays to arrays of subtype in java7 */
-        NTTShare[] sshares = Arrays.copyOf(shares, shares.length, NTTShare[].class); // we need access to the inner fields
-        
         /* extract original length */
-        int origLength = sshares[0].getOriginalLength();
-        for (int i = 1; i < sshares.length; i++) {
-            if (sshares[i].getOriginalLength() != origLength) {
+        int origLength = shares[0].getMetadata(KEY_ORIGINAL_LENGTH);
+        for (int i = 1; i < shares.length; i++) {
+            if (shares[i].getMetadata(KEY_ORIGINAL_LENGTH) != origLength) {
                 throw new ReconstructionException("originalLenghts are different");
             }
         }
         
         /* extract share count */
-        int shareCount = sshares[0].getShareCount();
-        for (int i = 1; i < sshares.length; i++) {
-            if (sshares[i].getShareCount() != shareCount) {
+        int shareCount = shares[0].getMetadata(KEY_SHARE_SIZE);
+        for (int i = 1; i < shares.length; i++) {
+            if (shares[i].getMetadata(KEY_SHARE_SIZE) != shareCount) {
                 throw new ReconstructionException("shareCount are different");
             }
         }
         
         /* create encoded array */
-        int [][] encoded = new int[sshares.length][];
-        for (int i = 0; i < sshares.length; i++) {
-            EncodingConverter ec = new EncodingConverter(sshares[i].getY(), gf);
+        int [][] encoded = new int[shares.length][];
+        for (int i = 0; i < shares.length; i++) {
+            EncodingConverter ec = new EncodingConverter(shares[i].getYValues(), gf);
             encoded[i] = ec.getDecodedData();
         }
         

@@ -1,7 +1,6 @@
 package at.archistar.crypto.informationchecking;
 
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.data.VSSShare;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
@@ -42,14 +41,16 @@ public class RabinBenOrRSS implements InformationChecking {
     }
     
     @Override
-    public void createTags(VSSShare[] rboshares) throws IOException {
+    public void createTags(Share[] rboshares) throws IOException {        
         /* compute and add the corresponding tags */
-        for (VSSShare share1 : rboshares) {
-            for (VSSShare share2 : rboshares) {
+        for (Share share1 : rboshares) {
+            share1.setInformationChecking(Share.ICType.RABIN_BEN_OR);
+            
+            for (Share share2 : rboshares) {
                 try {
                     byte[] key = new byte[this.mac.keySize()/8];
                     this.rng.fillBytes(key);
-                    byte[] tag = this.mac.computeMAC(share1.getShare().serialize(), key);
+                    byte[] tag = this.mac.computeMAC(share1.getSerializedForHashing(), key);
                     
                     share1.getMacs().put((byte) share2.getId(), tag);
                     share2.getMacKeys().put((byte) share1.getId(), key);
@@ -61,15 +62,15 @@ public class RabinBenOrRSS implements InformationChecking {
     }
 
     @Override
-    public Share[] checkShares(VSSShare[] rboshares) throws IOException {
+    public Share[] checkShares(Share[] rboshares) throws IOException {
         Share[] valid = new Share[rboshares.length];
         int counter = 0;
         
         for (int i = 0; i < rboshares.length; i++) { // go through all shares
             int accepts = 0; // number of participants accepting i
-            for (VSSShare rboshare: rboshares) { // go through all shares
+            for (Share rboshare: rboshares) { // go through all shares
                 
-                byte[] data = rboshares[i].getShare().serialize();
+                byte[] data = rboshares[i].getSerializedForHashing();
                 byte[] macCmp = rboshares[i].getMacs().get((byte) rboshare.getId());
                 byte[] macKey = rboshare.getMacKeys().get((byte) rboshares[i].getId());
                 

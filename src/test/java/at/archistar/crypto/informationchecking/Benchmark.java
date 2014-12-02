@@ -1,8 +1,7 @@
 package at.archistar.crypto.informationchecking;
 
 import at.archistar.TestHelper;
-import at.archistar.crypto.data.SerializableShare;
-import at.archistar.crypto.data.VSSShare;
+import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.BCPoly1305MacHelper;
@@ -78,17 +77,12 @@ public class Benchmark {
 
             for (byte[] data : this.input[i]) {
                 
-                SerializableShare[] shares = (SerializableShare[])algorithm.share(data);
-                VSSShare[] vssshares = new VSSShare[shares.length];
-
-                for (int j = 0; j < shares.length; j++) {
-                    vssshares[j] = new VSSShare(shares[j]);
-                }
-
+                Share[] shares = algorithm.share(data);
+                
                 long beforeCreate = System.currentTimeMillis();
-                ic.createTags(vssshares);
+                ic.createTags(shares);
                 long betweenOperations = System.currentTimeMillis();
-                ic.checkShares(vssshares);
+                ic.checkShares(shares);
                 long afterAll = System.currentTimeMillis();
 
                 sumCreate += (betweenOperations - beforeCreate);

@@ -1,15 +1,15 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.InvalidParametersException;
-import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.ShareFactory;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.random.RandomSource;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>This class implements the <i>Perfect-Secret-Sharing</i>-scheme (PSS) developed by Adi Shamir.</p>
@@ -56,28 +56,18 @@ public class ShamirPSS extends GeometricSecretSharing {
 
     @Override
     protected Share[] createShares(int[] xValues, OutputEncoderConverter[] results, int originalLength) throws InvalidParametersException {
-        ShamirShare shares[] = new ShamirShare[n];
+        Share shares[] = new Share[n];
+        Map<Byte, Integer> metadata = new HashMap<>();
         
         for (int i = 0; i < n; i++) {
-            shares[i] = new ShamirShare((byte)xValues[i], results[i].getEncodedData());
+            shares[i] = ShareFactory.create(Share.ShareType.SHAMIR, (byte)xValues[i], results[i].getEncodedData(), metadata);
         }
 
         return shares;
     }
 
     @Override
-    protected EncodingConverter[] prepareInput(Share[] shares) {
-        ShamirShare[] rsshares = Arrays.copyOf(shares, shares.length, ShamirShare[].class);
-            
-        EncodingConverter input[] = new EncodingConverter[shares.length];
-        for (int i = 0; i < shares.length; i++) {
-            input[i] = new EncodingConverter(rsshares[i].getY(), gf);
-        }
-        return input;
-    }
-
-    @Override
     protected int retrieveInputLength(Share[] shares) {
-        return ((ShamirShare)shares[0]).getY().length;
+        return shares[0].getYValues().length;
     }
 }

@@ -1,8 +1,6 @@
 package at.archistar.crypto;
 
-import at.archistar.crypto.data.SerializableShare;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.data.VSSShare;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.ReconstructionException;
@@ -23,9 +21,6 @@ import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import at.archistar.crypto.symmetric.Encryptor;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -60,34 +55,22 @@ public class RabinBenOrEngine implements CryptoEngine {
     @Override
     public Share[] share(byte[] data) {
         
-        SerializableShare[] shares = (SerializableShare[])sharing.share(data);
-        VSSShare[] vssshares = new VSSShare[shares.length];
-        
-        for (int i = 0; i < shares.length; i++) {
-            try {
-                vssshares[i] = new VSSShare(shares[i]);
-            } catch (WeakSecurityException ex) {
-                Logger.getLogger(RabinBenOrRSS.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
+        Share[] shares = sharing.share(data);
         try {
-            ic.createTags(vssshares);
+            ic.createTags(shares);
         } catch (IOException ex) {
-            Logger.getLogger(RabinBenOrRSS.class.getName()).log(Level.SEVERE, null, ex);
+            throw new RuntimeException("impossible: how can creating tags fail?", ex);
         }
-        return vssshares;
+        return shares;
     }
 
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
-        VSSShare[] rboshares = Arrays.copyOf(shares, shares.length, VSSShare[].class);
-
         Share[] valid;
         try {
-            valid = ic.checkShares(rboshares);
+            valid = ic.checkShares(shares);
             if (valid.length >= sharing.getK()) {
-                return sharing.reconstruct(VSSShare.getInnerShares(rboshares));
+                return sharing.reconstruct(shares);
             }
         } catch (IOException ex) {
             throw new ReconstructionException("error in checkShares: " + ex.getMessage());
