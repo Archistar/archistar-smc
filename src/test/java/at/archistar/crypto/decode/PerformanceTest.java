@@ -7,7 +7,7 @@ import at.archistar.crypto.mac.ShareMacHelper;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.secretsharing.RabinIDS;
-import at.archistar.crypto.secretsharing.SecretSharing;
+import at.archistar.crypto.secretsharing.BaseSecretSharing;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,7 +29,7 @@ import org.junit.runners.Parameterized.Parameters;
 public class PerformanceTest {
 
     private final byte[][][] input;
-    private final SecretSharing algorithm;
+    private final BaseSecretSharing algorithm;
     private static final int size = TestHelper.REDUCED_TEST_SIZE;
     
     private static final GFFactory gffactory  = new GF256Factory();
@@ -55,7 +55,7 @@ public class PerformanceTest {
         return Arrays.asList(data);
     }
 
-    public PerformanceTest(byte[][][] input, SecretSharing algorithm) {
+    public PerformanceTest(byte[][][] input, BaseSecretSharing algorithm) {
         this.input = input;
         this.algorithm = algorithm;
     }

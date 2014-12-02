@@ -8,10 +8,7 @@ import at.archistar.crypto.math.bc.BCGF256;
 import at.archistar.crypto.math.gf256.GF256;
 import at.archistar.crypto.math.gf257.GF257;
 import at.archistar.crypto.math.gf257.GF257Factory;
-import at.archistar.crypto.math.ntt.AbstractNTT;
 import at.archistar.crypto.math.ntt.NTTDit2;
-import at.archistar.crypto.math.ntt.NTTSlow;
-import at.archistar.crypto.math.ntt.NTTTextbook;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import java.security.NoSuchAlgorithmException;
@@ -31,7 +28,7 @@ public class NTTShamirPerformance {
     
     private final String description;
     private final byte[][][] input;
-    private final SecretSharing algorithm;
+    private final BaseSecretSharing algorithm;
     
     private static final int TEST_SIZE = 4 * 1024 * 1024;
     
@@ -81,7 +78,7 @@ public class NTTShamirPerformance {
         return Arrays.asList(data);
     }
 
-    public NTTShamirPerformance(String description, byte[][][] input, SecretSharing algorithm) {
+    public NTTShamirPerformance(String description, byte[][][] input, BaseSecretSharing algorithm) {
         this.description = description;
         this.input = input;
         this.algorithm = algorithm;

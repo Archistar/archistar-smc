@@ -11,7 +11,7 @@ import at.archistar.crypto.mac.ShareMacHelper;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.KrawczykCSS;
-import at.archistar.crypto.secretsharing.SecretSharing;
+import at.archistar.crypto.secretsharing.BaseSecretSharing;
 import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -28,7 +28,7 @@ import org.junit.runners.Parameterized;
 public class Benchmark {
     
     private final byte[][][] input;
-    private final SecretSharing algorithm;
+    private final BaseSecretSharing algorithm;
     private final InformationChecking ic;
     
     @Parameterized.Parameters
@@ -49,7 +49,7 @@ public class Benchmark {
         MacHelper mac = new ShareMacHelper("HMacSHA256");
         MacHelper macPoly1305 = new BCPoly1305MacHelper();
         
-        SecretSharing secretSharing = new KrawczykCSS(5, 3, rng, new ChaCha20Encryptor());
+        BaseSecretSharing secretSharing = new KrawczykCSS(5, 3, rng, new ChaCha20Encryptor());
         
         Object[][] data = new Object[][]{
            {secrets, secretSharing, new CevallosUSRSS(secretSharing, mac, rng)},
@@ -61,7 +61,7 @@ public class Benchmark {
         return Arrays.asList(data);
     }
     
-    public Benchmark(byte[][][] input, SecretSharing algorithm, InformationChecking ic) {
+    public Benchmark(byte[][][] input, BaseSecretSharing algorithm, InformationChecking ic) {
         this.input = input;
         this.algorithm = algorithm;
         this.ic = ic;

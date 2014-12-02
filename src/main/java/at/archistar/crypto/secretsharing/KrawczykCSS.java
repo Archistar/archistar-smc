@@ -35,11 +35,11 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
  * @author Thomas Loruenser <thomas.loruenser@ait.ac.at>
  * @version 2014-7-28
  */
-public class KrawczykCSS extends SecretSharing {
+public class KrawczykCSS extends BaseSecretSharing {
     private final EncryptionAlgorithm alg = EncryptionAlgorithm.AES;
     private final RandomSource rng;
-    private final SecretSharing shamir;
-    private final SecretSharing rs;
+    private final BaseSecretSharing shamir;
+    private final BaseSecretSharing rs;
     private final Encryptor cryptor;
     
     /**

@@ -43,7 +43,7 @@ public class ProfileShamir {
     @Test
     public void testProfile() throws WeakSecurityException {
         
-        SecretSharing ss = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
+        BaseSecretSharing ss = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
         
         for (int i = 0; i < 10; i++) {
             ss.share(secrets);

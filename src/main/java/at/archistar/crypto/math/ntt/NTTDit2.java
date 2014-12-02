@@ -20,13 +20,6 @@ public class NTTDit2 extends AbstractNTT {
     }
     
     @Override
-    public int[] ntt(int a[], int w) {
-        /* TODO: implemenent an overwriting version, so we can get rid of the memory copy */
-        int[] tmp = a.clone();
-        return ntt(tmp, tmp.length, log2(tmp.length), 1);
-    }
-    
-    @Override
     public void inplaceNTT(int a[], int w) {
         ntt(a, a.length, log2(a.length), 1);
     }

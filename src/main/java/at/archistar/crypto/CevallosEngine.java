@@ -18,7 +18,7 @@ import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.BCDigestRandomSource;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.secretsharing.SecretSharing;
+import at.archistar.crypto.secretsharing.BaseSecretSharing;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -28,7 +28,7 @@ import java.util.Arrays;
  * @author andy
  */
 public class CevallosEngine implements CryptoEngine {
-    private final SecretSharing sharing;
+    private final BaseSecretSharing sharing;
     private final InformationChecking ic;
     
     /* Hack/TODO: just definde the max data length for now, this prevents dynamic key length calculation */

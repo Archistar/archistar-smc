@@ -7,7 +7,7 @@ import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.RabinIDS;
-import at.archistar.crypto.secretsharing.SecretSharing;
+import at.archistar.crypto.secretsharing.BaseSecretSharing;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
@@ -20,7 +20,7 @@ import java.util.Arrays;
  */
 public class RabinBenOrRSS implements InformationChecking {
 
-    private final SecretSharing sharing;
+    private final BaseSecretSharing sharing;
     private final MacHelper mac;
     private final RandomSource rng;
 
@@ -31,7 +31,7 @@ public class RabinBenOrRSS implements InformationChecking {
      * @param mac the mac that will be used
      * @throws WeakSecurityException 
      */
-    public RabinBenOrRSS(SecretSharing sharing, MacHelper mac, RandomSource rng) throws WeakSecurityException {
+    public RabinBenOrRSS(BaseSecretSharing sharing, MacHelper mac, RandomSource rng) throws WeakSecurityException {
 
         this.sharing = sharing;
         this.mac = mac;

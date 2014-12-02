@@ -7,7 +7,7 @@ import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.informationchecking.InformationChecking;
 import at.archistar.crypto.informationchecking.RabinBenOrRSS;
-import at.archistar.crypto.secretsharing.SecretSharing;
+import at.archistar.crypto.secretsharing.BaseSecretSharing;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -19,11 +19,11 @@ import java.util.logging.Logger;
  */
 public abstract class AbstractICEngine implements CryptoEngine {
 
-    private final SecretSharing sharing;
+    private final BaseSecretSharing sharing;
     
     private final InformationChecking ic;
     
-    public AbstractICEngine(SecretSharing sharing, InformationChecking checking) {
+    public AbstractICEngine(BaseSecretSharing sharing, InformationChecking checking) {
         this.sharing = sharing;
         this.ic = checking;
     }

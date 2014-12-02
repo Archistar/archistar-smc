@@ -9,10 +9,11 @@ import at.archistar.crypto.math.ntt.AbstractNTT;
  *
  * @author andy
  */
-public class NTTRabinIDS extends NTTShamirPSS {
+public class NTTRabinIDS extends NTTSecretSharing {
     
     public NTTRabinIDS(int n, int k, int generator, GFFactory factory, AbstractNTT ntt, DecoderFactory decoderFactory) throws WeakSecurityException {
-        super(n, k, generator, factory, null, ntt, decoderFactory);
+        super(n, k, generator, factory, ntt, decoderFactory);
+        
         shareSize = nttBlockLength / n;
         dataPerNTT = nttBlockLength / n * k;
     }

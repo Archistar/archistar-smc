@@ -1,17 +1,12 @@
 package at.archistar.crypto.secretsharing;
 
-import at.archistar.crypto.data.BaseShare;
+import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.ReedSolomonShare;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
-import at.archistar.crypto.decode.UnsolvableException;
-import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
-import at.archistar.crypto.data.InvalidParametersException;
-import at.archistar.crypto.exceptions.ImpossibleException;
 import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
@@ -28,12 +23,11 @@ import java.util.Arrays;
  * <p><b>NOTE:</b> This scheme is not secure at all. It should only be used for sharing already encrypted 
  *                 data like for example how it is done in {@link KrawczykCSS}.</p>
  */
-public class RabinIDS extends SecretSharing {
-    private final DecoderFactory decoderFactory;
-    
-    private final GF gf;
+public class RabinIDS extends GeometricSecretSharing {
     
     private static final GFFactory defaultGFFactory = new GF256Factory();
+    
+    private static final DecoderFactory defaultDecoderFactory = new ErasureDecoderFactory(defaultGFFactory);
     
     /**
      * Constructor
@@ -44,7 +38,7 @@ public class RabinIDS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public RabinIDS(int n, int k) throws WeakSecurityException {
-        this(n, k, new ErasureDecoderFactory(defaultGFFactory), defaultGFFactory.createHelper());
+        this(n, k, new ErasureDecoderFactory(new GF256Factory()), defaultGFFactory.createHelper());
     }
     
     /**
@@ -69,110 +63,61 @@ public class RabinIDS extends SecretSharing {
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
     public RabinIDS(int n, int k, DecoderFactory decoderFactory, GF gf) throws WeakSecurityException {
-        super(n, k);
-        this.decoderFactory = decoderFactory;
-        this.gf = gf;
+        super(n, k, decoderFactory, gf);
+        
+        this.dataPerRound = k;
     }
 
     @Override
-    public Share[] share(byte[] data) {
+    public String toString() {
+        return "RabinIDS(" + n + "/" + k + ")";
+    }
+    
+    @Override
+    protected void encodeData(int coeffs[], byte[] data, int offset, int length) {
+        for (int j = 0; j < k; j++) {
+            // let k coefficients be the secret in this polynomial
+            // todo: optimize, use array copy
+            if ((offset+j) < data.length) {
+                coeffs[j] = (data[offset+j] < 0) ? data[offset+j] + 256 : data[offset+j];
+            } else {
+                coeffs[j] = 0;
+            }
+        }
+    }
+
+    @Override
+    protected int decodeData(int[] encoded, int originalLength, byte[] result, int offset) {
+        for (int j = encoded.length - 1; j >= 0 && offset < originalLength; j--) {
+            result[offset++] = (byte)encoded[encoded.length - 1 - j];
+        }
+        return offset;
+    }
+
+    @Override
+    protected Share[] createShares(int[] xValues, OutputEncoderConverter[] results, int originalLength) throws InvalidParametersException {
+        ReedSolomonShare shares[] = new ReedSolomonShare[n];
         
-        int xValues[] = new int[n];
         for (int i = 0; i < n; i++) {
-            xValues[i] = i+1;
+            shares[i] = new ReedSolomonShare((byte)xValues[i], results[i].getEncodedData(), originalLength);
         }
-        
-        try {
-            /* compute share values */
-            int coeffs[] = new int[k];
-            OutputEncoderConverter output[] = new OutputEncoderConverter[n];
-            for (int i = 0; i < n; i++) {
-                output[i] = new OutputEncoderConverter((data.length + k -1)/k, gf);
-            }
 
-            for (int i = 0; i < data.length; i += k) {
-                for (int j = 0; j < k; j++) {
-                    // let k coefficients be the secret in this polynomial
-                    // todo: optimize, use array copy
-                    if ((i+j) < data.length) {
-                        coeffs[j] = (data[i+j] < 0) ? data[i+j] + 256 : data[i+j];
-                    } else {
-                        coeffs[j] = 0;
-                    }
-                }
-
-                /* calculate the share a value for this byte for every share */
-                for (int j = 0; j < n; j++) {
-                    // skip evaluation in case all coefficients are 0
-                    output[j].append(checkForZeros(coeffs) ? 0 : gf.evaluateAt(coeffs, xValues[j]));
-                }
-            }
-            
-            ReedSolomonShare shares[] = new ReedSolomonShare[n];
-            for (int i = 0; i < n; i++) {
-                shares[i] = new ReedSolomonShare((byte)xValues[i], output[i].getEncodedData(), data.length);
-            }
-
-            return shares;
-        } catch (InvalidParametersException ex) {
-            throw new ImpossibleException("share failed: " + ex.getMessage());
-        }
+        return shares;
     }
 
     @Override
-    public byte[] reconstruct(Share[] shares) throws ReconstructionException {
-        if (!validateShareCount(shares.length, k)) {
-            throw new ReconstructionException();
-        }
-        
+    protected EncodingConverter[] prepareInput(Share[] shares) {
         ReedSolomonShare[] rsshares = Arrays.copyOf(shares, shares.length, ReedSolomonShare[].class);
             
-        int xValues[] = Arrays.copyOfRange(BaseShare.extractXVals(rsshares), 0, k); // we only need k x-values for reconstruction
-        byte result[] = new byte[rsshares[0].getOriginalLength()];
-        
         EncodingConverter input[] = new EncodingConverter[shares.length];
         for (int i = 0; i < shares.length; i++) {
             input[i] = new EncodingConverter(rsshares[i].getY(), gf);
         }
-            
-        Decoder decoder = decoderFactory.createDecoder(xValues, k);
-        int posResult = 0;
-        while (posResult < rsshares[0].getOriginalLength()) {
-            int yValues[] = new int[k];
-            for (int j = 0; j < k; j++) { // extract only k y-values (so we have k xy-pairs)
-                yValues[j] = input[j].readNext();
-            }
-                
-            /* perform matrix-multiplication to compute the coefficients */
-            try {
-                int resultMatrix[] = decoder.decode(yValues, 0);
-            
-                for (int j = resultMatrix.length - 1; j >= 0 && posResult < rsshares[0].getOriginalLength(); j--) {
-                    result[posResult++] = (byte)resultMatrix[resultMatrix.length - 1 - j];
-                }
-            } catch (UnsolvableException e) {
-                throw new ReconstructionException();
-            }
-        }
-        return result;
+        return input;
     }
-    
-    /**
-     * Checks if the given array solely consists out of 0s.
-     * @param a the array to check
-     * @return true if yes; false otherwise
-     */
-    private static boolean checkForZeros(int[] a) {
-        for (int i = 0; i < a.length; i++) {
-            if (a[i] != 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-    
+
     @Override
-    public String toString() {
-        return "RabinIDS(" + n + "/" + k + ")";
+    protected int retrieveInputLength(Share[] shares) {
+        return ((ReedSolomonShare)shares[0]).getOriginalLength();
     }
 }

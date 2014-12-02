@@ -17,7 +17,7 @@ import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.BCDigestRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.KrawczykCSS;
-import at.archistar.crypto.secretsharing.SecretSharing;
+import at.archistar.crypto.secretsharing.BaseSecretSharing;
 import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import at.archistar.crypto.symmetric.Encryptor;
@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  * @author andy
  */
 public class RabinBenOrEngine implements CryptoEngine {
-    private final SecretSharing sharing;
+    private final BaseSecretSharing sharing;
     private final InformationChecking ic;
     
     private static final GFFactory gffactory = new GF256Factory();

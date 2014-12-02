@@ -45,7 +45,7 @@ public class NTTRabinIDSTest {
         byte[] data = createDataByte(4096);
         DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
         
-        SecretSharing nttPSS = new NTTRabinIDS(n, k, generator, gffactory, ntt, decoderFactory);
+        BaseSecretSharing nttPSS = new NTTRabinIDS(n, k, generator, gffactory, ntt, decoderFactory);
         
         Share[] shares = nttPSS.share(data);
         

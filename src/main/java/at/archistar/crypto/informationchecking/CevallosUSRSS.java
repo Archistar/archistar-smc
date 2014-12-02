@@ -5,7 +5,7 @@ import at.archistar.crypto.data.VSSShare;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.secretsharing.SecretSharing;
+import at.archistar.crypto.secretsharing.BaseSecretSharing;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -25,13 +25,13 @@ import java.util.Queue;
 public class CevallosUSRSS extends RabinBenOrRSS {
     public static final int E = 128; // security constant for computing the tag length; means 128 bit
     
-    private final SecretSharing sharing;
+    private final BaseSecretSharing sharing;
     private final MacHelper mac;
     
     /**
      * Constructor.
      */
-    public CevallosUSRSS(SecretSharing sharing, MacHelper mac, RandomSource rng) throws WeakSecurityException {
+    public CevallosUSRSS(BaseSecretSharing sharing, MacHelper mac, RandomSource rng) throws WeakSecurityException {
         super(sharing, mac, rng);
         
         if (!((sharing.getK() - 1) * 3 >= sharing.getN() && (sharing.getK() - 1) * 2 < sharing.getN())) {

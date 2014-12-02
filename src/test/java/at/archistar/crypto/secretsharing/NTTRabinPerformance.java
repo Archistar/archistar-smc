@@ -28,7 +28,7 @@ public class NTTRabinPerformance {
     
     private final String description;
     private final byte[][][] input;
-    private final SecretSharing algorithm;
+    private final BaseSecretSharing algorithm;
     
     private static final int TEST_SIZE = 4 * 1024 * 1024;
     
@@ -76,7 +76,7 @@ public class NTTRabinPerformance {
         return Arrays.asList(data);
     }
 
-    public NTTRabinPerformance(String description, byte[][][] input, SecretSharing algorithm) {
+    public NTTRabinPerformance(String description, byte[][][] input, BaseSecretSharing algorithm) {
         this.description = description;
         this.input = input;
         this.algorithm = algorithm;

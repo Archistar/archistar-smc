@@ -9,7 +9,7 @@ import at.archistar.crypto.math.bc.BCGFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.math.gf257.GF257Factory;
 import at.archistar.crypto.secretsharing.RabinIDS;
-import at.archistar.crypto.secretsharing.SecretSharing;
+import at.archistar.crypto.secretsharing.BaseSecretSharing;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,7 +27,7 @@ import org.junit.runners.Parameterized.Parameters;
 public class GFPerformanceTest {
     
     private final byte[][]input;
-    private final SecretSharing algorithm;
+    private final BaseSecretSharing algorithm;
     private final String name;
     
     private static final GFFactory gf256factory = new GF256Factory();
@@ -66,7 +66,7 @@ public class GFPerformanceTest {
         return Arrays.asList(data);
     }
     
-    public GFPerformanceTest(String name, byte[][] input, SecretSharing algorithm) {
+    public GFPerformanceTest(String name, byte[][] input, BaseSecretSharing algorithm) {
         this.input = input;
         this.algorithm = algorithm;
         this.name = name;

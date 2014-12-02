@@ -27,7 +27,7 @@ import org.junit.runners.Parameterized.Parameters;
 public class PerformanceTest {
 
     private final byte[][][] input;
-    private final SecretSharing algorithm;
+    private final BaseSecretSharing algorithm;
     
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
@@ -57,7 +57,7 @@ public class PerformanceTest {
         return Arrays.asList(data);
     }
 
-    public PerformanceTest(byte[][][] input, SecretSharing algorithm) {
+    public PerformanceTest(byte[][][] input, BaseSecretSharing algorithm) {
         this.input = input;
         this.algorithm = algorithm;
     }

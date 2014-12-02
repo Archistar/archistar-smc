@@ -13,10 +13,16 @@ public abstract class AbstractNTT {
         this.gf = gf;
     }
     
-    public abstract int[] ntt(int a[], int w);
+    public int[] ntt(int a[], int w) {
+        int[] tmp = a.clone();
+        inplaceNTT(tmp, w);
+        return tmp;
+    }
     
     public void inplaceNTT(int a[], int w) {
-        throw new RuntimeException("not implemented yet");
+        int[] tmp = ntt(a, w);
+        assert(tmp.length == a.length);
+        System.arraycopy(tmp, 0, a, 0, a.length);
     }
     
     public int[] intt(int a[], int w) {
