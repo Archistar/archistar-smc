@@ -2,9 +2,6 @@ package at.archistar.crypto.decode;
 
 /**
  * Reconstruct/Decode a polynomial from n given points.
- * 
- * @author Andreas Happe
- * @author Elias Frantar
  */
 public interface Decoder {
     
@@ -18,4 +15,6 @@ public interface Decoder {
      * @throws UnsolvableException if the polynomial was not solvable
      */
     int[] decode(int[] y, int errors) throws UnsolvableException;
+    
+    int[] decodeUnsafe(int[] target, int[] y, int errors) throws UnsolvableException;
 }

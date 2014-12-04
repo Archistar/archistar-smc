@@ -131,4 +131,9 @@ public class BerlekampWelchDecoder implements Decoder {
         
         return res;
     }
+
+    @Override
+    public int[] decodeUnsafe(int[] target, int[] y, int errors) throws UnsolvableException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

@@ -94,6 +94,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
         Decoder decoder = decoderFactory.createDecoder(xValues, k);
         byte result[] = new byte[originalLength];
         int yValues[] = new int[k];
+        int resultMatrix[] = new int[k];
 
         int posResult = 0;
         while (posResult < originalLength) {
@@ -103,7 +104,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
                 
             /* perform matrix-multiplication to compute the coefficients */
             try {
-                int resultMatrix[] = decoder.decode(yValues, 0);
+                decoder.decodeUnsafe(resultMatrix, yValues, 0);
                 posResult = decodeData(resultMatrix, originalLength, result, posResult);
             } catch (UnsolvableException e) {
                 throw new ReconstructionException();

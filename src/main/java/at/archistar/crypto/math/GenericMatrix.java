@@ -40,6 +40,18 @@ public class GenericMatrix implements GFMatrix {
         return result;
     }
     
+    @Override
+    public int[] rightMultiplyInto(int[] result, int[] vec) {
+        for (int i = 0; i < vec.length; i++) {
+            int tmp = 0;
+            for (int j = 0; j < vec.length; j++) {
+                tmp = gf.add(tmp, gf.mult(matrix[i][j], vec[j]));
+            }
+            result[i] = tmp;
+        }
+        return result;
+    }
+    
     /* where is the dead store? */
     private GFMatrix inverse(boolean throwException) {
         

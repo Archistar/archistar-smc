@@ -3,6 +3,7 @@ package at.archistar.crypto.decode;
 import at.archistar.crypto.math.GFMatrix;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Reconstructs a polynomial from the given xy-pairs using the <i>Erasure Decoding</i> scheme.<br>
@@ -31,7 +32,9 @@ public class ErasureDecoder implements Decoder {
     }
     
     @Override
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public int[] decode(int[] y, int errorCount) throws UnsolvableException {
+        
         if (errorCount != 0) {
             throw new UnsolvableException("Erasuredecoder cannot fix errors");
         }
@@ -48,6 +51,8 @@ public class ErasureDecoder implements Decoder {
         return matrix.rightMultiply(y);
     }
     
-    
-    
+    @Override
+    public int[] decodeUnsafe(int[] target, int[] y, int errorCount) throws UnsolvableException {
+        return matrix.rightMultiplyInto(target, y);
+    }    
 }

@@ -12,4 +12,6 @@ public interface GFMatrix {
     public GFMatrix inverse();
     
     public int getNumRows();
+    
+    public int[] rightMultiplyInto(int[] result, int[] vec);
 }

@@ -98,9 +98,9 @@ abstract class NTTSecretSharing extends BaseSecretSharing {
         }
         
         int offset = 0;
+        encodedData = new int[nttBlockLength];
         for (int i = 0; i < data.length / dataPerNTT; i++, offset += dataPerNTT) {
-            /* TODO: can I blank the whole array somehow? */
-            encodedData = new int[nttBlockLength]; // initialized with 0
+            Arrays.fill(encodedData, 0);
             encodeData(encodedData, data, offset, dataPerNTT);
             ntt.inplaceNTT(encodedData, generator);
             
