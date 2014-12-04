@@ -60,6 +60,7 @@ public class ShareFactory {
                 throw new InvalidParametersException("unknown share type");
             }
             
+            /* information checking type */
             Share.ICType ic = null;
             algByte = is.readByte();
             if (algByte >= 0 && algByte < Share.ICType.values().length) {
@@ -72,32 +73,12 @@ public class ShareFactory {
             byte id = is.readByte();
 
             /* metadata */
-            Map<Byte, Integer> metadata = new HashMap<>();
-            int tmp = is.readInt();
-            for (int i = 0; i < tmp; i++) {
-                byte mdId = is.readByte();
-                int mdValue = is.readInt();
-                metadata.put(mdId, mdValue);
-            }
+            Map<Byte, byte[]> metadata = readMap(is);
 
             /* body */
-            byte[] body;
-            byte[] key = null;
-
             int tmpLength = is.readInt();
-            if (alg == ShareType.KRAWCZYK) {
-                int yLength = is.readInt();
-                int keyLength = is.readInt();
-
-                body = new byte[yLength];
-                key = new byte[keyLength];
-
-                is.readFully(body);
-                is.readFully(key);
-            } else {
-                body = new byte[tmpLength];
-                is.readFully(body);
-            }
+            byte body[] = new byte[tmpLength];
+            is.readFully(body);
 
             Map<Byte, byte[]> macs;
             Map<Byte, byte[]> macKeys;
@@ -110,12 +91,7 @@ public class ShareFactory {
             }
 
             /* create share */
-            Share result;
-            if (alg != ShareType.KRAWCZYK) {
-                result = new Share(alg, id, body, metadata, ic, macKeys, macs);
-            } else {
-                result = new KrawczykShare(id, body, key, metadata, ic, macKeys, macs);
-            }
+            Share result = create(alg, id, body, metadata, ic, macKeys, macs);
 
             // check for EOF
             try {
@@ -131,7 +107,7 @@ public class ShareFactory {
     }
     
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public static Share create(ShareType algorithm, byte id, byte[] yValues, Map<Byte, Integer> metadata) throws InvalidParametersException {
+    public static Share create(ShareType algorithm, byte id, byte[] yValues, Map<Byte, byte[]> metadata) throws InvalidParametersException {
         Share share = new Share(algorithm, id, yValues, metadata);
         
         if (share.isValid()) {
@@ -144,36 +120,11 @@ public class ShareFactory {
     
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public static Share create(ShareType algorithm, byte id, byte[] yValues,
-                               Map<Byte, Integer> metadata,
+                               Map<Byte, byte[]> metadata,
                                Share.ICType ic, Map<Byte, byte[]> macKeys, Map<Byte, byte[]> macs) throws InvalidParametersException {
         
         Share share = new Share(algorithm, id, yValues, metadata,
                                 ic, macKeys, macs);
-        
-        if (share.isValid()) {
-            return share;
-        } else {
-            throw new InvalidParametersException("not a valid share");
-        }
-    }
-
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public static Share createKrawczyk(byte id, byte[] key, byte[] yVals, Map<Byte, Integer> metadata) throws InvalidParametersException {
-        Share share = new KrawczykShare(id, key, yVals, metadata);
-        
-        if (share.isValid()) {
-            return share;
-        } else {
-            throw new InvalidParametersException("not a valid share");
-        }
-    }
-    
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public static Share createKrawczyk(byte id, byte[] key, byte[] yVals,
-                                       Map<Byte, Integer> metadata, Map<Byte, byte[]> macKeys,
-                                       Share.ICType ic, Map<Byte, byte[]> macs) throws InvalidParametersException {
-        
-        Share share = new KrawczykShare(id, key, yVals, metadata, ic, macKeys, macs);
         
         if (share.isValid()) {
             return share;

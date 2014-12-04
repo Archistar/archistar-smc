@@ -57,7 +57,7 @@ public class ShamirPSS extends GeometricSecretSharing {
     @Override
     protected Share[] createShares(int[] xValues, OutputEncoderConverter[] results, int originalLength) throws InvalidParametersException {
         Share shares[] = new Share[n];
-        Map<Byte, Integer> metadata = new HashMap<>();
+        Map<Byte, byte[]> metadata = new HashMap<>();
         
         for (int i = 0; i < n; i++) {
             shares[i] = ShareFactory.create(Share.ShareType.SHAMIR, (byte)xValues[i], results[i].getEncodedData(), metadata);

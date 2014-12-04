@@ -2,6 +2,8 @@ package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.Share;
+import static at.archistar.crypto.data.Share.NTT_SHARE_SIZE;
+import static at.archistar.crypto.data.Share.ORIGINAL_LENGTH;
 import at.archistar.crypto.data.Share.ShareType;
 import at.archistar.crypto.data.ShareFactory;
 import at.archistar.crypto.decode.Decoder;
@@ -15,6 +17,7 @@ import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.ntt.AbstractNTT;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -129,25 +132,23 @@ public abstract class NTTSecretSharing extends BaseSecretSharing {
         }
         
         OutputEncoderConverter[] encoded = encode(dataInt);
+        Map<Byte, byte[]> metadata = new HashMap<>();
+        metadata.put(NTT_SHARE_SIZE, ByteBuffer.allocate(4).putInt(shareSize).array());
+        metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(data.length).array());
+
         Share shares[] = new Share[n];
-        Map<Byte, Integer> metadata = new HashMap<>();
-        metadata.put(KEY_SHARE_SIZE, shareSize);
-        metadata.put(KEY_ORIGINAL_LENGTH, data.length);
-        
         for (int j = 0; j < n; j++) {
             try {
-                shares[j] = ShareFactory.create(ShareType.NTT, (byte)(j+1), encoded[j].getEncodedData(), metadata);
+                shares[j] = ShareFactory.create(getShareType(), (byte)(j+1), encoded[j].getEncodedData(), metadata);
             } catch (InvalidParametersException ex) {
                 throw new RuntimeException("impossible: cannot happen");
             }
         }
         return shares;
     }
+    
+    protected abstract ShareType getShareType();
 
-    public static final byte KEY_ORIGINAL_LENGTH = 1;
-    
-    public static final byte KEY_SHARE_SIZE = 2;
-    
     public int[] reconstruct(int[][] encoded, int[] xValues, int origLength) throws UnsolvableException {
 
         int minLength = (nttBlockLength/n)*k;
@@ -197,17 +198,17 @@ public abstract class NTTSecretSharing extends BaseSecretSharing {
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
         
         /* extract original length */
-        int origLength = shares[0].getMetadata(KEY_ORIGINAL_LENGTH);
+        int origLength = shares[0].getMetadata(ORIGINAL_LENGTH);
         for (int i = 1; i < shares.length; i++) {
-            if (shares[i].getMetadata(KEY_ORIGINAL_LENGTH) != origLength) {
+            if (shares[i].getMetadata(ORIGINAL_LENGTH) != origLength) {
                 throw new ReconstructionException("originalLenghts are different");
             }
         }
         
         /* extract share count */
-        int shareCount = shares[0].getMetadata(KEY_SHARE_SIZE);
+        int shareCount = shares[0].getMetadata(NTT_SHARE_SIZE);
         for (int i = 1; i < shares.length; i++) {
-            if (shares[i].getMetadata(KEY_SHARE_SIZE) != shareCount) {
+            if (shares[i].getMetadata(NTT_SHARE_SIZE) != shareCount) {
                 throw new ReconstructionException("shareCount are different");
             }
         }

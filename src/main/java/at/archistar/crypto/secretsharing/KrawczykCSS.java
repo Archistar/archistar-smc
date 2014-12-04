@@ -1,10 +1,11 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.InvalidParametersException;
-import at.archistar.crypto.data.KrawczykShare;
-import static at.archistar.crypto.data.KrawczykShare.KEY_ENC_ALGORITHM;
-import static at.archistar.crypto.data.KrawczykShare.KEY_ORIGINAL_LENGTH;
 import at.archistar.crypto.data.Share;
+import static at.archistar.crypto.data.Share.ENC_ALGORITHM;
+import static at.archistar.crypto.data.Share.ENC_KEY;
+import static at.archistar.crypto.data.Share.ORIGINAL_LENGTH;
+import at.archistar.crypto.data.Share.ShareType;
 import at.archistar.crypto.data.ShareFactory;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
@@ -19,6 +20,7 @@ import at.archistar.crypto.math.gf257.GF257;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.Encryptor;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
@@ -92,15 +94,12 @@ public class KrawczykCSS extends BaseSecretSharing {
             //Generate a new array of encrypted shares
             Share[] kshares = new Share[n];
             for (int i = 0; i < kshares.length; i++) {
-                Map<Byte, Integer> metadata = new HashMap<>();
-                /* TODO: add encryptor, keylength, etc. */
-                metadata.put(KEY_ORIGINAL_LENGTH, encSource.length);
+                Map<Byte, byte[]> metadata = new HashMap<>();
+                metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(encSource.length).array());
+                metadata.put(ENC_ALGORITHM, ByteBuffer.allocate(4).putInt(1).array());
+                metadata.put(ENC_KEY, outputKey[i].getEncodedData());
                 
-                /** TODO: need to enumerate crypto algorithm somewhere */
-                metadata.put(KEY_ENC_ALGORITHM, 1);
-                
-                kshares[i] = ShareFactory.createKrawczyk((byte)(i+1),
-                                               outputKey[i].getEncodedData(),
+                kshares[i] = ShareFactory.create(ShareType.KRAWCZYK, (byte)(i+1),
                                                outputContent[i].getEncodedData(),
                                                metadata);
             }
@@ -120,14 +119,14 @@ public class KrawczykCSS extends BaseSecretSharing {
         }
         
         try {
-            int[] xValues = GeometricSecretSharing.extractXVals(shares);
-            int originalLengthKey = ((KrawczykShare)shares[0]).getKey().length;
-            int originalLengthContent = shares[0].getMetadata(KrawczykShare.KEY_ORIGINAL_LENGTH);
+            int[] xValues = GeometricSecretSharing.extractXVals(shares, k);
+            int originalLengthKey = shares[0].getMetadataArray(ENC_KEY).length;
+            int originalLengthContent = shares[0].getMetadata(ORIGINAL_LENGTH);
             
             EncodingConverter[] ecKey = new EncodingConverter[shares.length];
             EncodingConverter[] ecContent = new EncodingConverter[shares.length];
             for (int i = 0; i < shares.length; i++) {
-                ecKey[i] = new EncodingConverter(((KrawczykShare)shares[i]).getKey(), gf);
+                ecKey[i] = new EncodingConverter(shares[i].getMetadataArray(ENC_KEY), gf);
                 ecContent[i] = new EncodingConverter(shares[i].getYValues(), gf);
             }
             

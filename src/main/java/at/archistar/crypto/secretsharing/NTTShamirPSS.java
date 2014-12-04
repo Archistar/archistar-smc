@@ -1,5 +1,6 @@
 package at.archistar.crypto.secretsharing;
 
+import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GFFactory;
@@ -38,4 +39,10 @@ public class NTTShamirPSS extends NTTSecretSharing {
         
         return tmp;
     }
+    
+    @Override
+    protected Share.ShareType getShareType() {
+        return Share.ShareType.NTT_SHAMIR;
+    }
+
 }

@@ -1,5 +1,7 @@
 package at.archistar.crypto.secretsharing;
 
+import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.Share.ShareType;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GFFactory;
@@ -22,5 +24,10 @@ public class NTTRabinIDS extends NTTSecretSharing {
     protected int[] encodeData(int tmp[], int[] data, int offset, int length) {
         System.arraycopy(data, offset, tmp, 0, length);
         return tmp;
+    }
+
+    @Override
+    protected Share.ShareType getShareType() {
+        return ShareType.NTT_REED_SOLOMON;
     }
 }

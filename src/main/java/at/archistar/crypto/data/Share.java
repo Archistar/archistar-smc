@@ -1,10 +1,10 @@
 package at.archistar.crypto.data;
 
-import at.archistar.crypto.secretsharing.NTTSecretSharing;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,9 +16,49 @@ import java.util.Map;
  * @author andy
  */
 public class Share implements Comparable<Share> {
+    
+    private final byte id;
+    
+    private final byte[] yValues;
+    
+    private final Map<Byte, byte[]> metadata;
+    
+    private final Map<Byte, byte[]> macKeys;
+    
+    private final Map<Byte, byte[]> macs;
+    
+    private final ShareType shareType;
+    
+    private ICType informationChecking;
+    
+    public static final int VERSION = 3;
+    
+    /** which share types can we work with? */
+    public static enum ShareType {
+        SHAMIR,
+        REED_SOLOMON,
+        KRAWCZYK,
+        NTT_SHAMIR,
+        NTT_REED_SOLOMON
+    }
+    
+    /** which information checking schemas can we work with? */
+    public static enum ICType {
+        NONE,
+        RABIN_BEN_OR,
+        CEVALLOS        
+    }
+    
+    public static final byte ORIGINAL_LENGTH = 1;
+    
+    public static final byte ENC_ALGORITHM = 2;
+    
+    public static final byte ENC_KEY = 3;
+    
+    public static final byte NTT_SHARE_SIZE = 4;
 
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    Share(ShareType shareType, byte id, byte[] body, Map<Byte, Integer> metadata, ICType ic, Map<Byte, byte[]> macKeys, Map<Byte, byte[]> macs) {
+    Share(ShareType shareType, byte id, byte[] body, Map<Byte, byte[]> metadata, ICType ic, Map<Byte, byte[]> macKeys, Map<Byte, byte[]> macs) {
         this.id = id;
         this.yValues = body;
         this.metadata = metadata;
@@ -29,7 +69,7 @@ public class Share implements Comparable<Share> {
     }
     
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    Share(ShareType shareType, byte id, byte[] body, Map<Byte, Integer> metadata) {
+    Share(ShareType shareType, byte id, byte[] body, Map<Byte, byte[]> metadata) {
         this(shareType, id, body, metadata, ICType.NONE, new HashMap<Byte, byte[]>(), new HashMap<Byte, byte[]>());
     }
 
@@ -37,37 +77,6 @@ public class Share implements Comparable<Share> {
         this.informationChecking = icType;
     }
 
-    /** which share types can we work with? */
-    public static enum ShareType {
-        SHAMIR,
-        REED_SOLOMON,
-        KRAWCZYK,
-        NTT
-    }
-    
-    /** which information checking schemas can we work with? */
-    public static enum ICType {
-        NONE,
-        RABIN_BEN_OR,
-        CEVALLOS        
-    }
-
-    protected final byte id;
-    
-    protected final byte[] yValues;
-    
-    protected final Map<Byte, Integer> metadata;
-    
-    private final Map<Byte, byte[]> macKeys;
-    
-    private final Map<Byte, byte[]> macs;
-    
-    protected final ShareType shareType;
-    
-    protected ICType informationChecking;
-    
-    public static final int VERSION = 3;
-    
     public int getX() {
         return id;
     }
@@ -97,16 +106,11 @@ public class Share implements Comparable<Share> {
         sout.writeByte((byte)getId());
         
         /* write metadata */
-        sout.writeInt(metadata.size());
-        for (Map.Entry<Byte, Integer> a : metadata.entrySet()) {
-            sout.writeByte(a.getKey());
-            sout.writeInt(a.getValue());
-        }
+        writeMap(sout, metadata);
         
         /* serialize body */
-        byte[] body = getBody();
-        sout.writeInt(body.length);
-        sout.write(body);
+        sout.writeInt(yValues.length);
+        sout.write(yValues);
         
         return out.toByteArray();
     }
@@ -114,12 +118,12 @@ public class Share implements Comparable<Share> {
     private static void writeMap(DataOutputStream sout, Map<Byte, byte[]> map) throws IOException {
         sout.writeInt(map.size());
         for (Map.Entry<Byte, byte[]> e : map.entrySet()) {
-            Byte id = e.getKey();
-            byte[] mac = e.getValue();
+            Byte key = e.getKey();
+            byte[] value = e.getValue();
             
-            sout.writeByte(id);
-            sout.writeInt(mac.length);
-            sout.write(mac);
+            sout.writeByte(key);
+            sout.writeInt(value.length);
+            sout.write(value);
         }
     }
     
@@ -142,11 +146,16 @@ public class Share implements Comparable<Share> {
     }
     
     public int getMetadata(int key) {
-        return this.metadata.get((byte)key);
+        byte[] tmp = this.metadata.get((byte)key);
+        if (tmp.length == 4) {
+            return ByteBuffer.wrap(tmp).getInt();
+        } else {
+            throw new RuntimeException("this cannot happen, key not found!");
+        }
     }
     
-    public void setMetadata(int key, int value) {
-        this.metadata.put((byte)key, value);
+    public byte[] getMetadataArray(int key) {
+        return this.metadata.get((byte)key);
     }
     
     public Map<Byte, byte[]> getMacs() {
@@ -168,12 +177,12 @@ public class Share implements Comparable<Share> {
         if (shareType == ShareType.SHAMIR) {
             //no additional checks needed
         } else if (shareType == ShareType.KRAWCZYK) {
-            // fall through, will be checking within KrawczywkShare
+            result = metadata.containsKey(ENC_ALGORITHM) && metadata.containsKey(ORIGINAL_LENGTH) && metadata.containsKey(ENC_KEY);
         } else if (shareType == ShareType.REED_SOLOMON) {
             result = metadata.containsKey((byte)1);            
-        } else if (shareType == ShareType.NTT) {
-            result = metadata.containsKey(NTTSecretSharing.KEY_ORIGINAL_LENGTH) &&
-                     metadata.containsKey(NTTSecretSharing.KEY_SHARE_SIZE);            
+        } else if (shareType == ShareType.NTT_REED_SOLOMON || shareType == ShareType.NTT_SHAMIR) {
+            result = metadata.containsKey(ORIGINAL_LENGTH) &&
+                     metadata.containsKey(NTT_SHARE_SIZE);            
         } else {
             throw new RuntimeException("impossible: unknown algorithm");
         }

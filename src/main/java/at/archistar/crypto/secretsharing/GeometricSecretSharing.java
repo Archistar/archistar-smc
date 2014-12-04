@@ -14,7 +14,6 @@ import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.StaticOutputEncoderConverter;
 import at.archistar.crypto.math.gf257.GF257;
 import static at.archistar.crypto.secretsharing.BaseSecretSharing.validateShareCount;
-import java.util.Arrays;
 
 /**
  *
@@ -54,11 +53,9 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
     
     public void share(OutputEncoderConverter output[], byte[] data) {
         assert(output.length == n);
+        int coeffs[] = new int[k];
         
         for (int i = 0; i < data.length; i += dataPerRound) {
-            /* compute share values */
-            int coeffs[] = new int[k];
-            
             encodeData(coeffs, data, i, dataPerRound);
 
             /* calculate the share a value for this byte for every share */
@@ -96,10 +93,10 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
     public byte[] reconstruct(EncodingConverter[] input, int[] xValues, int originalLength) throws ReconstructionException {
         Decoder decoder = decoderFactory.createDecoder(xValues, k);
         byte result[] = new byte[originalLength];
+        int yValues[] = new int[k];
 
         int posResult = 0;
         while (posResult < originalLength) {
-            int yValues[] = new int[k];
             for (int j = 0; j < k; j++) { // extract only k y-values (so we have k xy-pairs)
                 yValues[j] = input[j].readNext();
             }
@@ -127,9 +124,10 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
         }
         
         int originalLength = retrieveInputLength(shares);
-        int xValues[] = Arrays.copyOfRange(extractXVals(shares), 0, k); // we only need k x-values for reconstruction
+        // we only need k x-values for reconstruction
+        int xTmpValues[] = extractXVals(shares, k);
         
-        return reconstruct(input, xValues, originalLength);
+        return reconstruct(input, xTmpValues, originalLength);
     }
     
     protected abstract int decodeData(int[] encoded, int originalLength, byte[] result, int offset);
@@ -153,10 +151,10 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
      * @param shares the shares to extract the x-values from
      * @return an array with all x-values from the given shares (in same order as the given Share[])
      */
-    public static int[] extractXVals(Share[] shares) {
-        int[] x = new int[shares.length];
+    public static int[] extractXVals(Share[] shares, int k) {
+        int[] x = new int[k];
         
-        for (int i = 0; i < x.length; i++) {
+        for (int i = 0; i < k; i++) {
             x[i] = shares[i].getId();
         }
         

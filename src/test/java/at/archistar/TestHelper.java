@@ -4,7 +4,7 @@ public class TestHelper {
 
     public static final int REDUCED_TEST_SIZE = 4 * 1024 * 1024;
 
-    public static final int TEST_SIZE = 25 * REDUCED_TEST_SIZE;
+    public static final int TEST_SIZE = 10 * REDUCED_TEST_SIZE;
     
     public static byte[][] createArray(int elementSize) {
         return createArray(TEST_SIZE, elementSize);

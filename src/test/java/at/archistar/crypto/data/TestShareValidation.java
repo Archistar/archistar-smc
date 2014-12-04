@@ -1,5 +1,11 @@
 package at.archistar.crypto.data;
 
+import static at.archistar.crypto.data.Share.ENC_ALGORITHM;
+import static at.archistar.crypto.data.Share.ENC_KEY;
+import static at.archistar.crypto.data.Share.ORIGINAL_LENGTH;
+import static at.archistar.crypto.data.Share.ShareType.KRAWCZYK;
+import static at.archistar.crypto.data.Share.ShareType.REED_SOLOMON;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
@@ -11,7 +17,7 @@ import static org.fest.assertions.api.Assertions.*;
 public class TestShareValidation {
     
     private static final byte[] data = {1, 2, 3};
-    private static final Map<Byte, Integer> emptyMetadata = new HashMap<>();
+    private static final Map<Byte, byte[]> emptyMetadata = new HashMap<>();
     private static final Map<Byte, byte[]> emptyMacs = new HashMap<>();
     
     @Test(expected=InvalidParametersException.class)
@@ -51,49 +57,53 @@ public class TestShareValidation {
     
     @Test(expected=InvalidParametersException.class)
     public void KrawcywkMustHaveOriginalLength() throws InvalidParametersException {
-        Map<Byte, Integer> metadata = new HashMap<>();
-        metadata.put(KrawczykShare.KEY_ENC_ALGORITHM, 1);
-
-        Share share = ShareFactory.createKrawczyk((byte)7, data, data , metadata);
-        assertThat(share).isNotNull();    }
+        Map<Byte, byte[]> metadata = new HashMap<>();
+        metadata.put(ENC_ALGORITHM, ByteBuffer.allocate(4).putInt(1).array());
+        metadata.put(ENC_KEY, data);
+        
+        Share share = ShareFactory.create(Share.ShareType.KRAWCZYK, (byte)7, data , metadata);
+        assertThat(share).isNotNull();
+    }
     
     @Test
     public void allowValidRabinConstruction() throws InvalidParametersException {
-        Map<Byte, Integer> metadata = new HashMap<>();
-        metadata.put((byte)1, 1);
-        Share share = ShareFactory.create(Share.ShareType.REED_SOLOMON, (byte)7,
-                                data, metadata);
+        Map<Byte, byte[]> metadata = new HashMap<>();
+        metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(1).array());
+
+        Share share = ShareFactory.create(REED_SOLOMON, (byte)7, data, metadata);
         assertThat(share).isNotNull();
     }
     
     @Test
     public void allowValidKrawczwkConstruction() throws InvalidParametersException {
-        Map<Byte, Integer> metadata = new HashMap<>();
-        metadata.put(KrawczykShare.KEY_ENC_ALGORITHM, 1);
-        metadata.put(KrawczykShare.KEY_ORIGINAL_LENGTH, 1);
+        Map<Byte, byte[]> metadata = new HashMap<>();
+        metadata.put(ENC_ALGORITHM, ByteBuffer.allocate(4).putInt(1).array());
+        metadata.put(ENC_KEY, data);
+        metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(1).array());
         
-        Share share = ShareFactory.createKrawczyk((byte)7, data, data , metadata);
+        Share share = ShareFactory.create(KRAWCZYK, (byte)7, data , metadata);
         assertThat(share).isNotNull();
     }
 
     
     @Test(expected=InvalidParametersException.class)
     public void KrawczykAlgMustNotBeNull() throws InvalidParametersException {
-        Map<Byte, Integer> metadata = new HashMap<>();
-        metadata.put(KrawczykShare.KEY_ORIGINAL_LENGTH, 1);
+        Map<Byte, byte[]> metadata = new HashMap<>();
+        metadata.put(ENC_KEY, data);
+        metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(1).array());
 
-        Share share = ShareFactory.createKrawczyk((byte)7, data, data , metadata);
+        Share share = ShareFactory.create(KRAWCZYK, (byte)7, data, metadata);
         assertThat(share).isNotNull();
     }
 
     @Test(expected=InvalidParametersException.class)
     public void KrawczykKeyYMustNotBeNull() throws InvalidParametersException {
         
-        Map<Byte, Integer> metadata = new HashMap<>();
-        metadata.put(KrawczykShare.KEY_ORIGINAL_LENGTH, 1);
-        metadata.put(KrawczykShare.KEY_ENC_ALGORITHM, 1);
+        Map<Byte, byte[]> metadata = new HashMap<>();
+        metadata.put(ENC_ALGORITHM, ByteBuffer.allocate(4).putInt(1).array());
+        metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(1).array());
 
-        Share share = ShareFactory.createKrawczyk((byte) 7, data, null, metadata);
+        Share share = ShareFactory.create(KRAWCZYK, (byte) 7, data, metadata);
         assertThat(share).isNotNull();
     }
 }
