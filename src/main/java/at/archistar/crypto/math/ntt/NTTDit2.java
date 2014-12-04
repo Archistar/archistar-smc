@@ -29,8 +29,6 @@ public class NTTDit2 extends AbstractNTT {
         assert(n == gf.pow(2, ldn));
         int rn = gf257.primitiveRootOfUnity(n);
         if (is < 0) {
-            // TODO: how is -1? isn't this the inverse element?
-            // rn = gf.pow(rn, -1);
             rn = gf.inverse(rn);
         }
         revbin_permute(data, n);
@@ -40,8 +38,6 @@ public class NTTDit2 extends AbstractNTT {
             int mh = gf.div(m, 2);
             
             int dw = gf.pow(rn, gf.pow(2, gf.sub(ldn, ldm)));
-            // in c++: mod::root2pow( (int) (is>0 ? ldm : -ldm));
-            // does this mean that i need the n-th root for n.. (1..8)
             
             for (int j = 0, w = 1; j < mh; j++, w = gf.mult(w, dw)) {
                 for (int r = 0; r < n; r += m) {
@@ -61,7 +57,6 @@ public class NTTDit2 extends AbstractNTT {
     }
     
     private void revbin_permute(int a[], int n) {
-        // TODO is this < or <=
         int bitCount = log2(n);
     
         for (int x = 0; x < n - 1; x++) {
@@ -75,7 +70,6 @@ public class NTTDit2 extends AbstractNTT {
         }
     }
     
-    /* do a bitwise reverse (in gf(n)?) */
     private int revbin(int a, int bitCount) {
         return Integer.reverse(a) >>> (64 - bitCount);
     }

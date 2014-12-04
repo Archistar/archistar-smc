@@ -35,7 +35,6 @@ public class RabinBenOrEngine implements CryptoEngine {
     public RabinBenOrEngine(int n, int k) throws NoSuchAlgorithmException, WeakSecurityException {
         /* component selection */
         RandomSource rng = new BCDigestRandomSource();
-        //MacHelper mac = new ShareMacHelper("HMacSHA256");
         MacHelper mac = new BCPoly1305MacHelper();
         DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
         Encryptor cryptor = new ChaCha20Encryptor();

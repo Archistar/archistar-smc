@@ -45,4 +45,8 @@ public class NTTShamirPSS extends NTTSecretSharing {
         return Share.ShareType.NTT_SHAMIR;
     }
 
+    @Override
+    public String toString() {
+        return "NTTShamirPSS(" + n + "/" + k + ", NTTLength: " + nttBlockLength +")";
+    }
 }

@@ -24,9 +24,6 @@ public class NTTSlow extends AbstractNTT {
             }
         }
         
-        GenericMatrix m = new GenericMatrix(matrix, gf);
-        
-        /* TODO: wird eher ein left-multiply sein.. */
-        return m.rightMultiply(a);
+        return new GenericMatrix(matrix, gf).rightMultiply(a);
     }
 }

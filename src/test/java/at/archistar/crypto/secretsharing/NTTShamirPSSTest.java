@@ -1,12 +1,9 @@
 package at.archistar.crypto.secretsharing;
 
-import at.archistar.crypto.data.Share;
-import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
 import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
-import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
@@ -18,31 +15,53 @@ import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import org.bouncycastle.util.Arrays;
 import static org.fest.assertions.api.Assertions.assertThat;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  *
  * @author andy
  */
-public class NTTShamirPSSTest {
+public class NTTShamirPSSTest extends BasicSecretSharingTest {
     
-    private static final GF257Factory gffactory = new GF257Factory();
-    
-    private static final GF gf = gffactory.createHelper();
-
     private final int NTTBlockLength = 256;
-
-    private final AbstractNTT ntt = new NTTSlow(gf);
-    
-    private final RandomSource rng = new FakeRandomSource();
-    
-    private static final int n = 7;
-    
-    private static final int k = 3;
-    
+   
     private final int blockCount = NTTBlockLength / n;
     
     private final static int generator = 3;
+    
+    private final GF gf;
+    
+    private final GF257Factory gffactory;
+    
+    private final DecoderFactory df;
+    
+    private final AbstractNTT ntt;
+    
+    private final RandomSource random;
+    
+    private final int minLength = (NTTBlockLength/n)*k;
+    
+    private final int[] xValues;
+    
+    private final int[] resultXValues;
+    
+    public NTTShamirPSSTest() {
+        super(7, 3);
+
+        gffactory = new GF257Factory();
+        df = new ErasureDecoderFactory(gffactory);
+        gf = gffactory.createHelper();
+        ntt = new NTTSlow(gf);
+        random = new FakeRandomSource();
+        xValues = NTTShamirPSS.prepareXValuesFor(generator, gf);
+        resultXValues = Arrays.copyOf(xValues, minLength);
+    }
+    
+    @Before
+    public void setup() throws WeakSecurityException {
+        algorithm = new NTTShamirPSS(n, k, generator, gffactory, random, ntt, df);
+    }
     
     private int[] createData(int size) {
         int[] tmp = new int[size];
@@ -50,16 +69,6 @@ public class NTTShamirPSSTest {
         /* prepare test data */
         for (int i = 0; i < size; i++) {
             tmp[i] = i%256;
-        }
-        return tmp;
-    }
-
-    private byte[] createDataByte(int size) {
-        byte[] tmp = new byte[size];
-        
-        /* prepare test data */
-        for (int i = 0; i < size; i++) {
-            tmp[i] = (byte)(i%256);
         }
         return tmp;
     }
@@ -88,15 +97,12 @@ public class NTTShamirPSSTest {
     public void encodeDecodeCycle1Byte() throws UnsolvableException, WeakSecurityException {
         
         final int dataElement = 42;
-        
         int[] data = { dataElement };
-        int[] xValues = NTTShamirPSS.prepareXValuesFor(generator, gf);
-        int minLength = (NTTBlockLength/n)*k;
-        DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
 
         /* encode */
-        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
         int[] encodedData = new int[NTTBlockLength];
+        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, random, ntt, df);
+
         nttPSS.encodeData(encodedData, data, 0, 1);        
         int[] encoded = ntt.ntt(encodedData, generator);
         
@@ -105,8 +111,7 @@ public class NTTShamirPSSTest {
 
         /* take minValue results and use them as input */
         System.arraycopy(encoded, 0, yValues, 0, minLength);
-        int[] resultXValues = Arrays.copyOf(xValues, minLength);
-        Decoder decoder = decoderFactory.createDecoder(resultXValues, minLength);
+        Decoder decoder = df.createDecoder(resultXValues, minLength);
         int[] result = decoder.decode(yValues, 0);
 
         assertThat(result[0]).isEqualTo(dataElement);
@@ -120,14 +125,9 @@ public class NTTShamirPSSTest {
         
         int[] wip = new int[256];
         int[] data = createData(blockCount);
-        
-        int[] xValues = NTTShamirPSS.prepareXValuesFor(generator, gf);
-        int minLength = (NTTBlockLength/n)*k;
-        int[] resultXValues = Arrays.copyOf(xValues, minLength);
-        DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
 
         /* encode */
-        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
+        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, random, ntt, df);
         int[] encodedData = new int[NTTBlockLength];
         nttPSS.encodeData(encodedData, data, 0, blockCount);
         int[] encoded = ntt.ntt(encodedData, generator);
@@ -137,7 +137,7 @@ public class NTTShamirPSSTest {
 
         /* take minValue results and use them as input */
         System.arraycopy(encoded, 0, yValues, 0, minLength);
-        Decoder decoder = decoderFactory.createDecoder(resultXValues, minLength);
+        Decoder decoder = df.createDecoder(resultXValues, minLength);
         int[] result = decoder.decode(yValues, 0);
 
         for (int i = 0; i < blockCount; i++) {
@@ -146,30 +146,14 @@ public class NTTShamirPSSTest {
     }
 
     /**
-     * test if an encryption round finishes
-     */
-    @Test
-    public void encodeTest() throws WeakSecurityException {
-        int[] data = createData(4096);
-        DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
-        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
-        
-        nttPSS.encode(data);
-    }
-
-    /**
      * test with odd data count
      */
     @Test
-    public void testUngeradeDatenMenge() throws UnsolvableException, WeakSecurityException {
+    public void testOddDatenMenge() throws WeakSecurityException, UnsolvableException {
         
         int[] data = createData(1023);
-        int[] xValues = NTTShamirPSS.prepareXValuesFor(generator, gf);
-        int minLength = (NTTBlockLength/n)*k;
-        int[] resultXValues = Arrays.copyOf(xValues, minLength);
-        DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
 
-        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
+        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, random, ntt, df);
         OutputEncoderConverter[] output = nttPSS.encode(data);
         
         /* copy k Elements */
@@ -187,12 +171,8 @@ public class NTTShamirPSSTest {
     @Test
     public void reconstructTest() throws UnsolvableException, WeakSecurityException {
         int[] data = createData(4096);
-        int[] xValues = NTTShamirPSS.prepareXValuesFor(generator, gf);
-        int minLength = (NTTBlockLength/n)*k;
-        int[] resultXValues = Arrays.copyOf(xValues, minLength);
-        DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
         
-        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
+        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, random, ntt, df);
         
         OutputEncoderConverter[] output = nttPSS.encode(data);
         
@@ -214,12 +194,7 @@ public class NTTShamirPSSTest {
     public void reconstructBWTest() throws UnsolvableException, WeakSecurityException {
         
         int[] data = createData(4096);
-        int[] xValues = NTTShamirPSS.prepareXValuesFor(generator, gf);
-        int minLength = (NTTBlockLength/n)*k;
-        int[] resultXValues = Arrays.copyOf(xValues, minLength);
-        DecoderFactory decoderFactory = new BerlekampWelchDecoderFactory(gffactory);
-        
-        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
+        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, random, ntt, df);
 
         OutputEncoderConverter[] output = nttPSS.encode(data);
         
@@ -234,24 +209,6 @@ public class NTTShamirPSSTest {
         System.arraycopy(tmp, 0, resultOutput, 0, k);
         
         int[] result = nttPSS.reconstruct(resultOutput, resultXValues, data.length);
-        assertThat(result).isEqualTo(data);
-    }
-    
-    @Test
-    public void shareReconstructCycle() throws WeakSecurityException, ReconstructionException {
-        byte[] data = createDataByte(4096);
-        DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
-        
-        NTTShamirPSS nttPSS = new NTTShamirPSS(n, k, generator, gffactory, rng, ntt, decoderFactory);
-        
-        Share[] shares = nttPSS.share(data);
-        
-        /* take k shares */
-        Share[] kShares = new Share[k];
-        System.arraycopy(shares, 0, kShares, 0, k);
-        
-        byte[] result = nttPSS.reconstruct(kShares);
-        
         assertThat(result).isEqualTo(data);
     }
 }

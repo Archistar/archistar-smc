@@ -30,4 +30,9 @@ public class NTTRabinIDS extends NTTSecretSharing {
     protected Share.ShareType getShareType() {
         return ShareType.NTT_REED_SOLOMON;
     }
+    
+    @Override
+    public String toString() {
+        return "NTTRabinIDS(" + n + "/" + k + ", NTTLength: " + nttBlockLength +")";
+    }
 }

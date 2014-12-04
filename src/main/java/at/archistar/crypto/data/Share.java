@@ -10,9 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
- * TODO: information-checking is not a crypto-type but an add-on information-checking flag?
- * 
  * @author andy
  */
 public class Share implements Comparable<Share> {

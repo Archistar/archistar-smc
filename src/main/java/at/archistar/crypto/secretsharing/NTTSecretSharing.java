@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * @author andy
  */
-public abstract class NTTSecretSharing extends BaseSecretSharing {
+abstract class NTTSecretSharing extends BaseSecretSharing {
     
     private final int generator;
     
@@ -173,7 +173,7 @@ public abstract class NTTSecretSharing extends BaseSecretSharing {
         for (int i = 0; i < length/shareSize; i++) {
             
             /* assume everything to be in the same order and xValues start with 1 */
-            for (int j = 0; j < encoded.length; j++) {
+            for (int j = 0; j < k; j++) {
               System.arraycopy(encoded[j], i*shareSize, yValues, j*shareSize, shareSize);
             }
             
@@ -196,6 +196,10 @@ public abstract class NTTSecretSharing extends BaseSecretSharing {
 
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
+        
+        if (!validateShareCount(shares.length, k)) {
+            throw new ReconstructionException();
+        }
         
         /* extract original length */
         int origLength = shares[0].getMetadata(ORIGINAL_LENGTH);
