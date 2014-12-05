@@ -4,7 +4,6 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.secretsharing.BaseSecretSharing;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -24,20 +23,22 @@ import java.util.Queue;
 public class CevallosUSRSS extends RabinBenOrRSS {
     public static final int E = 128; // security constant for computing the tag length; means 128 bit
     
-    private final BaseSecretSharing sharing;
     private final MacHelper mac;
+    
+    private final int n;
     
     /**
      * Constructor.
      */
-    public CevallosUSRSS(BaseSecretSharing sharing, MacHelper mac, RandomSource rng) throws WeakSecurityException {
-        super(sharing, mac, rng);
+    public CevallosUSRSS(int n, int k, MacHelper mac, RandomSource rng) throws WeakSecurityException {
+        super(k, mac, rng);
         
-        if (!((sharing.getK() - 1) * 3 >= sharing.getN() && (sharing.getK() - 1) * 2 < sharing.getN())) {
+        this.n = n;
+        
+        if (!((k - 1) * 3 >= n) && ((k - 1) * 2 < n)) {
             throw new WeakSecurityException("this scheme only works when n/3 <= t < n/2 (where t = k-1)");
         }
         
-        this.sharing = sharing;
         this.mac = mac;
     }
     
@@ -47,9 +48,6 @@ public class CevallosUSRSS extends RabinBenOrRSS {
         Queue<Integer> queue = new LinkedList<>();
         List<Share> valid = new LinkedList<>();
         
-        int n = sharing.getN();
-        int k = sharing.getK();
-
         // accepts[i][j] = true means participant j accepts i
         boolean[][] accepts = new boolean[n + 1][n + 1];
         int a[] = new int[n + 1];
@@ -121,6 +119,6 @@ public class CevallosUSRSS extends RabinBenOrRSS {
     
     @Override
     public String toString() {
-        return "CevallosUSRSS(" + sharing + ", " + mac + ")";
+        return "CevallosUSRSS(" + k + "/" + n +", " + mac + ")";
     }
 }
