@@ -13,8 +13,9 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
- * basic AES-GCM encryption
- * @author andy
+ * basic AES-GCM based encryption
+ * 
+ * TODO: we are currently using a fixed IV!
  */
 public class AESGCMEncryptor implements Encryptor {
 

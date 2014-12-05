@@ -25,9 +25,8 @@ public class TestBerlekampWelchDecoder {
      * have distinct integers of the given range.
      *
      * It is important that n <= r <= 256. 
-   * @
-     *
-     * param n the number of bytes
+
+     * @param n the number of bytes
      * @param r the range of the numbers will be in the range [0, r - 1]
      */
     void generateRandomIntegerArray(int ret[], int n, int r) {
@@ -162,7 +161,7 @@ public class TestBerlekampWelchDecoder {
     }
     
     /**
-     * test if a GF257 Decoder can be built
+     * test if a GF257-based Decoder can be built
      */
     @Test
     public void tryBuildGF257Decoder() {

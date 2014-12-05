@@ -72,36 +72,9 @@ public class BerlekampWelchDecoder implements Decoder {
             throw new UnsolvableException("too many errors for this decoder (f=" + this.f + ", errors=" + errors + ")");
         }
         
-        /* finish preparation of the decode-matrix */
-        prepareEx(y);
-        
-        GFMatrix decodeMatrix = gffactory.createMatrix(matrix).inverseElimDepRows();
-        int[] coeffs = decodeMatrix.rightMultiply(buildMultVector(x, y, decodeMatrix.getNumRows())); // compute the coefficients
         int[] ret = new int[k];
         
-        coeffs = Arrays.copyOf(coeffs, y.length + 1); // fill 0s for eliminated rows
-        coeffs[coeffs.length - 1] = 1; // add 1 to coeffs since E(x) = e_0 + e_1*x + ... + x^f
-        
-        /* construct Q(x) and E(x) */
-        int[] q = Arrays.copyOfRange(coeffs, 0, coeffs.length - (f + 1));
-        int[] e = Arrays.copyOfRange(coeffs, coeffs.length - (f + 1), coeffs.length);
-        
-        GenericPolyHelper div = new GenericPolyHelper(gf);
-        int[][] divRes = div.polyDiv(q, e);
-        
-        if (getDegree(divRes[1]) > 0) { // if there is a remainder, reconstruction failed
-            throw new UnsolvableException();
-        }
-        
-        for (int i = 0; i < k; i++) {
-            if (i < divRes[0].length) {
-                ret[i] = divRes[0][i];
-            } else {
-                ret[i] = 0;
-            }
-        }
-        
-        return ret;
+        return decodeUnsafe(ret, y, errors);
     }
     
     private static int getDegree(int[] coefficients) {
@@ -133,7 +106,36 @@ public class BerlekampWelchDecoder implements Decoder {
     }
 
     @Override
-    public int[] decodeUnsafe(int[] target, int[] y, int errors) throws UnsolvableException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public int[] decodeUnsafe(int[] ret, int[] y, int errors) throws UnsolvableException {
+                
+        /* finish preparation of the decode-matrix */
+        prepareEx(y);
+        
+        GFMatrix decodeMatrix = gffactory.createMatrix(matrix).inverseElimDepRows();
+        int[] coeffs = decodeMatrix.rightMultiply(buildMultVector(x, y, decodeMatrix.getNumRows())); // compute the coefficients
+        
+        coeffs = Arrays.copyOf(coeffs, y.length + 1); // fill 0s for eliminated rows
+        coeffs[coeffs.length - 1] = 1; // add 1 to coeffs since E(x) = e_0 + e_1*x + ... + x^f
+        
+        /* construct Q(x) and E(x) */
+        int[] q = Arrays.copyOfRange(coeffs, 0, coeffs.length - (f + 1));
+        int[] e = Arrays.copyOfRange(coeffs, coeffs.length - (f + 1), coeffs.length);
+        
+        GenericPolyHelper div = new GenericPolyHelper(gf);
+        int[][] divRes = div.polyDiv(q, e);
+        
+        if (getDegree(divRes[1]) > 0) { // if there is a remainder, reconstruction failed
+            throw new UnsolvableException();
+        }
+        
+        for (int i = 0; i < k; i++) {
+            if (i < divRes[0].length) {
+                ret[i] = divRes[0][i];
+            } else {
+                ret[i] = 0;
+            }
+        }
+        
+        return ret;
     }
 }

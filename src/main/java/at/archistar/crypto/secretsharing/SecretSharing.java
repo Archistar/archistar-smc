@@ -5,8 +5,6 @@ import at.archistar.crypto.exceptions.ReconstructionException;
 
 /**
  * Basic interface for secret sharing
- * 
- * @author andy
  */
 interface SecretSharing {
     

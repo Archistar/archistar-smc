@@ -2,13 +2,13 @@ package at.archistar;
 
 import java.util.Arrays;
 import java.util.Collection;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 /**
- *
- * @author andy
+ * Various java-level micro performance tests
  */
 @RunWith(value = Parameterized.class)
 public class PerformanceMicroTest {
@@ -34,7 +34,13 @@ public class PerformanceMicroTest {
         this.data = input;
     }
 
+    /**
+     * test which array copy method is fastest
+     * 
+     * 2014-12-3 java7 seems like System.arraycopy is overall the fastest
+     */
     @Test
+    @Ignore("very slow")
     public void testArrayClone() {
         
         long before, after;

@@ -6,8 +6,7 @@ import java.security.InvalidKeyException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 /**
- *
- * @author andy
+ * This interface describes possible symmetric encryption algorithms. 
  */
 public interface Encryptor {
         public byte[] encrypt(byte[] data, byte[] randomKeyBytes) throws IOException, InvalidKeyException,

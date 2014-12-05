@@ -27,17 +27,12 @@ public class RabinBenOrRSS implements InformationChecking {
      * 
      * @param sharing the Secret-Sharing algorithm to use as a base for this scheme (must not be itself!)
      * @param mac the mac that will be used
-     * @throws WeakSecurityException 
      */
-    public RabinBenOrRSS(BaseSecretSharing sharing, MacHelper mac, RandomSource rng) throws WeakSecurityException {
+    public RabinBenOrRSS(BaseSecretSharing sharing, MacHelper mac, RandomSource rng) {
 
         this.sharing = sharing;
         this.mac = mac;
         this.rng = rng;
-        
-        if (sharing instanceof RabinIDS) {
-            throw new WeakSecurityException("Reed-Solomon-Code is not secure!");
-        }
     }
     
     @Override
@@ -48,7 +43,7 @@ public class RabinBenOrRSS implements InformationChecking {
             
             for (Share share2 : rboshares) {
                 try {
-                    byte[] key = new byte[this.mac.keySize()/8];
+                    byte[] key = new byte[this.mac.keySize()];
                     this.rng.fillBytes(key);
                     byte[] tag = this.mac.computeMAC(share1.getSerializedForHashing(), key);
                     

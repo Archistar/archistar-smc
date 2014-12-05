@@ -10,8 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- *
- * @author andy
+ * Perform serialization tests upon Reed-Solomon shares
  */
 public class TestRabinSerialization extends AbstractSerializationTest {
     @Before

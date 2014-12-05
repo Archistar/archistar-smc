@@ -11,6 +11,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+/**
+ * benchmark our variable-length macs
+ */
 @RunWith(value = Parameterized.class)
 public class VariableLengthMacPerformanceTest {
 

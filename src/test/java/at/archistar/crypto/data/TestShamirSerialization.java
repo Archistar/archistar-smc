@@ -8,8 +8,7 @@ import java.util.Map;
 import org.junit.Before;
 
 /**
- *
- * @author andy
+ * Perform serialization tests upon Shamir shares
  */
 public class TestShamirSerialization extends AbstractSerializationTest {
     @Before

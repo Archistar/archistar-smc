@@ -11,8 +11,9 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
- * basic AES encryption
- * @author andy
+ * basic ChaCha20-based encryption
+ *
+ * TODO: we are currently using a fixed IV!
  */
 public class ChaCha20Encryptor implements Encryptor {
 

@@ -8,13 +8,12 @@ import static org.fest.assertions.api.Assertions.assertThat;
 import org.junit.Test;
 
 /**
- *
- * @author andy
+ * Very basic erasure decoder tests
  */
 public class TestErasureDecoder {
     
-   /**
-     * test if a GF257 Decoder can be built
+    /**
+     * test if a GF257-based Decoder can be built
      */
     @Test
     public void tryBuildGF257Decoder() {

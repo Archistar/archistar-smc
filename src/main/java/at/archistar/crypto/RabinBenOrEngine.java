@@ -9,22 +9,20 @@ import at.archistar.crypto.informationchecking.InformationChecking;
 import at.archistar.crypto.informationchecking.RabinBenOrRSS;
 import at.archistar.crypto.mac.BCPoly1305MacHelper;
 import at.archistar.crypto.mac.MacHelper;
-import at.archistar.crypto.mac.ShareMacHelper;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.BCDigestRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.KrawczykCSS;
 import at.archistar.crypto.secretsharing.BaseSecretSharing;
-import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import at.archistar.crypto.symmetric.Encryptor;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
 /**
- *
- * @author andy
+ * Implement a secret sharing engine based upon secure krawczywk sharing and
+ * rabin-ben-or information checking scheme.
  */
 public class RabinBenOrEngine implements CryptoEngine {
     private final BaseSecretSharing sharing;
@@ -32,23 +30,22 @@ public class RabinBenOrEngine implements CryptoEngine {
     
     private static final GFFactory gffactory = new GF256Factory();
     
+    private final int n;
+    
+    private final int k;
+    
     public RabinBenOrEngine(int n, int k) throws NoSuchAlgorithmException, WeakSecurityException {
-        /* component selection */
-        RandomSource rng = new BCDigestRandomSource();
+        this(n, k, new BCDigestRandomSource());
+    }
+    
+    public RabinBenOrEngine(int n, int k, RandomSource rng) throws NoSuchAlgorithmException, WeakSecurityException {
         MacHelper mac = new BCPoly1305MacHelper();
         DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
         Encryptor cryptor = new ChaCha20Encryptor();
         this.sharing = new KrawczykCSS(n, k, rng, cryptor, decoderFactory, gffactory.createHelper());
         this.ic = new RabinBenOrRSS(sharing, mac, rng);
-    }
-    
-    public RabinBenOrEngine(int n, int k, RandomSource rng) throws NoSuchAlgorithmException, WeakSecurityException {
-        /* component selection */
-        MacHelper mac = new ShareMacHelper("HMacSHA256");
-        DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
-        Encryptor cryptor = new AESEncryptor();
-        this.sharing = new KrawczykCSS(n, k, rng, cryptor, decoderFactory, gffactory.createHelper());
-        this.ic = new RabinBenOrRSS(sharing, mac, rng);
+        this.n = n;
+        this.k = k;
     }
 
     @Override
@@ -75,5 +72,10 @@ public class RabinBenOrEngine implements CryptoEngine {
             throw new ReconstructionException("error in checkShares: " + ex.getMessage());
         }
         throw new ReconstructionException("valid.length (" + valid.length + ") <= k (" + sharing.getK() +")");
+    }
+    
+    @Override
+    public String toString() {
+        return "Rabin-Ben-Or(Krawzywk(ChaCha20), Poly1305, " + k + "/" + n + ")";
     }
 }

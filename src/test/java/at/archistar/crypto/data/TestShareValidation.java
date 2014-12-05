@@ -12,7 +12,9 @@ import org.junit.Test;
 import static org.fest.assertions.api.Assertions.*;
 
 /**
- * test validity of shares
+ * test share validations
+ * 
+ * TODO: need to document these
  */
 public class TestShareValidation {
     

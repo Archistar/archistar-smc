@@ -38,9 +38,12 @@ public class PerformanceTest {
     
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
-        
-        System.err.println("Data-Size per Test: " + TestHelper.TEST_SIZE/1024/1024 + "MByte");
 
+        /* only output this once */
+        System.err.println("Data-Size per Test: " + TestHelper.TEST_SIZE/1024/1024 + "MByte");
+        System.err.println("All Values in kByte/sec");
+        System.err.format("%33s %6s %12s %12s\n", "Algorithm", "Size", "Share", "Reconstruct");
+        
         byte[][][] secrets = new byte[4][][];
         secrets[0] = TestHelper.createArray(4 * 1024);       // typical file system block size
         secrets[1] = TestHelper.createArray(128 * 1024);     // documents
@@ -80,7 +83,6 @@ public class PerformanceTest {
 
     @Test
     public void testPerformance() throws Exception {
-
         for (int i = 0; i < input.length; i++) {
             double sumShare = 0;
             double sumCombine = 0;
@@ -106,7 +108,12 @@ public class PerformanceTest {
                 sumShare += (betweenOperations - beforeShare);
                 sumCombine += (afterAll - betweenOperations);
             }
-            System.err.format("Performance(%dkB file size) of %s: share: %.3fkByte/sec, combine: %.2fkByte/sec\n", this.input[i][0].length/1024, this.algorithm, (TestHelper.TEST_SIZE / 1024) / (sumShare / 1000.0), (TestHelper.TEST_SIZE / 1024) / (sumCombine / 1000.0));
+            
+            if (algorithm instanceof NTTSecretSharing) {
+                System.err.format("%33s %4dkB %12.1f\n", algorithm, input[i][0].length/1024, (TestHelper.TEST_SIZE / 1024) / (sumShare / 1000.0));
+            } else {
+                System.err.format("%33s %4dkB %12.1f %12.1f\n", algorithm, this.input[i][0].length/1024, (TestHelper.TEST_SIZE / 1024) / (sumShare / 1000.0), (TestHelper.TEST_SIZE / 1024) / (sumCombine / 1000.0));
+            }
         }
     }
 }

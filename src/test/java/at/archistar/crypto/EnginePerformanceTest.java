@@ -53,6 +53,9 @@ public class EnginePerformanceTest {
         this.engine = engine;
     }
 
+    /**
+     * do a simple performance test by calling share and reconstruct
+     */
     @Test
     public void testPerformance() throws Exception {
 
@@ -74,7 +77,7 @@ public class EnginePerformanceTest {
                 /* test that the reconstructed stuff is the same as the original one */
                 assertThat(reconstructed).isEqualTo(data);
             }
-            System.err.format("Performance(%dkB file size) of %s: share: %.3fkByte/sec, combine: %.2fkByte/sec\n", this.input[i][0].length/1024, this.engine, (size / 1024) / (sumShare / 1000.0), (size / 1024) / (sumCombine / 1000.0));
+            System.err.format("%40s %4dkB %10.1f %10.1f\n", engine, input[i][0].length/1024, (size / 1024) / (sumShare / 1000.0), (size / 1024) / (sumCombine / 1000.0));
         }
     }
 }

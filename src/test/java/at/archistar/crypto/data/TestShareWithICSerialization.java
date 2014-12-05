@@ -8,7 +8,12 @@ import java.util.Map;
 import org.junit.Before;
 
 /**
- * @author andy
+ * Perform serialization tests upon Shares that contain information-checking
+ * information.
+ *
+ * NOTE: currently the content of the stored keys/macs is not checked by
+ * the serialization algorithm but has to be done manually by the
+ * information checking implementation
  */
 public class TestShareWithICSerialization extends AbstractSerializationTest {
     @Before

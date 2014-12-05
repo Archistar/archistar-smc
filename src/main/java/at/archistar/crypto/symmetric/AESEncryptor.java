@@ -18,8 +18,9 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
- * basic AES encryption
- * @author andy
+ * basic AES-CBC based encryption
+ * 
+ * TODO: we are currently using a fixed IV!
  */
 public class AESEncryptor implements Encryptor {
 

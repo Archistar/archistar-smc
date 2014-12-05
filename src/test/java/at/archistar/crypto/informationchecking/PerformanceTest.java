@@ -11,9 +11,8 @@ import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.secretsharing.KrawczykCSS;
 import at.archistar.crypto.secretsharing.BaseSecretSharing;
-import at.archistar.crypto.symmetric.ChaCha20Encryptor;
+import at.archistar.crypto.secretsharing.RabinIDS;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -22,11 +21,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 /**
- *
- * @author andy
+ * Benchmark our information checking implementations
  */
 @RunWith(value = Parameterized.class)
-public class Benchmark {
+public class PerformanceTest {
     
     private final byte[][][] input;
     private final BaseSecretSharing algorithm;
@@ -43,15 +41,16 @@ public class Benchmark {
         secrets[2] = TestHelper.createArray(512 * 1024);     // documents, pictures (jpegs)
         secrets[3] = TestHelper.createArray(4096 * 1024);    // audio, high-quality pictures
 
-        final int n = 4;
+        final int n = 5;
         final int k = 3;
-
+        
+        GFFactory gffactory = new GF256Factory();
+        ErasureDecoderFactory df = new ErasureDecoderFactory(gffactory);
+        BaseSecretSharing secretSharing = new RabinIDS(n, k, df, gffactory.createHelper());
+        
         RandomSource rng = new FakeRandomSource();
         MacHelper mac = new ShareMacHelper("HMacSHA256");
         MacHelper macPoly1305 = new BCPoly1305MacHelper();
-        
-        GFFactory gffactory = new GF256Factory();
-        BaseSecretSharing secretSharing = new KrawczykCSS(5, 3, rng, new ChaCha20Encryptor(), new ErasureDecoderFactory(gffactory), gffactory.createHelper());
         
         Object[][] data = new Object[][]{
            {secrets, secretSharing, new CevallosUSRSS(secretSharing, mac, rng)},
@@ -63,7 +62,7 @@ public class Benchmark {
         return Arrays.asList(data);
     }
     
-    public Benchmark(byte[][][] input, BaseSecretSharing algorithm, InformationChecking ic) {
+    public PerformanceTest(byte[][][] input, BaseSecretSharing algorithm, InformationChecking ic) {
         this.input = input;
         this.algorithm = algorithm;
         this.ic = ic;
@@ -74,7 +73,7 @@ public class Benchmark {
         for (int i = 0; i < input.length; i++) {
             double sumCreate = 0;
             double sumCheck = 0;
-
+            
             for (byte[] data : this.input[i]) {
                 
                 Share[] shares = algorithm.share(data);
@@ -88,7 +87,7 @@ public class Benchmark {
                 sumCreate += (betweenOperations - beforeCreate);
                 sumCheck += (afterAll - betweenOperations);
             }
-            System.err.format("Performance(%dkB file size) of %s: create: %.3fkByte/sec, check: %.2fkByte/sec\n", this.input[i][0].length/1024, this.algorithm, (TestHelper.TEST_SIZE / 1024) / (sumCreate / 1000.0), (TestHelper.TEST_SIZE / 1024) / (sumCheck / 1000.0));
+            System.err.format("Performance(%dkB file size) of %s: create: %.3fkByte/sec, check: %.2fkByte/sec\n", input[i][0].length/1024, ic, (TestHelper.TEST_SIZE / 1024) / (sumCreate / 1000.0), (TestHelper.TEST_SIZE / 1024) / (sumCheck / 1000.0));
         }
     }
 }

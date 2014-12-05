@@ -1,6 +1,7 @@
 package at.archistar.crypto.math.gf256;
 
 import at.archistar.crypto.math.GF;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * The operations in this class are meant to be very fast and efficient.
@@ -30,8 +31,11 @@ public class GF256 implements GF {
     private static final int GEN_POLY = 0x11D; // a generator polynomial of GF(256)
     
     /* lookup-tables for faster operations */
-    private static final int[] LOG_TABLE = new int[256]; // = log_g(index) (log base g)
-    private static final int[] ALOG_TABLE = new int[1025]; // = pow(g, index); 512 * 2 + 1
+    @SuppressFBWarnings("MS_PKGPROTECT")
+    public static final int[] LOG_TABLE = new int[256]; // = log_g(index) (log base g)
+    
+    @SuppressFBWarnings("MS_PKGPROTECT")
+    public static final int[] ALOG_TABLE = new int[1025]; // = pow(g, index); 512 * 2 + 1
     
     /* 
      * initialize the lookup tables

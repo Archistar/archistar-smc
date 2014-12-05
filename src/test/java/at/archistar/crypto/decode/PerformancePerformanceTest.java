@@ -1,10 +1,9 @@
-package at.archistar.crypto.math;
+package at.archistar.crypto.decode;
 
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.decode.BerlekampWelchDecoderFactory;
-import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.exceptions.ReconstructionException;
 import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.bc.BCGFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.math.gf257.GF257Factory;
@@ -24,7 +23,7 @@ import org.junit.runners.Parameterized.Parameters;
  * @author andy
  */
 @RunWith(value = Parameterized.class)
-public class GFPerformanceTest {
+public class PerformancePerformanceTest {
     
     private final byte[][]input;
     private final BaseSecretSharing algorithm;
@@ -66,7 +65,7 @@ public class GFPerformanceTest {
         return Arrays.asList(data);
     }
     
-    public GFPerformanceTest(String name, byte[][] input, BaseSecretSharing algorithm) {
+    public PerformancePerformanceTest(String name, byte[][] input, BaseSecretSharing algorithm) {
         this.input = input;
         this.algorithm = algorithm;
         this.name = name;

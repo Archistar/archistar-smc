@@ -11,9 +11,6 @@ import at.archistar.crypto.exceptions.WeakSecurityException;
  * 
  * For detailed information, see: 
  * <a href="http://en.wikipedia.org/wiki/Secret_sharing">http://en.wikipedia.org/wiki/Secret_sharing</a>
- * 
- * @author Elias Frantar
- * @version 2014-7-22
  */
 public abstract class BaseSecretSharing implements SecretSharing {
     

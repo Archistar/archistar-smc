@@ -11,8 +11,7 @@ import java.util.Map;
 import org.junit.Before;
 
 /**
- *
- * @author andy
+ * Perform serialization tests upon Krawcywk shares
  */
 public class TestKrawczykSerialization extends AbstractSerializationTest {
     @Before
