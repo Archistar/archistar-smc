@@ -12,7 +12,7 @@ import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.BaseSecretSharing;
-import at.archistar.crypto.secretsharing.RabinIDS;
+import at.archistar.crypto.secretsharing.ShamirPSS;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,64 +20,78 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-/**
- * Benchmark our information checking implementations
- */
+    /**
+     * Test information checking performance by calling create/check-tags upon a
+     * Share. Repeat this a couple of times (until TEST_SIZE incoming Data was
+     * processed to create more repeatable results.
+     */
 @RunWith(value = Parameterized.class)
 public class PerformanceTest {
     
-    private final byte[][][] input;
-    private final BaseSecretSharing algorithm;
+    private final Share[][] input;
     private final InformationChecking ic;
+    
+    private static byte[] createData(int size) {
+        byte[] tmp = new byte[size];
+        
+        /* prepare test data */
+        for (int i = 0; i < size; i++) {
+            tmp[i] = (byte)(i%256);
+        }
+        return tmp;
+    }
     
     @Parameterized.Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
         
         System.err.println("Data-Size per Test: " + TestHelper.TEST_SIZE/1024/1024 + "MByte");
 
-        byte[][][] secrets = new byte[4][][];
-        secrets[0] = TestHelper.createArray(4 * 1024);       // typical file system block size
-        secrets[1] = TestHelper.createArray(128 * 1024);     // documents
-        secrets[2] = TestHelper.createArray(512 * 1024);     // documents, pictures (jpegs)
-        secrets[3] = TestHelper.createArray(4096 * 1024);    // audio, high-quality pictures
-
         final int n = 5;
         final int k = 3;
         
         GFFactory gffactory = new GF256Factory();
         ErasureDecoderFactory df = new ErasureDecoderFactory(gffactory);
-        BaseSecretSharing secretSharing = new RabinIDS(n, k, df, gffactory.createHelper());
         
         RandomSource rng = new FakeRandomSource();
         MacHelper mac = new ShareMacHelper("HMacSHA256");
         MacHelper macPoly1305 = new BCPoly1305MacHelper();
+        BaseSecretSharing secretSharing = new ShamirPSS(n, k, rng, df, gffactory.createHelper());
         
+        Share[][] shares = new Share[][] {
+            secretSharing.share(createData(4 * 1024)),
+            secretSharing.share(createData(128 * 1024)),
+            secretSharing.share(createData(512 * 1024)),
+            secretSharing.share(createData(4096 * 1024)),
+        };
+                
         Object[][] data = new Object[][]{
-           {secrets, secretSharing, new CevallosUSRSS(secretSharing, mac, rng)},
-           {secrets, secretSharing, new CevallosUSRSS(secretSharing, macPoly1305, rng)},
-           {secrets, secretSharing, new RabinBenOrRSS(secretSharing, mac, rng)},
-           {secrets, secretSharing, new RabinBenOrRSS(secretSharing, macPoly1305, rng)}
+           {shares, new CevallosUSRSS(n, k, mac, rng)},
+           {shares, new CevallosUSRSS(n, k, macPoly1305, rng)},
+           {shares, new RabinBenOrRSS(k, mac, rng)},
+           {shares, new RabinBenOrRSS(k, macPoly1305, rng)}
         };
 
         return Arrays.asList(data);
     }
     
-    public PerformanceTest(byte[][][] input, BaseSecretSharing algorithm, InformationChecking ic) {
+    public PerformanceTest(Share[][] input, InformationChecking ic) {
         this.input = input;
-        this.algorithm = algorithm;
         this.ic = ic;
     }
 
     @Test
     public void testPerformance() throws Exception {
-        for (int i = 0; i < input.length; i++) {
+        for (Share[] shares : input) {
             double sumCreate = 0;
             double sumCheck = 0;
             
-            for (byte[] data : this.input[i]) {
-                
-                Share[] shares = algorithm.share(data);
-                
+            int done = 0;
+            for (int j = 0; j < TestHelper.TEST_SIZE / shares[0].getYValues().length; j++) {
+                for (Share s : shares) {
+                    s.setInformationChecking(Share.ICType.NONE);
+                    s.getMacs().clear();
+                    s.getMacKeys().clear();
+                }
                 long beforeCreate = System.currentTimeMillis();
                 ic.createTags(shares);
                 long betweenOperations = System.currentTimeMillis();
@@ -86,8 +100,13 @@ public class PerformanceTest {
 
                 sumCreate += (betweenOperations - beforeCreate);
                 sumCheck += (afterAll - betweenOperations);
+                done++;
             }
-            System.err.format("Performance(%dkB file size) of %s: create: %.3fkByte/sec, check: %.2fkByte/sec\n", input[i][0].length/1024, ic, (TestHelper.TEST_SIZE / 1024) / (sumCreate / 1000.0), (TestHelper.TEST_SIZE / 1024) / (sumCheck / 1000.0));
+            double createPerSec = done / (sumCreate / 1000.0);
+            double checkPerSec = done / (sumCheck / 1000.0);
+            double shareSize = shares[0].getYValues().length/1024;
+            
+            System.err.format("%50s %4.0fkB %5.1f/sec %4.0fkB/sec %5.1f/sec %4.0fkB/sec\n", ic, shareSize, createPerSec, createPerSec * shareSize, checkPerSec, checkPerSec * shareSize);
         }
     }
 }

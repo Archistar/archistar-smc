@@ -1,11 +1,8 @@
 package at.archistar.crypto.informationchecking;
 
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.secretsharing.RabinIDS;
-import at.archistar.crypto.secretsharing.BaseSecretSharing;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
@@ -18,21 +15,20 @@ import java.util.Arrays;
  */
 public class RabinBenOrRSS implements InformationChecking {
 
-    private final BaseSecretSharing sharing;
     private final MacHelper mac;
     private final RandomSource rng;
+    protected final int k;
 
     /**
      * Constructor
      * 
-     * @param sharing the Secret-Sharing algorithm to use as a base for this scheme (must not be itself!)
      * @param mac the mac that will be used
+     * @param rng the mac will need a random number source
      */
-    public RabinBenOrRSS(BaseSecretSharing sharing, MacHelper mac, RandomSource rng) {
-
-        this.sharing = sharing;
+    public RabinBenOrRSS(int k, MacHelper mac, RandomSource rng) {
         this.mac = mac;
         this.rng = rng;
+        this.k = k;
     }
     
     @Override
@@ -74,7 +70,7 @@ public class RabinBenOrRSS implements InformationChecking {
                 }
             }
             
-            if (accepts >= sharing.getK()) { // if there are at least k accepts, this share is counted as valid
+            if (accepts >= k) { // if there are at least k accepts, this share is counted as valid
                 valid[counter++] = rboshares[i];
             }
         }
@@ -83,6 +79,6 @@ public class RabinBenOrRSS implements InformationChecking {
 
     @Override
     public String toString() {
-        return "RabinBenOr(" + sharing + ", " + mac + ")";
+        return "RabinBenOr(k=" + k + ", " + mac + ")";
     }
 }

@@ -39,13 +39,13 @@ public class RabinBenOrEngine implements CryptoEngine {
     }
     
     public RabinBenOrEngine(int n, int k, RandomSource rng) throws NoSuchAlgorithmException, WeakSecurityException {
+        this.n = n;
+        this.k = k;
         MacHelper mac = new BCPoly1305MacHelper();
         DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
         Encryptor cryptor = new ChaCha20Encryptor();
         this.sharing = new KrawczykCSS(n, k, rng, cryptor, decoderFactory, gffactory.createHelper());
-        this.ic = new RabinBenOrRSS(sharing, mac, rng);
-        this.n = n;
-        this.k = k;
+        this.ic = new RabinBenOrRSS(k, mac, rng);
     }
 
     @Override
