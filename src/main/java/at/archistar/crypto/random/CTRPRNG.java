@@ -12,14 +12,17 @@ import java.security.GeneralSecurityException;
  * @version 2014-7-18
  */
 public class CTRPRNG implements RandomSource {
+    
     private static final String ALGORITHM = "AES";
+    
     private static final String PARAMS = "/ECB/NoPadding"; // we perform CTR by ourself
     
-    private Cipher cipher;
+    private final Cipher cipher;
     
-    private byte[] state;
+    private final byte[] state;
     
-    private byte[] cache; 
+    private byte[] cache;
+    
     private int counter;
     
     /**
@@ -84,4 +87,11 @@ public class CTRPRNG implements RandomSource {
         }
     }
 
+    /**
+     * @return human readable representation of this random source
+     */
+    @Override
+    public String toString() {
+        return "CTRPRNG(" + ALGORITHM + PARAMS +")";
+    }
 }

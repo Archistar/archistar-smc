@@ -5,7 +5,6 @@ import at.archistar.crypto.data.Share;
 import static at.archistar.crypto.data.Share.ORIGINAL_LENGTH;
 import at.archistar.crypto.data.ShareFactory;
 import at.archistar.crypto.decode.DecoderFactory;
-import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.OutputEncoderConverter;
 import java.nio.ByteBuffer;

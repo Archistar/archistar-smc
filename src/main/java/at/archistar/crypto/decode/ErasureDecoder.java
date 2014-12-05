@@ -11,10 +11,17 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  *              (use {@link BerlekampWelchDecoder} if you need fault tolerance)
  */
 public class ErasureDecoder implements Decoder {
+    
     private final GFMatrix matrix;
     
     private final int k;
     
+    /**
+     * create a new ErasureDecoder
+     * @param xValues the known xValues
+     * @param k how many elements will be expected for reconstruction
+     * @param gffactory within which field will be performing our operations
+     */
     public ErasureDecoder(int[] xValues, int k, GFFactory gffactory) {
         
         this.k = k;
@@ -31,6 +38,9 @@ public class ErasureDecoder implements Decoder {
         matrix = gffactory.createMatrix(matrixX).inverse();
     }
     
+    /**
+     * Decode y (with an maximal error count of errorCount
+     */
     @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public int[] decode(int[] y, int errorCount) throws UnsolvableException {
@@ -51,6 +61,10 @@ public class ErasureDecoder implements Decoder {
         return matrix.rightMultiply(y);
     }
     
+    /**
+     * this version of decode should be faster, but does not check any input
+     * parameters for validity
+     */
     @Override
     public int[] decodeUnsafe(int[] target, int[] y, int errorCount) throws UnsolvableException {
         return matrix.rightMultiplyInto(target, y);

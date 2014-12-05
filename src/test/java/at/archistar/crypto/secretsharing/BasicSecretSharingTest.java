@@ -1,7 +1,6 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.exceptions.ReconstructionException;
 import java.util.Arrays;
 import java.util.Collections;
 import static org.fest.assertions.api.Assertions.assertThat;

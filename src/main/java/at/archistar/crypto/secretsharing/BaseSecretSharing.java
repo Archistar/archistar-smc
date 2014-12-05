@@ -1,7 +1,5 @@
 package at.archistar.crypto.secretsharing;
 
-import at.archistar.crypto.exceptions.WeakSecurityException;
-
 /**
  * <p>This is the abstract base class for all Secret-Sharing algorithms.</p>
  * 
@@ -12,7 +10,7 @@ import at.archistar.crypto.exceptions.WeakSecurityException;
  * For detailed information, see: 
  * <a href="http://en.wikipedia.org/wiki/Secret_sharing">http://en.wikipedia.org/wiki/Secret_sharing</a>
  */
-public abstract class BaseSecretSharing implements SecretSharing {
+abstract class BaseSecretSharing implements SecretSharing {
     
     /** number of shares */
     protected final int n;

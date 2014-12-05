@@ -3,7 +3,7 @@ package at.archistar.crypto.informationchecking;
 import at.archistar.TestHelper;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
-import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.mac.BCPoly1305MacHelper;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.mac.ShareMacHelper;
@@ -11,7 +11,7 @@ import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.secretsharing.BaseSecretSharing;
+import at.archistar.crypto.secretsharing.SecretSharing;
 import at.archistar.crypto.secretsharing.ShamirPSS;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -55,7 +55,7 @@ public class PerformanceTest {
         RandomSource rng = new FakeRandomSource();
         MacHelper mac = new ShareMacHelper("HMacSHA256");
         MacHelper macPoly1305 = new BCPoly1305MacHelper();
-        BaseSecretSharing secretSharing = new ShamirPSS(n, k, rng, df, gffactory.createHelper());
+        SecretSharing secretSharing = new ShamirPSS(n, k, rng, df, gffactory.createHelper());
         
         Share[][] shares = new Share[][] {
             secretSharing.share(createData(4 * 1024)),

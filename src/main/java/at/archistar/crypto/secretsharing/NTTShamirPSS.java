@@ -2,7 +2,6 @@ package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
-import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.ntt.AbstractNTT;
 import at.archistar.crypto.random.RandomSource;

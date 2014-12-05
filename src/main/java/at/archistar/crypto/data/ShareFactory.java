@@ -10,11 +10,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
- * @author andy
+ * This helper class is used to instantiate or deserialize shares
  */
 public class ShareFactory {
-    
+ 
+    /**
+     * Deserialize a single share out of the input byte array.
+     * 
+     * Note: this method does *not* employ (possible) information checking data
+     *       when determining if the share is valid
+     * 
+     * @param byteInput the serialized share
+     * @return the deserialized share
+     * @throws InvalidParametersException if the input did not contain a valid
+     *                                    share
+     */
     public static Share deserialize(byte[] byteInput) throws InvalidParametersException {
         if (byteInput == null) {
             throw new InvalidParametersException("how should you deserialize from null?");
@@ -26,19 +36,17 @@ public class ShareFactory {
         return ShareFactory.deserialize(is);
     }
     
-    private static Map<Byte, byte[]> readMap(DataInputStream is) throws IOException {
-        int tmp = is.readInt();
-        Map<Byte, byte[]> macs = new HashMap<>();
-        for (int i = 0; i < tmp; i++) {
-            byte tmpId = is.readByte();
-            int length = is.readInt();
-            byte[] data = new byte[length];
-            is.readFully(data);
-            macs.put(tmpId, data);
-        }
-        return macs;
-    }
-    
+    /**
+     * Deserialize a single share out of the input stream.
+     * 
+     * Note: this method does *not* employ (possible) information checking data
+     *       when determining if the share is valid
+     * 
+     * @param is the serialized share
+     * @return the deserialized share
+     * @throws InvalidParametersException if the input did not contain a valid
+     *                                    share
+     */
     public static Share deserialize(DataInputStream is) throws InvalidParametersException {
         if (is == null) {
             throw new InvalidParametersException("how should you deserialize from null?");
@@ -106,18 +114,35 @@ public class ShareFactory {
         }
     }
     
+    /**
+     * create a new share from given data (without information checking data)
+     * 
+     * @param algorithm the share type
+     * @param id the share's id (i.e. x value)
+     * @param yValues the share's body (i.e. y values)
+     * @param metadata attached metadata
+     * @return the newly created share
+     */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public static Share create(ShareType algorithm, byte id, byte[] yValues, Map<Byte, byte[]> metadata) throws InvalidParametersException {
-        Share share = new Share(algorithm, id, yValues, metadata);
-        
-        if (share.isValid()) {
-            return share;
-        } else {
-            throw new InvalidParametersException("not a valid share");
-        }
-
+        return create(algorithm, id, yValues, metadata,
+                      Share.ICType.NONE,
+                      new HashMap<Byte, byte[]>(),
+                      new HashMap<Byte, byte[]>());
     }
-    
+
+    /**
+     * create a new share from given data with information checking data
+     * 
+     * @param algorithm the share type
+     * @param id the share's id (i.e. x value)
+     * @param yValues the share's body (i.e. y values)
+     * @param metadata attached metadata
+     * @param ic the information checking scheme that was used
+     * @param macs the macs which were generated during information checking
+     * @param macKeys the keys used during information checking
+     * @return the newly created share
+     */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public static Share create(ShareType algorithm, byte id, byte[] yValues,
                                Map<Byte, byte[]> metadata,
@@ -131,5 +156,18 @@ public class ShareFactory {
         } else {
             throw new InvalidParametersException("not a valid share");
         }
+    }
+    
+    private static Map<Byte, byte[]> readMap(DataInputStream is) throws IOException {
+        int tmp = is.readInt();
+        Map<Byte, byte[]> macs = new HashMap<>();
+        for (int i = 0; i < tmp; i++) {
+            byte tmpId = is.readByte();
+            int length = is.readInt();
+            byte[] data = new byte[length];
+            is.readFully(data);
+            macs.put(tmpId, data);
+        }
+        return macs;
     }
 }

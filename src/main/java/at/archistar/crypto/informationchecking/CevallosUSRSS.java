@@ -1,7 +1,7 @@
 package at.archistar.crypto.informationchecking;
 
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class CevallosUSRSS extends RabinBenOrRSS {
     }
     
     @Override
-    public Share[] checkShares(Share[] cshares) throws IOException {
+    public Share[] checkShares(Share[] cshares) {
         
         Queue<Integer> queue = new LinkedList<>();
         List<Share> valid = new LinkedList<>();
@@ -57,13 +57,17 @@ public class CevallosUSRSS extends RabinBenOrRSS {
             s1.setInformationChecking(Share.ICType.CEVALLOS);
             
             for (Share s2 : cshares) {
-                byte[] data = s1.getSerializedForHashing();
-                byte[] mac1 = s1.getMacs().get((byte) s2.getId());
-                byte[] mac2 = s2.getMacKeys().get((byte) s1.getId());
-                
-                accepts[s1.getId()][s2.getId()] = mac.verifyMAC(data, mac1, mac2);
-                if (accepts[s1.getId()][s2.getId()]) {
-                    a[s1.getId()]++;
+                try {
+                    byte[] data = s1.getSerializedForHashing();
+                    byte[] mac1 = s1.getMacs().get((byte) s2.getId());
+                    byte[] mac2 = s2.getMacKeys().get((byte) s1.getId());
+                    
+                    accepts[s1.getId()][s2.getId()] = mac.verifyMAC(data, mac1, mac2);
+                    if (accepts[s1.getId()][s2.getId()]) {
+                        a[s1.getId()]++;
+                    }
+                } catch (IOException ex) {
+                    throw new RuntimeException("this should never happen!");
                 }
             }
             if (a[s1.getId()] < k) {

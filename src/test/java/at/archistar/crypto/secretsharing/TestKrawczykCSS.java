@@ -2,7 +2,6 @@ package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
-import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;

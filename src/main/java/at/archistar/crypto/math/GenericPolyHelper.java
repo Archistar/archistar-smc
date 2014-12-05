@@ -3,8 +3,7 @@ package at.archistar.crypto.math;
 import java.util.Arrays;
 
 /**
- *
- * @author andy
+ * TODO: refactor or rewrite. But make it faster and more beautiful
  */
 public class GenericPolyHelper {
     
@@ -83,7 +82,7 @@ public class GenericPolyHelper {
         return degree;
     }
      
-     public int[] sub(int[] a, int[] b) {
+     private int[] sub(int[] a, int[] b) {
         // TODO: optimize
         //assert(a.length == b.length);
         int[] result, addend;

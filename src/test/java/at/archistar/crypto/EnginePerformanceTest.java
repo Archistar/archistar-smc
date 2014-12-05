@@ -2,7 +2,7 @@ package at.archistar.crypto;
 
 import at.archistar.TestHelper;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import java.security.NoSuchAlgorithmException;

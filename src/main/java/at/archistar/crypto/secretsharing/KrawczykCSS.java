@@ -9,8 +9,6 @@ import at.archistar.crypto.data.Share.ShareType;
 import at.archistar.crypto.data.ShareFactory;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
-import at.archistar.crypto.exceptions.ReconstructionException;
-import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.DynamicOutputEncoderConverter;
 import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;

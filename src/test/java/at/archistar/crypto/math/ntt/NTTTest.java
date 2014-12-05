@@ -1,6 +1,6 @@
 package at.archistar.crypto.math.ntt;
 
-import at.archistar.crypto.exceptions.WeakSecurityException;
+import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.gf257.GF257;
 import java.security.NoSuchAlgorithmException;

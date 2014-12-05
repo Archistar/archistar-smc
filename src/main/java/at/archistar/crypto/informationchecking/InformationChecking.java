@@ -1,7 +1,6 @@
 package at.archistar.crypto.informationchecking;
 
 import at.archistar.crypto.data.Share;
-import java.io.IOException;
 
 /**
  * An information checking algorithm takes a collection of shares and adds
@@ -15,13 +14,12 @@ public interface InformationChecking {
      * 
      * @param shares the shares with IC information to be checked
      * @return the shares that passed the IC check
-     * @throws IOException 
      */
-    public Share[] checkShares(Share[] shares) throws IOException;
+    public Share[] checkShares(Share[] shares);
     
     /**
      * @param shares the shares that need IC information to be added
-     * @throws IOException 
+     * @return shares with information checking data
      */
-    public void createTags(Share[] shares) throws IOException;
+    public Share[] createTags(Share[] shares);
 }

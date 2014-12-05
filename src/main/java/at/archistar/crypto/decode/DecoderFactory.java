@@ -9,8 +9,6 @@ package at.archistar.crypto.decode;
  * As Java interfaces neither support static methods (which would allow me to
  * move the factory into the Decoder-class) nor Constructors I've gone the full
  * Factory path.
- * 
- * @author andy
  */
 public interface DecoderFactory {
     

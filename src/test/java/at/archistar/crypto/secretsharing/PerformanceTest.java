@@ -4,7 +4,6 @@ import at.archistar.TestHelper;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
-import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
@@ -34,7 +33,7 @@ import org.junit.runners.Parameterized.Parameters;
 public class PerformanceTest {
 
     private final byte[][][] input;
-    private final BaseSecretSharing algorithm;
+    private final SecretSharing algorithm;
     
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
@@ -76,7 +75,7 @@ public class PerformanceTest {
         return Arrays.asList(data);
     }
 
-    public PerformanceTest(byte[][][] input, BaseSecretSharing algorithm) {
+    public PerformanceTest(byte[][][] input, SecretSharing algorithm) {
         this.input = input;
         this.algorithm = algorithm;
     }

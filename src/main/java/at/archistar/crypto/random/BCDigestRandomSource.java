@@ -12,11 +12,15 @@ public class BCDigestRandomSource implements RandomSource {
     
     private final DigestRandomGenerator drng;
     
+    private final Digest digest;
+    
     public BCDigestRandomSource() {
-        this.drng = new DigestRandomGenerator(new SHA1Digest());
+        this.digest = new SHA1Digest();
+        this.drng = new DigestRandomGenerator(digest);
     }
     
     public BCDigestRandomSource(Digest digest) {
+        this.digest = digest;
         this.drng = new DigestRandomGenerator(digest);
     }
 
@@ -35,4 +39,11 @@ public class BCDigestRandomSource implements RandomSource {
         }
     }
     
+    /**
+     * @return human readable representation of this random source
+     */
+    @Override
+    public String toString() {
+        return "BCDigestRandomSource(" + digest.getAlgorithmName() + ")";
+    }
 }

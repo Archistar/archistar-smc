@@ -1,8 +1,7 @@
 package at.archistar.crypto.decode;
 
 /**
- *
- * @author andy
+ * Exception that is thrown if a decoder cannot decode it's input
  */
 public class UnsolvableException extends Exception {
 

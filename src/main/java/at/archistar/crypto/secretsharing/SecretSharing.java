@@ -1,16 +1,14 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.exceptions.ReconstructionException;
 
 /**
  * Basic interface for secret sharing
  */
-interface SecretSharing {
+public interface SecretSharing {
     
     /**
      * Creates <i>n</i> secret shares for the given data where <i>k</i> shares are required for reconstruction. 
-     * (n, k should have been previously initialized)
      * @param data the data to share secretly
      * @return the n different secret shares for the given data
      */
@@ -26,8 +24,14 @@ interface SecretSharing {
      */
     byte[] reconstruct(Share[] shares) throws ReconstructionException;
     
+    /**
+     * @return the created share count
+     */
     int getN();
     
+    /**
+     * @return amount of shares needed for reconstruction
+     */
     int getK();
 }
 

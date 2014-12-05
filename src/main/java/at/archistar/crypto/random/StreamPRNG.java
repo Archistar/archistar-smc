@@ -10,26 +10,14 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * This is a stream-cipher RNG outputting the key-stream of a stream-cipher as random numbers.<br>
- * 
- * <p><b>NOTE:</b> This is the fastest secure PRNG in this package.</p>
- * 
- * @author Elias Frantar
- * @version 2014-7-18
  */
 public class StreamPRNG implements RandomSource {
     
-    /* supported algorithms */
-    /**
-     * identifier for the <i>Salsa20</i> algorithm
-     */
+    /** identifier for the <i>Salsa20</i> algorithm */
     public static final String SALSA20 = "Salsa20";
-    /**
-     * identifier for the <i>HC128</i> algorithm
-     * 
-     * <p><b>NOTE:</b> This is the fastest available algorithm in this package</p>
-     */
-    public static final String HC128 = "HC128";
     
+    /** identifier for the <i>HC128</i> algorithm */
+    public static final String HC128 = "HC128";
     
     private static final byte[] dummy = new byte[16]; // we are only interested in the key-stream (so fill with 0s)
     
@@ -37,9 +25,10 @@ public class StreamPRNG implements RandomSource {
         Security.addProvider(new BouncyCastleProvider()); // we need to add the "bouncycastle"-provider only once
     }
     
-    private Cipher cipher;
+    private final Cipher cipher;
     
-    private byte[] cache; 
+    private byte[] cache;
+    
     private int counter;
     
     /**
@@ -52,8 +41,6 @@ public class StreamPRNG implements RandomSource {
                 
         KeyGenerator kgen = KeyGenerator.getInstance(algorithm, "BC");
         cipher.init(Cipher.ENCRYPT_MODE, kgen.generateKey());
-                
-        counter = 0;
                 
         fillCache();
     }
@@ -78,11 +65,6 @@ public class StreamPRNG implements RandomSource {
     }
     
     @Override
-    public String toString() { // just required for testing
-        return super.toString() + " (" + cipher.getAlgorithm() + ")";
-    }
-    
-    @Override
     public void fillBytes(byte[] toBeFilled) {
         for (int i = 0; i < toBeFilled.length; i++) {
             toBeFilled[i] = (byte)generateByte();
@@ -94,5 +76,13 @@ public class StreamPRNG implements RandomSource {
         for (int i = 0; i < toBeFilled.length; i++) {
             toBeFilled[i] = generateByte();
         }
+    }
+    
+    /**
+     * @return human readable representation of this random source
+     */
+    @Override
+    public String toString() {
+        return "StreamPRNG(" + cipher.getAlgorithm() + ")";
     }
 }

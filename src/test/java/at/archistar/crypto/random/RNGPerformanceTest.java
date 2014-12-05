@@ -12,9 +12,6 @@ import org.junit.runners.Parameterized.Parameters;
 /**
  * This class tests and compares the performance of the different secure
  * RandomNumberGenerators.
- *
- * @author Elias Frantar
- * @version 2014-7-18
  */
 @RunWith(value = Parameterized.class)
 public class RNGPerformanceTest {
@@ -27,6 +24,9 @@ public class RNGPerformanceTest {
 
     @Parameters
     public static Collection<Object[]> data() throws GeneralSecurityException {
+        
+        System.err.println("All operations are performed upon 500 pieces of 1MB share.");
+        
         Object[][] data = new Object[][]{
             {new FakeRandomSource()},
             {new StreamPRNG(StreamPRNG.SALSA20)},
@@ -49,7 +49,7 @@ public class RNGPerformanceTest {
         }
         long end = System.currentTimeMillis();
 
-        System.out.println(rng.toString() + " (array): 500MB a 1 MB in " + (end - start) + "ms");
+        System.out.format("%40s(as byte) %10dms\n", rng, end - start);
     }
     
     @Test
@@ -62,6 +62,6 @@ public class RNGPerformanceTest {
         }
         long end = System.currentTimeMillis();
 
-        System.out.println(rng.toString() + " (array): 500MB a 1 MB as Int in " + (end - start) + "ms");
+        System.out.format("%40s(as int)  %10dms\n", rng, end - start);
     }
 }

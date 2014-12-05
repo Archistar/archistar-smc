@@ -6,28 +6,36 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author andy
+ * Represent a Share in memory (including metadata and information checking
+ * information). Shares are always created by the ShareFactory helper class.
  */
 public class Share implements Comparable<Share> {
-    
+
+    /** the share's id, mostly this will be it's "x" value */
     private final byte id;
     
+    /** the share's body, mostly this will be it's "y" values */
     private final byte[] yValues;
     
+    /** free-form metadata. Attention: meta-data is not encrypted! */
     private final Map<Byte, byte[]> metadata;
     
+    /** keys used during information checking */
     private final Map<Byte, byte[]> macKeys;
     
+    /** macs generated during information checking */
     private final Map<Byte, byte[]> macs;
     
+    /** which kind of share is this? */
     private final ShareType shareType;
     
+    /** which kind of information checking (if any) was employed? */
     private ICType informationChecking;
-    
+
+    /** on-disk version of the share */
     public static final int VERSION = 3;
     
     /** which share types can we work with? */
@@ -46,14 +54,37 @@ public class Share implements Comparable<Share> {
         CEVALLOS        
     }
     
+    /** metadata key for the share's data original length. Needed
+      * by some algorithms to detect padding
+      */
     public static final byte ORIGINAL_LENGTH = 1;
     
+    /** some algorithms employ traditional cryptography. This denotes the
+     *  crypto-algorithm that was used during this step.
+     */
     public static final byte ENC_ALGORITHM = 2;
-    
+
+    /** some algorithms employ traditional cryptography. This denotes the
+     *  the key that was used during this step.
+     */
     public static final byte ENC_KEY = 3;
-    
+
+    /**
+     * NTT-based algorithms need to know how large the NTT-matrix was.
+     */
     public static final byte NTT_SHARE_SIZE = 4;
 
+    /**
+     * Constructor with information checking information.
+     * 
+     * @param shareType type of the share
+     * @param id the share's id (i.e. x value)
+     * @param body the share's body (i.e. y values)
+     * @param metadata the share's metadata
+     * @param ic the information checking algorithm used by the share
+     * @param macKeys the mac keys used for information checking
+     * @param macs  the macs generated during information checking
+     */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     Share(ShareType shareType, byte id, byte[] body, Map<Byte, byte[]> metadata, ICType ic, Map<Byte, byte[]> macKeys, Map<Byte, byte[]> macs) {
         this.id = id;
@@ -63,11 +94,6 @@ public class Share implements Comparable<Share> {
         this.macs = macs;
         this.macKeys = macKeys;
         this.informationChecking = ic;
-    }
-    
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    Share(ShareType shareType, byte id, byte[] body, Map<Byte, byte[]> metadata) {
-        this(shareType, id, body, metadata, ICType.NONE, new HashMap<Byte, byte[]>(), new HashMap<Byte, byte[]>());
     }
 
     public void setInformationChecking(ICType icType) {
@@ -86,11 +112,16 @@ public class Share implements Comparable<Share> {
     public byte[] getYValues() {
         return yValues;
     }
-    
-    protected byte[] getBody() throws IOException {
-        return yValues;
-    }
-    
+
+    /**
+     * During information checking the algorithms need to create macs over
+     * shares. This method returns a byte array which contains all elements
+     * that need to be part of the mac.
+     * 
+     * @return byte[] array representing all data of this share that needs
+     *         to be part of the information checking hash
+     * @throws IOException 
+     */
     public byte[] getSerializedForHashing() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DataOutputStream sout = new DataOutputStream(out);
@@ -123,7 +154,13 @@ public class Share implements Comparable<Share> {
             sout.write(value);
         }
     }
-    
+
+    /**
+     * This returns a serialized form of the share.
+     * 
+     * @return the share's byte[] representation containing all information
+     * @throws IOException 
+     */
     public byte[] serialize() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DataOutputStream sout = new DataOutputStream(out);
@@ -142,6 +179,11 @@ public class Share implements Comparable<Share> {
         return out.toByteArray();
     }
     
+    /**
+     * access metadata (which will be casted into an int)
+     * @param key the byte key for the metadata
+     * @return stored metadata casted to an integer
+     */
     public int getMetadata(int key) {
         byte[] tmp = this.metadata.get((byte)key);
         if (tmp.length == 4) {
@@ -150,7 +192,12 @@ public class Share implements Comparable<Share> {
             throw new RuntimeException("this cannot happen, key not found!");
         }
     }
-    
+
+    /**
+     * access metadata
+     * @param key the byte key for the metadata
+     * @return stored metadata
+     */
     public byte[] getMetadataArray(int key) {
         return this.metadata.get((byte)key);
     }
@@ -163,6 +210,13 @@ public class Share implements Comparable<Share> {
         return this.macKeys;
     }
     
+    /**
+     * validates if a share is valid. This is a rather high-level check that
+     * does not check attached mac/keys, etc. To check those the information
+     * checking algorithm should be instantiated and called.
+     * 
+     * @return is this share valid?
+     */
     public boolean isValid() {
         
         if (id <= 0 || yValues == null || metadata == null) {

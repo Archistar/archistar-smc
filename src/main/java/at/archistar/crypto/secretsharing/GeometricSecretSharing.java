@@ -5,8 +5,6 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
-import at.archistar.crypto.exceptions.ReconstructionException;
-import at.archistar.crypto.exceptions.WeakSecurityException;
 import at.archistar.crypto.math.DynamicOutputEncoderConverter;
 import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
@@ -16,8 +14,7 @@ import at.archistar.crypto.math.gf257.GF257;
 import static at.archistar.crypto.secretsharing.BaseSecretSharing.validateShareCount;
 
 /**
- *
- * @author andy
+ * this contains basic functionality utilized by rabin and shamir
  */
 public abstract class GeometricSecretSharing extends BaseSecretSharing {
     
@@ -51,6 +48,11 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
     
     protected abstract void encodeData(int coeffs[], byte[] data, int offset, int length);
     
+    /**
+     * Creates <i>n</i> secret shares for the given data where <i>k</i> shares are required for reconstruction. 
+     * @param data the data to share secretly
+     * @param output n buffers where the output will be stored
+     */
     public void share(OutputEncoderConverter output[], byte[] data) {
         assert(output.length == n);
         int coeffs[] = new int[k];
@@ -66,6 +68,11 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
         }
     }
 
+    /**
+     * Creates <i>n</i> secret shares for the given data where <i>k</i> shares are required for reconstruction.      * (n, k should have been previously initialized)
+     * @param data the data to share secretly
+     * @return the n different secret shares for the given data
+     */
     @Override
     public Share[] share(byte[] data) {
         try {
@@ -89,7 +96,17 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
     protected abstract Share[] createShares(int[] xValues, OutputEncoderConverter[] results, int originalLength) throws InvalidParametersException;
     
     protected abstract int retrieveInputLength(Share[] shares);
-    
+
+    /**
+     * Attempts to reconstruct the secret from the given input stream.
+     * This will fail if there are fewer than k (previously initialized) valid shares.
+     * 
+     * @param input the body of the share's to reconstruct the secret from
+     * @param xValues the xValues (from the shares)
+     * @param originalLength the secret's length -- this might be need to recognize padding
+     * @return the reconstructed secret
+     * @throws ReconstructionException thrown if the reconstruction failed
+     */
     public byte[] reconstruct(EncodingConverter[] input, int[] xValues, int originalLength) throws ReconstructionException {
         Decoder decoder = decoderFactory.createDecoder(xValues, k);
         byte result[] = new byte[originalLength];
@@ -113,6 +130,14 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
         return result;
     }
     
+    /**
+     * Attempts to reconstruct the secret from the given shares.<br>
+     * This will fail if there are fewer than k (previously initialized) valid shares.
+     * 
+     * @param shares the shares to reconstruct the secret from
+     * @return the reconstructed secret
+     * @throws ReconstructionException thrown if the reconstruction failed
+     */
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
         if (!validateShareCount(shares.length, k)) {

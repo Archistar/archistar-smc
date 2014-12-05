@@ -5,14 +5,14 @@ import java.security.SecureRandom;
 
 /**
  * A wrapper class for the internal java PRNG
- * 
- * NOTE: Since this PRNG is secure it is used as default generator for all SecretSharing algorithms.
  */
 public class JavaSecureRandom implements RandomSource {
     
     private static final String ALGORITHM = "SHA1PRNG";
     
-    private SecureRandom rng;
+    private final SecureRandom rng;
+    
+    private final byte[] bytes = new byte[1];
     
     /**
      * Constructor<br>
@@ -28,11 +28,12 @@ public class JavaSecureRandom implements RandomSource {
         rng.nextBoolean(); // force the rng to seed itself
     }
     
+
+    /**
+      * this whole procedure is 2x as fast as nextInt(255) + 1
+      * or three times as fast as rng.nextInt(8) & 0xff;
+      */
     private int generateByte() {
-        /* this whole procedure is 2x as fast as nextInt(255) + 1 */
-        /* or three times as fast as rng.nextInt(8) & 0xff; */
-        byte[] bytes = new byte[1];
-        
         do {
             rng.nextBytes(bytes);
         } while (bytes[0] == 0); // the random byte must not be 0
@@ -52,5 +53,13 @@ public class JavaSecureRandom implements RandomSource {
         for (int i = 0; i < toBeFilled.length; i++) {
             toBeFilled[i] = generateByte();
         }
+    }
+    
+    /**
+     * @return human readable representation of this random source
+     */
+    @Override
+    public String toString() {
+        return "JavaSecureRandom(" + ALGORITHM +")";
     }
 }
