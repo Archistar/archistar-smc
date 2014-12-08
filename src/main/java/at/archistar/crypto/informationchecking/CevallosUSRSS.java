@@ -123,6 +123,6 @@ public class CevallosUSRSS extends RabinBenOrRSS {
     
     @Override
     public String toString() {
-        return "CevallosUSRSS(" + k + "/" + n +", " + mac + ")";
+        return "Cevallos(" + k + "/" + n +", " + mac + ")";
     }
 }

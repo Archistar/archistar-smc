@@ -1,8 +1,7 @@
 package at.archistar.crypto.math.ntt;
 
 import at.archistar.crypto.secretsharing.WeakSecurityException;
-import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.gf257.GF257;
+import at.archistar.crypto.math.gf257.GF257Factory;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,7 +35,7 @@ public class NTTTest {
     @Parameterized.Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
         
-        GF gf257 = new GF257();
+        GF257Factory gf257 = new GF257Factory();
         
         Object[][] data = new Object[][]{
            {new NTTSlow(gf257), 241, new int[] {1, 1, 1, 0}, new int[] {3, 241, 1, 16}},

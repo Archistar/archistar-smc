@@ -96,18 +96,32 @@ public class Share implements Comparable<Share> {
         this.informationChecking = ic;
     }
 
+    /**
+     * set the used information checking algorithm
+     * 
+     * @param icType the used information checking algorithm
+     */
     public void setInformationChecking(ICType icType) {
         this.informationChecking = icType;
     }
 
+    /**
+     * @return the share's X-value (same as id)
+     */
     public int getX() {
         return id;
     }
     
+    /**
+     * @return the share's id (same as x-value)
+     */
     public byte getId() {
         return id;
     }
     
+    /**
+     * @return the share's main body (y-values)
+     */
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public byte[] getYValues() {
         return yValues;
@@ -202,10 +216,16 @@ public class Share implements Comparable<Share> {
         return this.metadata.get((byte)key);
     }
     
+    /**
+     * @return macs used during secret checking (TODO: add sane interface)
+     */
     public Map<Byte, byte[]> getMacs() {
         return this.macs;
     }
-    
+
+    /**
+     * @return keys used during secret checking (TODO: add sane interface)
+     */
     public Map<Byte, byte[]> getMacKeys() {
         return this.macKeys;
     }
@@ -252,6 +272,12 @@ public class Share implements Comparable<Share> {
         return result;
     }
     
+    /**
+     * compare two shares
+     * 
+     * @param t the share to be compared
+     * @return +/-1 if different, 0 if same
+     */
     @Override
     public int compareTo(Share t) {
         
@@ -266,6 +292,12 @@ public class Share implements Comparable<Share> {
         }
     }
     
+    /**
+     * compare two shares
+     * 
+     * @param o the other share
+     * @return true if the same
+     */
     @Override
     public boolean equals(Object o) {
         if (o instanceof Share) {
@@ -275,6 +307,11 @@ public class Share implements Comparable<Share> {
         }
     }
     
+    /**
+     * (not implemented yet)
+     * 
+     * @return an unique hash for the share
+     */
     @Override
     public int hashCode() {
         assert false : "hashCode not implemented";

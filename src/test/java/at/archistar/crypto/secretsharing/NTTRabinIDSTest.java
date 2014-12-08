@@ -2,7 +2,6 @@ package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
-import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.gf257.GF257Factory;
 import at.archistar.crypto.math.ntt.AbstractNTT;
 import at.archistar.crypto.math.ntt.NTTSlow;
@@ -24,8 +23,7 @@ public class NTTRabinIDSTest extends BasicSecretSharingTest {
     public void setup() throws WeakSecurityException {
         GF257Factory gffactory = new GF257Factory();
         DecoderFactory df = new ErasureDecoderFactory(gffactory);
-        GF gf = gffactory.createHelper();
-        AbstractNTT ntt = new NTTSlow(gf);
+        AbstractNTT ntt = new NTTSlow(gffactory);
         algorithm = new NTTRabinIDS(n, k, generator, gffactory, ntt, df);
     }
 }

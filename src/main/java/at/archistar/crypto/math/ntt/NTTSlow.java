@@ -1,17 +1,28 @@
 package at.archistar.crypto.math.ntt;
 
-import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.GenericMatrix;
+import at.archistar.crypto.math.GFFactory;
 
 /**
- * @author andy
+ * Helper class for performing NTT operations
  */
 public class NTTSlow extends AbstractNTT {
     
-    public NTTSlow(GF gf) {
-        super(gf);
+    /** initialize helper class
+     * 
+     * @param gffactory the mathematical field within which all operations should be
+     *                  performed
+     */
+    public NTTSlow(GFFactory gffactory) {
+        super(gffactory);
     }
-    
+
+    /**
+     * Perform an ntt
+     * 
+     * @param a incoming data
+     * @param w generator
+     * @return ntt(a)
+     */
     @Override
     public int[] ntt(int a[], int w) {
         int n = a.length;
@@ -24,6 +35,6 @@ public class NTTSlow extends AbstractNTT {
             }
         }
         
-        return new GenericMatrix(matrix, gf).rightMultiply(a);
+        return gffactory.createMatrix(matrix).rightMultiply(a);
     }
 }

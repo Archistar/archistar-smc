@@ -6,7 +6,15 @@ package at.archistar.crypto.random;
  */
 public interface RandomSource {
     
+    /**
+     * fill an (byte) array with random data
+     * @param toBeFilled the array to be filled
+     */
     public void fillBytes(byte[] toBeFilled);
 
+    /**
+     * fill an (integer) array with random data
+     * @param toBeFilled the array to be filled
+     */
     public void fillBytesAsInts(int[] toBeFilled);
 }

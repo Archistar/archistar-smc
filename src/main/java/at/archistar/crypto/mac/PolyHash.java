@@ -16,6 +16,12 @@ public class PolyHash implements MacHelper {
     
     private final GenericPolyHelper polyHelper;
 
+    /**
+     * create a new hash
+     * 
+     * @param keylength output keylength
+     * @param gf mathematical field within which operations should be performed
+     */
     public PolyHash(int keylength, GF gf) {
         this.keylength = keylength;
         this.polyHelper = new GenericPolyHelper(gf);
@@ -30,6 +36,14 @@ public class PolyHash implements MacHelper {
         return b;
     }
 
+    /**
+     * Compute macs for the given data
+     * 
+     * @param data for which data do we need the mac?
+     * @param key the key used for the macd tag that should be compared
+     * @return mac for data (with key)
+     * @throws InvalidKeyException 
+     */
     @Override
     public byte[] computeMAC(byte[] data, byte[] key) throws InvalidKeyException {
 
@@ -71,6 +85,14 @@ public class PolyHash implements MacHelper {
         return byteResult;
     }
 
+    /**
+     * Verify mac for the given data
+     * 
+     * @param data for which data do we need the mac?
+     * @param key the key used for the mac
+     * @param tag the compute
+     * @return true if it matches
+     */
     @Override
     public boolean verifyMAC(byte[] data, byte[] tag, byte[] key) {
         boolean valid = false;
@@ -83,6 +105,13 @@ public class PolyHash implements MacHelper {
         }
     }
 
+    /**
+     * the size of the input key (in bytes) needed for the MAC. We could also
+     * add an RandomSource to the class but I'm not too sure which way would be
+     * more maintainable.
+     * 
+     * @return the needed input key size
+     */
     @Override
     public int keySize() {
         // a and b

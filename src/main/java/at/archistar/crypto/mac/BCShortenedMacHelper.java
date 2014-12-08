@@ -7,8 +7,6 @@ import java.util.Arrays;
 /**
  * This is just part of a proof-of-concept of a key-shortener used for an
  * accurate implementation of the Cevallos-Scheme
- * 
- * @author andy
  */
 public class BCShortenedMacHelper implements MacHelper {
     
@@ -61,16 +59,24 @@ public class BCShortenedMacHelper implements MacHelper {
             byte[] newTag = computeMAC(data, shortKey); // compute tag for the given parameters
             byte[] shortTag = Arrays.copyOfRange(newTag, 0, keylength);
             valid = Arrays.equals(tag, shortTag); // compare with original tag
-        } catch (InvalidKeyException e) {}
+        } catch (InvalidKeyException e) {
+            throw new RuntimeException("this should not happen");
+        }
         
         return valid;
     }
 
+    /**
+     * @return needed keylength (in byte) for this algorithm
+     */
     @Override
     public int keySize() {
         return this.keylength;
     }
-    
+
+    /**
+     * @return human-readable description for this algorithm
+     */
     @Override
     public String toString() {
         return "BCShortenedMacHelper(" + this.mac  + ")";

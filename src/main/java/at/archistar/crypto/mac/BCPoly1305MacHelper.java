@@ -9,8 +9,7 @@ import org.bouncycastle.crypto.macs.Poly1305;
 import org.bouncycastle.crypto.params.KeyParameter;
 
 /**
- * 
- * @author andy
+ * Use bouncy castle's poly1305 engine for creating macs
  */
 public class BCPoly1305MacHelper implements MacHelper {
     
@@ -76,6 +75,6 @@ public class BCPoly1305MacHelper implements MacHelper {
     
     @Override
     public String toString() {
-        return "Poly1304MacHelper()";
+        return "Poly1305()";
     }
 }

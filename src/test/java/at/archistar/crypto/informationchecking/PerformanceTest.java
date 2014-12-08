@@ -106,7 +106,7 @@ public class PerformanceTest {
             double checkPerSec = done / (sumCheck / 1000.0);
             double shareSize = shares[0].getYValues().length/1024;
             
-            System.err.format("%50s %4.0fkB %5.1f/sec %4.0fkB/sec %5.1f/sec %4.0fkB/sec\n", ic, shareSize, createPerSec, createPerSec * shareSize, checkPerSec, checkPerSec * shareSize);
+            System.err.format("%41s %4.0fkB %5.1f/sec %4.0fkB/sec %5.1f/sec %4.0fkB/sec\n", ic, shareSize, createPerSec, createPerSec * shareSize, checkPerSec, checkPerSec * shareSize);
         }
     }
 }

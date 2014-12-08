@@ -5,8 +5,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 
 /**
- *
- * @author andy
+ * This input data converter automatically checks if the input data is within
+ * GF256 or GF257 and converts the byte values into corresponding integer
+ * values
  */
 public class EncodingConverter {
 
@@ -45,10 +46,16 @@ public class EncodingConverter {
         }
     }
     
+    /**
+     * @return true if the end of the input buffer was reached
+     */
     public boolean atEnd() {
         return (readPosition >= this.data.length);
     }
     
+    /**
+     * @return the whole input buffer converted into int[]
+     */
     public int[] getDecodedData() {
         int[] tmp = new int[data.length];
         

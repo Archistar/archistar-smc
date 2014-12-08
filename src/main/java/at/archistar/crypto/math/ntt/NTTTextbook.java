@@ -1,16 +1,28 @@
 package at.archistar.crypto.math.ntt;
 
-import at.archistar.crypto.math.GF;
+import at.archistar.crypto.math.GFFactory;
 
 /**
- * @author andy
+ * Helper class for performing NTT operations
  */
 public class NTTTextbook extends AbstractNTT {
     
-    public NTTTextbook(GF gf) {
-        super(gf);
+    /** initialize helper class
+     * 
+     * @param gffactory the mathematical field within which all operations should be
+            *           performed
+     */
+    public NTTTextbook(GFFactory gffactory) {
+        super(gffactory);
     }
     
+    /**
+     * Perform an ntt
+     * 
+     * @param a incoming data
+     * @param w generator
+     * @return ntt(a)
+     */
     @Override
     public int[] ntt(int a[], int w) {
         int n = a.length;
@@ -18,7 +30,7 @@ public class NTTTextbook extends AbstractNTT {
         if (n == 1) {
             return a;
         } else if (n%2 == 0) {
-            return new NTTSlow(gf).ntt(a, w);
+            return new NTTSlow(gffactory).ntt(a, w);
         } else {
                         
             int[] even = new int[n/2+1];

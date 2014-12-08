@@ -116,6 +116,11 @@ public class GF257 implements GF {
         {256, 3}
     };
     
+    /**
+     * calculate the a'th primitive root of one
+     * @param a it's the a'th root
+     * @return the a'th root
+     */
     public int primitiveRootOfUnity(int a) {
         for (int[] primitiveRoot : primitiveRoots) {
             if (primitiveRoot[0] == a) {

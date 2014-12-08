@@ -12,6 +12,11 @@ public class GenericMatrix implements GFMatrix {
     
     private final GF gf;
 
+    /**
+     * create a new matrix
+     * @param input initial data for the matrix
+     * @param gf the mathematical field all operations will be performed in
+     */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public GenericMatrix(int input[][], GF gf) {
         this.gf = gf;

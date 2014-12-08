@@ -6,13 +6,25 @@ import java.util.Arrays;
  * TODO: refactor or rewrite. But make it faster and more beautiful
  */
 public class GenericPolyHelper {
-    
+
     private final GF gf;
-    
+
+    /**
+     * create a new helper for operations upon polynomials within the field gf
+     * 
+     * @param gf the field within which operations will be performed
+     */
     public GenericPolyHelper(GF gf) {
         this.gf = gf;
     }
-        
+
+    /**
+     * divide polynom a with polynom f
+     *
+     * @param a perform a/f
+     * @param f perform a/f
+     * @return the result
+     */
     public int[][] polyDiv(int a[], int f[]) {
         int df = computeDegree(f);
         int da = computeDegree(a) + 1;
@@ -39,7 +51,7 @@ public class GenericPolyHelper {
         }
         return result;
     }
-    
+
     private static int[] multWithMonomial(int[] a, int k) {
         int d = computeDegree(a);
         if (d == -1) {
@@ -49,7 +61,7 @@ public class GenericPolyHelper {
         System.arraycopy(a, 0, result, k, d + 1);
         return result;
     }
-    
+
     private int[] multWithElement(int[] a, int element) {
         int degree = computeDegree(a);
         if (degree == -1 || element == 0) {
@@ -67,22 +79,22 @@ public class GenericPolyHelper {
 
         return result;
     }
-    
+
     private static int headCoefficient(int[] a) {
         int degree = computeDegree(a);
         return (degree == -1) ? 0 : a[degree];
     }
-    
+
     @SuppressWarnings("empty-statement")
-     private static int computeDegree(int[] a) {
+    private static int computeDegree(int[] a) {
         int degree;
         for (degree = a.length - 1; degree >= 0 && a[degree] == 0; degree--) {
             //empty
         }
         return degree;
     }
-     
-     private int[] sub(int[] a, int[] b) {
+
+    private int[] sub(int[] a, int[] b) {
         // TODO: optimize
         //assert(a.length == b.length);
         int[] result, addend;
@@ -100,9 +112,16 @@ public class GenericPolyHelper {
             result[i] = gf.sub(result[i], addend[i]);
         }
 
-        return result;         
-     }
-     
+        return result;
+    }
+
+    /**
+     * add two polynomials
+     * 
+     * @param a
+     * @param b
+     * @return a+b
+     */
     public int[] add(int[] a, int[] b) {
 
         // TODO: optimize
@@ -125,6 +144,12 @@ public class GenericPolyHelper {
         return result;
     }
 
+    /** multiply 2 polynomials
+     * 
+     * @param a
+     * @param b
+     * @return a*b
+     */
     public int[] multiply(int[] a, int[] b) {
         int[] mult1, mult2;
         if (computeDegree(a) < computeDegree(b)) {

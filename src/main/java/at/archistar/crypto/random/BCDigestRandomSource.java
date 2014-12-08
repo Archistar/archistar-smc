@@ -14,21 +14,36 @@ public class BCDigestRandomSource implements RandomSource {
     
     private final Digest digest;
     
+    /**
+     * create a new RandomSource using default params (SHA1-based)
+     */
     public BCDigestRandomSource() {
         this.digest = new SHA1Digest();
         this.drng = new DigestRandomGenerator(digest);
     }
-    
+
+    /**
+     * create a new RandomSource using the passed digest
+     * @param digest the algorithm to base the RandomSource on
+     */
     public BCDigestRandomSource(Digest digest) {
         this.digest = digest;
         this.drng = new DigestRandomGenerator(digest);
     }
 
+    /**
+     * fill an (byte) array with random data
+     * @param toBeFilled the array to be filled
+     */
     @Override
     public void fillBytes(byte[] toBeFilled) {
         this.drng.nextBytes(toBeFilled);
     }
 
+    /**
+     * fill an (byte) array with random data
+     * @param toBeFilled the array to be filled
+     */
     @Override
     public void fillBytesAsInts(int[] toBeFilled) {
         byte[] result = new byte[toBeFilled.length];

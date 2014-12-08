@@ -31,6 +31,8 @@ public class VariableLengthMacPerformanceTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
+        
+        System.err.println("All tests on 500MB data a 1MB chunks");
                 
         RandomSource rng = new FakeRandomSource();
 
@@ -63,6 +65,6 @@ public class VariableLengthMacPerformanceTest {
         }
         long end = System.currentTimeMillis();
         
-        System.out.println(mac.toString() + " t: " + t + ": 500 * 1MB in " + (end - start) + "ms");
+        System.err.format("%50s t:%1d %6dms\n", mac, t, end - start);
     }
 }

@@ -51,7 +51,7 @@ public class NTTShamirPSSTest extends BasicSecretSharingTest {
         gffactory = new GF257Factory();
         df = new ErasureDecoderFactory(gffactory);
         gf = gffactory.createHelper();
-        ntt = new NTTSlow(gf);
+        ntt = new NTTSlow(gffactory);
         random = new FakeRandomSource();
         xValues = NTTShamirPSS.prepareXValuesFor(generator, gf);
         resultXValues = Arrays.copyOf(xValues, minLength);

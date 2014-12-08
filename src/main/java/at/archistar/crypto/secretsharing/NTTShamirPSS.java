@@ -7,12 +7,23 @@ import at.archistar.crypto.math.ntt.AbstractNTT;
 import at.archistar.crypto.random.RandomSource;
 
 /**
- * @author andy
+ * Perform shamir's secret sharing using an NTT operation
  */
 public class NTTShamirPSS extends NTTSecretSharing {
     
     private final RandomSource rng;
     
+    /**
+     * create a new shamir's secret sharing instance
+     * 
+     * @param n how many shares should be created
+     * @param k how many shares need to be present to reconstruct the data
+     * @param generator the generator used for the ntt operation
+     * @param factory factory for mathematical operations
+     * @param rng the random number generator to be used
+     * @param ntt the ntt operation that will be sued
+     * @param decoderFactory encoder used for reconstructing data
+     */
     public NTTShamirPSS(int n, int k, int generator, GFFactory factory, RandomSource rng, AbstractNTT ntt, DecoderFactory decoderFactory) throws WeakSecurityException {
         
         super(n, k, generator, factory, ntt, decoderFactory);

@@ -32,7 +32,9 @@ public class FixedLengthMacPerformanceTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() throws NoSuchAlgorithmException {
-                
+        
+        System.err.println("All tests on 500MB data a 1MB chunks");
+
         RandomSource rng = new FakeRandomSource();
 
         byte[] key = new byte[32];
@@ -63,6 +65,6 @@ public class FixedLengthMacPerformanceTest {
         }
         long end = System.currentTimeMillis();
 
-        System.out.println(this.mac.toString() + ": 500 * 1MB in " + (end - start) + "ms");
+        System.err.format("%50s %6dms\n", mac, end - start);
     }
 }

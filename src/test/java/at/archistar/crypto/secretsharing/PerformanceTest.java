@@ -57,7 +57,7 @@ public class PerformanceTest {
         
         GFFactory gffactory = new GF256Factory();
         GFFactory gf257factory = new GF257Factory();
-        AbstractNTT ntt = new NTTDit2(gf257factory.createHelper());
+        AbstractNTT ntt = new NTTDit2(gf257factory);
         DecoderFactory df = new ErasureDecoderFactory(gffactory);
         DecoderFactory df257 = new ErasureDecoderFactory(gf257factory);
         GF gf = gffactory.createHelper();

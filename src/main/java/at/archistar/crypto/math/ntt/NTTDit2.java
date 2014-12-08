@@ -1,17 +1,21 @@
 package at.archistar.crypto.math.ntt;
 
-import at.archistar.crypto.math.GF;
+import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf257.GF257;
 
 /**
- * @author andy
+ * optimized ntt implemenation
  */
 public class NTTDit2 extends AbstractNTT {
     
     private final GF257 gf257;
     
-    public NTTDit2(GF gf) {
-        super(gf);
+    /** create a new NTT helper class within field gf
+     * 
+     * @param gffactory the field within which all operations are performed
+     */
+    public NTTDit2(GFFactory gffactory) {
+        super(gffactory);
         if (gf instanceof GF257) {
             this.gf257 = (GF257)gf;
         } else {
@@ -19,11 +23,27 @@ public class NTTDit2 extends AbstractNTT {
         }
     }
     
+    /**
+     * Perform an ntt. This is a higher-performance variant that is performing
+     * all operations in-place and does not allocate additional memory
+     * 
+     * @param a incoming data
+     * @param w generator
+     */
     @Override
     public void inplaceNTT(int a[], int w) {
         ntt(a, a.length, log2(a.length), 1);
     }
     
+    /**
+     * Perform an ntt, result will also be stored within the data parameter
+     * 
+     * @param data incoming data
+     * @param n size of data
+     * @param ldn ln^2(data)
+     * @param is sign of operation
+     * @return ntt(a)
+     */
     public int[] ntt(int data[], int n, int ldn, int is) {
         
         assert(n == gf.pow(2, ldn));
@@ -74,11 +94,6 @@ public class NTTDit2 extends AbstractNTT {
         return Integer.reverse(a) >>> (64 - bitCount);
     }
 
-    @Override
-    public int[] intt(int[] a, int w) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
     private static int log2(int n){
       if (n <= 0) {
           throw new IllegalArgumentException();

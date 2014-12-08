@@ -5,8 +5,8 @@ import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
 import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
 
 /**
- *
- * @author andy
+ * perform mathematic operations in GF(2^8) utilizing the bouncy castle
+ * mathematic library
  */
 public class BCGF256 implements GF {
     
@@ -33,7 +33,10 @@ public class BCGF256 implements GF {
         return gf256.mult(a, b);
     }
     
-    public GF2mField getUnderlyingField() {
+    /**
+     * @return get the underlying (bouncy castle specific) field
+     */
+    GF2mField getUnderlyingField() {
         return gf256;
     }
 

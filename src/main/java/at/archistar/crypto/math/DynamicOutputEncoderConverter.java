@@ -8,8 +8,6 @@ import java.util.Arrays;
 /**
  * custom version of ByteArrayOutputStream -- this is roughly 50% faster for
  * smaller sizes that the original ByteArrayOutputStream (end-performance wise)
- * 
- * @author andy
  */
 public class DynamicOutputEncoderConverter implements OutputEncoderConverter {
     
@@ -34,6 +32,12 @@ public class DynamicOutputEncoderConverter implements OutputEncoderConverter {
         this.gf = gf;
     }
     
+    /**
+     * add data to the encoder's buffer
+     * 
+     * @param value to be added
+     */
+    @Override
     public void append(int value) {
         
         if (gf instanceof GF257 && (pos == buffer.length || (pos -1) == buffer.length)) {
@@ -50,6 +54,14 @@ public class DynamicOutputEncoderConverter implements OutputEncoderConverter {
         }
     }
     
+    /**
+     * add data to the encoder's buffer
+     * 
+     * @param values array of values to be added
+     * @param offset from where to start to take the values from
+     * @param count how many values to take
+     */
+    @Override
     public void append(int[] values, int offset, int count) {
         
         for (int i = 0; i < count; i++) {
@@ -70,7 +82,11 @@ public class DynamicOutputEncoderConverter implements OutputEncoderConverter {
         }
     }
     
+    /**
+     * @return encoded data
+     */
     @SuppressFBWarnings("EI_EXPOSE_REP")
+    @Override
     public byte[] getEncodedData() {
         if (pos != buffer.length) {
             return Arrays.copyOf(buffer, pos);
