@@ -30,10 +30,15 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 public class GF256 implements GF {
     private static final int GEN_POLY = 0x11D; // a generator polynomial of GF(256)
     
-    /* lookup-tables for faster operations */
+    /** lookup-tables for faster operations. This is public so that I can use
+     * it for performance tests
+     */
     @SuppressFBWarnings("MS_PKGPROTECT")
     public static final int[] LOG_TABLE = new int[256]; // = log_g(index) (log base g)
     
+    /** lookup-tables for faster operations. This is public so that I can use
+     * it for performance tests
+     */
     @SuppressFBWarnings("MS_PKGPROTECT")
     public static final int[] ALOG_TABLE = new int[1025]; // = pow(g, index); 512 * 2 + 1
     

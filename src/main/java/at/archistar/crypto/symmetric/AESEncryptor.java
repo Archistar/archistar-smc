@@ -39,7 +39,8 @@ public class AESEncryptor implements Encryptor {
         return cipherData(cipher, data);
     }
 
-    private static byte[] cipherData(PaddedBufferedBlockCipher cipher, byte[] data) throws IllegalStateException, InvalidCipherTextException {
+    private static byte[] cipherData(PaddedBufferedBlockCipher cipher, byte[] data)
+            throws IllegalStateException, InvalidCipherTextException {
         int minSize = cipher.getOutputSize(data.length);
         byte[] outBuf = new byte[minSize];
         int length1 = cipher.processBytes(data, 0, data.length, outBuf, 0);

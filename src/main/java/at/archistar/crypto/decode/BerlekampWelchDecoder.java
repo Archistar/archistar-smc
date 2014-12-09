@@ -27,9 +27,11 @@ public class BerlekampWelchDecoder implements Decoder {
      * Constructor
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public BerlekampWelchDecoder(int[] xValues, int k, GFFactory gffactory) {
+    public BerlekampWelchDecoder(final int[] xValues,
+                                 final int k,
+                                 final GFFactory gffactory) {
         
-        int n = xValues.length;
+        final int n = xValues.length;
         this.gffactory = gffactory;
         this.gf = gffactory.createHelper();
         this.k = k;
@@ -37,10 +39,10 @@ public class BerlekampWelchDecoder implements Decoder {
         this.x = xValues;
         
         /* prepare the Q(x) part of the matrix */
-        matrix = new int[n][n];
+        this.matrix = new int[n][n];
         
         /* how many should be correct? */
-        int t = x.length - f;
+        final int t = x.length - f;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < t; j++) {
                 matrix[i][j] = gf.pow(x[i], j);
@@ -52,7 +54,7 @@ public class BerlekampWelchDecoder implements Decoder {
      * @param y the y-coordinates to use for preparation
      */
     private void prepareEx(int[] y) {
-        int t = y.length - f;
+        final int t = y.length - f;
 
         for (int i = 0; i < y.length; i++) {
             for (int j = t; j < y.length; j++) {
@@ -78,7 +80,7 @@ public class BerlekampWelchDecoder implements Decoder {
     }
     
     private static int getDegree(int[] coefficients) {
-        int d = coefficients.length - 1;
+        final int d = coefficients.length - 1;
         
         if (coefficients.length == 0 || coefficients[d] == 0) {
             return -1;
@@ -95,8 +97,8 @@ public class BerlekampWelchDecoder implements Decoder {
      * @param length the length of the resulting vector (in case some rows have been eliminated)
      * @return the vector which then can be multiplied with the result-matrix to compute the coefficients
      */
-    private int[] buildMultVector(int x[], int y[], int length) {
-        int[] res = new int[length];
+    private int[] buildMultVector(final int x[], final int y[], final int length) {
+        final int[] res = new int[length];
         
         for (int i = 0; i < length; i++) {
             res[i] = gf.mult(gf.pow(x[i], f), y[i]);
@@ -106,7 +108,7 @@ public class BerlekampWelchDecoder implements Decoder {
     }
 
     @Override
-    public int[] decodeUnsafe(int[] ret, int[] y, int errors) throws UnsolvableException {
+    public int[] decodeUnsafe(final int[] ret, final int[] y, final int errors) throws UnsolvableException {
                 
         /* finish preparation of the decode-matrix */
         prepareEx(y);

@@ -25,13 +25,22 @@ import java.util.Map;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 /**
- * <p>This class implements the <i>Computational Secret Sharing</i> scheme developed by Krawczyk.</p>
+ * <p>This class implements the Computational Secret Sharing scheme developed by Krawczyk.</p>
  *  
- * <p>In short, this system combines the insecure but very fast and most importantly space efficient {@link ReedSolomon} 
- * with symmetric encryption with the perfectly secure {@link ShamirPSS} for sharing the key.</p>
+ * <p>This is a hybrid sheme that combines classical symmetric encryption, ShamirPSS
+ * and RabinIDS. The secret data is initially encrypted using an traditional
+ * symmetric encryption scheme (i.e. AES, Salsa, ChaCha..). The resulting encoded
+ * data is then distributed between participants with the fast but insecure
+ * RabinIDS scheme. The key that was used during the encryption is split up using
+ * the slow but secure ShamirPSS scheme and also distributed between participants.
+ * The performance benefit arises from the fact that the encryption key is many
+ * times smaller then the encrypted data -- the (computation- and storage-wise)
+ * inefficient shamir-pss algorithm thus performs only on small amounts of data
+ * while the faster performing and more space-efficient rabin-ids algorithm is
+ * used for the encrypted (larger) data.</p>
  * 
  * <p>For detailed information about this scheme, see: 
- * <a href="http://courses.csail.mit.edu/6.857/2009/handouts/short-krawczyk.pdf">http://courses.csail.mit.edu/6.857/2009/handouts/short-krawczyk.pdf</a></p>
+ * http://courses.csail.mit.edu/6.857/2009/handouts/short-krawczyk.pdf</p>
  */
 public class KrawczykCSS extends BaseSecretSharing {
     
@@ -55,11 +64,13 @@ public class KrawczykCSS extends BaseSecretSharing {
      * @param cryptor the to be used encryption algorithms
      * @throws WeakSecurityException thrown if this scheme is not secure for the given parameters
      */
-    public KrawczykCSS(int n, int k, RandomSource rng, Encryptor cryptor, DecoderFactory decFactory, GF gf) throws WeakSecurityException {
+    public KrawczykCSS(int n, int k, RandomSource rng,
+                       Encryptor cryptor,
+                       DecoderFactory decFactory, GF gf) throws WeakSecurityException {
         super(n, k);
         
-        this.shamir = new ShamirPSS(n, k, rng, decFactory, gf); // use a SharmirSecretSharing share generator to share the key and the content
-        this.rs = new RabinIDS(n, k, decFactory, gf); // use RabinIDS for sharing Content 
+        this.shamir = new ShamirPSS(n, k, rng, decFactory, gf);
+        this.rs = new RabinIDS(n, k, decFactory, gf);
         this.cryptor = cryptor;
         this.rng = rng;
         this.gf = gf;

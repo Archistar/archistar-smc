@@ -24,7 +24,10 @@ public class NTTShamirPSS extends NTTSecretSharing {
      * @param ntt the ntt operation that will be sued
      * @param decoderFactory encoder used for reconstructing data
      */
-    public NTTShamirPSS(int n, int k, int generator, GFFactory factory, RandomSource rng, AbstractNTT ntt, DecoderFactory decoderFactory) throws WeakSecurityException {
+    public NTTShamirPSS(int n, int k, int generator, GFFactory factory,
+                        RandomSource rng, AbstractNTT ntt,
+                        DecoderFactory decoderFactory)
+            throws WeakSecurityException {
         
         super(n, k, generator, factory, ntt, decoderFactory);
         
@@ -52,7 +55,7 @@ public class NTTShamirPSS extends NTTSecretSharing {
     
     @Override
     protected Share.ShareType getShareType() {
-        return Share.ShareType.NTT_SHAMIR;
+        return Share.ShareType.NTT_SHAMIR_PSS;
     }
 
     @Override

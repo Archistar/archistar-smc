@@ -21,7 +21,11 @@ import java.util.Queue;
  * <a href="http://www.iacr.org/cryptodb/data/paper.php?pubkey=24281">http://www.iacr.org/cryptodb/data/paper.php?pubkey=24281</a></p>
  */
 public class CevallosUSRSS extends RabinBenOrRSS {
-    public static final int E = 128; // security constant for computing the tag length; means 128 bit
+    
+    /**
+     * security constant for computing the tag length; means 128 bit
+     */
+    public static final int E = 128;
     
     private final MacHelper mac;
     

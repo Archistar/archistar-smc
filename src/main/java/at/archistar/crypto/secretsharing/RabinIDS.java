@@ -12,13 +12,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * <p>This class implements the <i>Rabin IDS</i> (also called <i>Reed Solomon Code</i>) scheme.</p>
+ * <p>This class implements Rabin IDS (aka Reed-Solomon Code).</p>
+ * 
+ * <p>Note: this scheme does not provide security but is rather used for quickly
+ * distributing data that is not sensitive (or encrypted through other means).</p>
+ * 
+ * <p>This implementation utilizes GeometricSecretSharing to obtain most of this
+ * algorithm's implementation -- it's main addition is the encoding/decoding of
+ * secrets into the equations coefficients ([a_0 .. a_k] in GeometricSecretSharing's
+ * documentation). Rabin evenly distributes the original data between shares --
+ * thus a0..a_k is just filled in with the original data.</p>
  * 
  * <p>For a detailed description of this scheme, see: 
  * <a href='http://en.wikipedia.org/wiki/Reed–Solomon_error_correction'>http://en.wikipedia.org/wiki/Reed–Solomon_error_correction</a></p>
- *  
- * <p><b>NOTE:</b> This scheme is not secure at all. It should only be used for sharing already encrypted 
- *                 data like for example how it is done in {@link KrawczykCSS}.</p>
  */
 public class RabinIDS extends GeometricSecretSharing {
     
@@ -74,7 +80,7 @@ public class RabinIDS extends GeometricSecretSharing {
         metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(originalLength).array());
         
         for (int i = 0; i < n; i++) {
-            shares[i] = ShareFactory.create(Share.ShareType.REED_SOLOMON, (byte)xValues[i], results[i].getEncodedData(), metadata);
+            shares[i] = ShareFactory.create(Share.ShareType.RABIN_IDS, (byte)xValues[i], results[i].getEncodedData(), metadata);
         }
 
         return shares;

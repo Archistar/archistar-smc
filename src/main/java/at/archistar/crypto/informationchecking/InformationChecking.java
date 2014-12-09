@@ -3,10 +3,16 @@ package at.archistar.crypto.informationchecking;
 import at.archistar.crypto.data.Share;
 
 /**
- * An information checking algorithm takes a collection of shares and adds
- * share validation information. It's suspected of setting the share's
- * informationChecking, macKeys and macs member variables. In addition it is
- * free to add additional data to the share's metadata collection.
+ * <p>Secret-sharing splits up the original secret data into n shares, k of
+ * which are needed to reconstruct the original secret. Basic algorithms expect
+ * shares to either be available and thus not corrupted or unavailable.
+ * Information checking allows detection of altered shares. This can be
+ * utilized by implementations to select k uncorrupted shares for reconstruction</p>
+ * 
+ * <p>An information checking algorithm takes a collection of shares and adds
+ * share validation information. It should set the share's informationChecking,
+ * macKeys and macs member variables. In addition it is allowed to add additional
+ * data to the share's metadata collection.</p>
  */
 public interface InformationChecking {
 

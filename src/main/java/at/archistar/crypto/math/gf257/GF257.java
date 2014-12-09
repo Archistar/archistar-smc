@@ -8,22 +8,22 @@ import at.archistar.crypto.math.GF;
  */
 public class GF257 implements GF {
     
-    private static final int invTable[];
+    private static final int[] INV_TABLE;
     
-    private static final int exp[][];
+    private static final int[][] EXP;
     
     static {
-        invTable = new int[257];
+        INV_TABLE = new int[257];
         for (int i = 0; i < 257; i++) {
-            invTable[i] = calcInverse(i);
+            INV_TABLE[i] = calcInverse(i);
         }
         
-        exp = new int[257][257];
+        EXP = new int[257][257];
         
         for (int i = 0; i < 257; i++) {
-            exp[i][0] = 1;
+            EXP[i][0] = 1;
             for (int j = 1; j < 257; j++) {
-                exp[i][j] = (exp[i][j-1] * i) % 257;
+                EXP[i][j] = (EXP[i][j-1] * i) % 257;
             }
         }
     }
@@ -46,7 +46,7 @@ public class GF257 implements GF {
 
     @Override
     public int pow(int a, int b) {
-        return exp[a][b];
+        return EXP[a][b];
     }
 
     @Override
@@ -97,7 +97,7 @@ public class GF257 implements GF {
     @Override
     public int inverse(int a) {
         assert (a != 0);
-        return invTable[a];
+        return INV_TABLE[a];
     }
 
     @Override
@@ -105,7 +105,7 @@ public class GF257 implements GF {
         return 257;
     }
     
-    private static final int primitiveRoots[][] = {
+    private static final int[][] PRIMITIVE_ROOTS = {
         {2, 256},
         {4, 241},
         {8, 64},
@@ -113,7 +113,7 @@ public class GF257 implements GF {
         {32, 136},
         {64, 81},
         {128, 9},
-        {256, 3}
+        {256, 3},
     };
     
     /**
@@ -122,7 +122,7 @@ public class GF257 implements GF {
      * @return the a'th root
      */
     public int primitiveRootOfUnity(int a) {
-        for (int[] primitiveRoot : primitiveRoots) {
+        for (int[] primitiveRoot : PRIMITIVE_ROOTS) {
             if (primitiveRoot[0] == a) {
                 return primitiveRoot[1];
             }

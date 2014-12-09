@@ -18,7 +18,7 @@ public class TestRabinSerialization extends AbstractSerializationTest {
         Map<Byte, byte[]> metadata = new HashMap<>();
         metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(1).array());
         
-        share = ShareFactory.create(Share.ShareType.REED_SOLOMON, (byte)7,
+        share = ShareFactory.create(Share.ShareType.RABIN_IDS, (byte)7,
                                     new byte[]{1,2,3}, metadata);
         serializedShare = share.serialize();
     }

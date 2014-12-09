@@ -30,7 +30,7 @@ public class TestShareWithICSerialization extends AbstractSerializationTest {
         macKeys.put((byte) 2, new byte[]{10, 11, 12});
 
         
-        share = ShareFactory.create(Share.ShareType.REED_SOLOMON, (byte)7,
+        share = ShareFactory.create(Share.ShareType.RABIN_IDS, (byte)7,
                                     new byte[]{1,2,3}, metadata,
                                     Share.ICType.RABIN_BEN_OR, macKeys, macs);
         

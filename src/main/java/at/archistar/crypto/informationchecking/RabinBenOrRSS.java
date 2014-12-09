@@ -16,7 +16,10 @@ import java.util.Arrays;
 public class RabinBenOrRSS implements InformationChecking {
 
     private final MacHelper mac;
+    
     private final RandomSource rng;
+    
+    /** minimum amount of shares needed for reconstructing the secret */
     protected final int k;
 
     /**

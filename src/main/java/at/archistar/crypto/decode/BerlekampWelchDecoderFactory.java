@@ -14,7 +14,7 @@ public class BerlekampWelchDecoderFactory implements DecoderFactory {
      * 
      * @param gffactory the field in which we'll be performing operations
      */
-    public BerlekampWelchDecoderFactory(GFFactory gffactory) {
+    public BerlekampWelchDecoderFactory(final GFFactory gffactory) {
         this.gffactory = gffactory;
     }
     
@@ -26,7 +26,7 @@ public class BerlekampWelchDecoderFactory implements DecoderFactory {
      * @return the created decoder
      */
     @Override
-    public Decoder createDecoder(int[] xValues, int k) {
+    public Decoder createDecoder(final int[] xValues, final int k) {
         return new BerlekampWelchDecoder(xValues, k, gffactory);
     }
 }

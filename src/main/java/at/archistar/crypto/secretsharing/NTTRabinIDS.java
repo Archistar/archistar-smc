@@ -21,7 +21,11 @@ public class NTTRabinIDS extends NTTSecretSharing {
      * @param ntt the ntt used for computation (shoudl be |gf|+1)
      * @param decoderFactory the decoder that will be used for the reconstruction step
      */
-    public NTTRabinIDS(int n, int k, int generator, GFFactory factory, AbstractNTT ntt, DecoderFactory decoderFactory) throws WeakSecurityException {
+    public NTTRabinIDS(int n, int k, int generator,
+                       GFFactory factory,
+                       AbstractNTT ntt,
+                       DecoderFactory decoderFactory) throws WeakSecurityException {
+        
         super(n, k, generator, factory, ntt, decoderFactory);
         
         shareSize = nttBlockLength / n;
@@ -36,7 +40,7 @@ public class NTTRabinIDS extends NTTSecretSharing {
 
     @Override
     protected Share.ShareType getShareType() {
-        return ShareType.NTT_REED_SOLOMON;
+        return ShareType.NTT_RABIN_IDS;
     }
     
     /**

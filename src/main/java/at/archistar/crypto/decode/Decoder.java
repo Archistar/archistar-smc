@@ -13,7 +13,7 @@ public interface Decoder {
      * @return an array of all coefficients of this polynomial
      * @throws UnsolvableException if the polynomial was not solvable
      */
-    int[] decode(int[] y, int errors) throws UnsolvableException;
+    int[] decode(final int[] y, final int errors) throws UnsolvableException;
     
     /**
      * Reconstructs all coefficients of the polynomial defined by the given points.
@@ -24,5 +24,5 @@ public interface Decoder {
      * @return an array of all coefficients of this polynomial
      * @throws UnsolvableException if the polynomial was not solvable
      */
-    int[] decodeUnsafe(int[] target, int[] y, int errors) throws UnsolvableException;
+    int[] decodeUnsafe(final int[] target, final int[] y, final int errors) throws UnsolvableException;
 }

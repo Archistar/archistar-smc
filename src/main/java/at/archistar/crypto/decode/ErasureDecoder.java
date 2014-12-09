@@ -22,12 +22,12 @@ public class ErasureDecoder implements Decoder {
      * @param k how many elements will be expected for reconstruction
      * @param gffactory within which field will be performing our operations
      */
-    public ErasureDecoder(int[] xValues, int k, GFFactory gffactory) {
+    public ErasureDecoder(final int[] xValues, final int k, final GFFactory gffactory) {
         
         this.k = k;
-        GF gf = gffactory.createHelper();
+        final GF gf = gffactory.createHelper();
         
-        int[][] matrixX = new int[k][k];
+        final int[][] matrixX = new int[k][k];
 
         for (int i = 0; i < k; i++) {
             for (int j = 0; j < k; j++) {
@@ -40,10 +40,12 @@ public class ErasureDecoder implements Decoder {
     
     /**
      * Decode y (with an maximal error count of errorCount
+     * 
+     * @return the decoded values
      */
     @Override
     @SuppressFBWarnings("EI_EXPOSE_REP")
-    public int[] decode(int[] y, int errorCount) throws UnsolvableException {
+    public int[] decode(final int[] y, final int errorCount) throws UnsolvableException {
         
         if (errorCount != 0) {
             throw new UnsolvableException("Erasuredecoder cannot fix errors");
@@ -64,9 +66,11 @@ public class ErasureDecoder implements Decoder {
     /**
      * this version of decode should be faster, but does not check any input
      * parameters for validity
+     * 
+     * @return the decoded data filled in within the original target parameter
      */
     @Override
-    public int[] decodeUnsafe(int[] target, int[] y, int errorCount) throws UnsolvableException {
+    public int[] decodeUnsafe(final int[] target, final int[] y, final int errorCount) throws UnsolvableException {
         return matrix.rightMultiplyInto(target, y);
     }    
 }

@@ -14,7 +14,7 @@ public class ErasureDecoderFactory implements DecoderFactory {
      * 
      * @param gffactory the field in which we'll be performing operations
      */
-    public ErasureDecoderFactory(GFFactory gffactory) {
+    public ErasureDecoderFactory(final GFFactory gffactory) {
         this.gffactory = gffactory;
     }
 
@@ -26,7 +26,7 @@ public class ErasureDecoderFactory implements DecoderFactory {
      * @return the created decoder
      */
     @Override
-    public Decoder createDecoder(int[] xValues, int k) {
+    public Decoder createDecoder(final int[] xValues, final int k) {
         return new ErasureDecoder(xValues, k, gffactory);
     }
 }

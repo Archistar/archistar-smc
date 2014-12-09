@@ -48,7 +48,7 @@ public class FixedLengthMacPerformanceTest {
         rng.fillBytes(sipKey);
         
         Object[][] params = new Object[][]{
-            {key, data, new ShareMacHelper("HMacSHA256")},
+            {key, data, new JavaMacHelper("HMacSHA256")},
             {key, data, new BCMacHelper(new HMac(new SHA256Digest()), key.length) },
             {key, data, new BCPoly1305MacHelper() },
         };

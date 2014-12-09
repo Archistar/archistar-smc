@@ -14,14 +14,27 @@ import at.archistar.crypto.math.gf257.GF257;
 import static at.archistar.crypto.secretsharing.BaseSecretSharing.validateShareCount;
 
 /**
- * this contains basic functionality utilized by rabin and shamir
+ * <p>this contains basic functionality utilized by RabinIDS and ShamirPSS.</p>
+ * 
+ * <p>Secret-sharing can be seen as solving an overdetermined Equation. Given an
+ * equation of degree k a minimum of k points are needed to solve the equation.
+ * I.e. for degree 3 there's an equation y = a0*x^0 + a1*x^1 + a2*x^2. We need
+ * 3 (x,y) pairs to determine [a0, a1, a2]. Secret-sharing schemes deriving from
+ * this class utilize this: for a k/n sharing scheme we're creating a equation
+ * of degree k (so k (x,y) pairs will be needed to solve the equation) and fill
+ * in [a0.. a_k] with data. By setting in random x-Values we calculate n (x,y)
+ * pairs -- those are the shares that will be distributed between participants.</p>
  */
 public abstract class GeometricSecretSharing extends BaseSecretSharing {
     
     private final DecoderFactory decoderFactory;
     
+    /** the mathematical field all operations are performed in */
     protected final GF gf;
     
+    /** this describes how many (secret) original data bytes are encoded per
+     * encryption round -- this is supposed to be overwritten by subclasses
+     */
     protected int dataPerRound = 1;
     
     private final int[] xValues;
@@ -46,6 +59,16 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
         }
     }
     
+    /**
+     * This method should prepare the coefficients for our equation.
+     * 
+     * @param coeffs the resulting coefficients
+     * @param data the original data. For performance reasons the same data
+     *             array is passed for multiple encoding rounds and the current
+     *             data is determined by accessing data[offset .. (offset+length)]
+     * @param offset current position within the data array
+     * @param length how much (original) data should be encoded within coeffs
+     */
     protected abstract void encodeData(int coeffs[], byte[] data, int offset, int length);
     
     /**
@@ -69,7 +92,9 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
     }
 
     /**
-     * Creates <i>n</i> secret shares for the given data where <i>k</i> shares are required for reconstruction.      * (n, k should have been previously initialized)
+     * Creates <i>n</i> secret shares for the given data where <i>k</i> shares
+     * are required for reconstruction. (n, k should have been previously initialized)
+     * 
      * @param data the data to share secretly
      * @return the n different secret shares for the given data
      */
@@ -93,8 +118,31 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
         }
     }
     
-    protected abstract Share[] createShares(int[] xValues, OutputEncoderConverter[] results, int originalLength) throws InvalidParametersException;
+    /**
+     * After data was encoded algorithm-specific share must be created. As the
+     * generic implementation does not know, which fields to fill (or which meta
+     * data is needed) this task was delegated to the implementing sub-class.
+     * 
+     * @param xValues the used xValues
+     * @param results output buffer with the expected body (of the new share)
+     * @param originalLength the original data length (of the secret)
+     * @return Array of created shares
+     * @throws InvalidParametersException if no valid share was build
+     */
+    protected abstract Share[] createShares(int[] xValues,
+                                            OutputEncoderConverter[] results,
+                                            int originalLength) throws InvalidParametersException;
     
+    /**
+     * Calculates and retrieves the length of the original (now encrypted) data.
+     * This varies between algorithms, i.e. with ShamirPSS the original length
+     * is the same as the share's body length. With RabinIDS the orignial length
+     * must be stored as meta data as it cannot be automatically derived from the
+     * body's length
+     * 
+     * @param shares all input shares
+     * @return  original length of the encrypted secret data
+     */
     protected abstract int retrieveInputLength(Share[] shares);
 
     /**
@@ -156,6 +204,21 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
         return reconstruct(input, xTmpValues, originalLength);
     }
     
+    /**
+     * While reconstructing the original secret the encrypted data is passed on
+     * to an equation solver. The result of this operation is passed on to this
+     * method which should extract the original data from the solver's result.
+     * 
+     * @param encoded original data that was put into the equation during sharing
+     * @param originalLength how long was the original data. This is needed as
+     *                       some algorithms (i.e. RabinIDS) utilize padding if
+     *                       the last data block wasn't fully filled.
+     * @param result an array where the resulting data should be stored in. The
+     *               concrete position within this array is given by offset
+     * @param offset current position within result array
+     * @return amount (in byte) of retrieved original data (used to calculate
+     *         new offset)
+     */
     protected abstract int decodeData(int[] encoded, int originalLength, byte[] result, int offset);
     
     /**
@@ -173,8 +236,10 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
     }
     
     /**
-     * Extracts all x-values from the given Share[].
+     * Extracts k x-values from the given shares.
+     * 
      * @param shares the shares to extract the x-values from
+     * @param k how many xValues do we want?
      * @return an array with all x-values from the given shares (in same order as the given Share[])
      */
     public static int[] extractXVals(Share[] shares, int k) {

@@ -11,15 +11,15 @@ import at.archistar.crypto.math.GenericMatrix;
  */
 public class BCGFFactory implements GFFactory {
     
-    private static final BCGF256 gf256 = new BCGF256();
+    private static final BCGF256 GF256 = new BCGF256();
     
     @Override
     public GF createHelper() {
-        return gf256;
+        return GF256;
     }
     
     @Override
     public GFMatrix createMatrix(int matrix[][]) {
-        return new GenericMatrix(matrix, gf256);
+        return new GenericMatrix(matrix, GF256);
     }
 }

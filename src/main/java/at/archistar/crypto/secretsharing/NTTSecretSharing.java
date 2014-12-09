@@ -45,7 +45,10 @@ abstract class NTTSecretSharing extends BaseSecretSharing {
     
     protected int dataPerNTT = 0;
     
-    public NTTSecretSharing(int n, int k, int generator, GFFactory factory, AbstractNTT ntt, DecoderFactory decoderFactory) throws WeakSecurityException {
+    public NTTSecretSharing(int n, int k, int generator,
+                            GFFactory factory,
+                            AbstractNTT ntt,
+                            DecoderFactory decoderFactory) throws WeakSecurityException {
         
         super(n, k);
         

@@ -1,17 +1,29 @@
 package at.archistar.crypto.secretsharing;
 
+import at.archistar.crypto.CryptoEngine;
 import at.archistar.crypto.data.Share;
 
 /**
- * Basic interface for secret sharing
+ * <p>Basic application programming interface for secret sharing.</p>
+ * 
+ * <p>Secret-sharing (or secret-splitting) algorithms distribute secrets between
+ * n participants in such a way, that the original secret can only be
+ * reconstructed if a minimum amount of participants offer their shares. If
+ * fewer than this limit (which will be called k within archistar-smc)
+ * participants offer their share, the original data cannot be reconstructed.</p>
+ * 
+ * <p>This interface offers a simplified view to secret sharing, the two main
+ * operations are: share for creating shares and reconstruct for reconstructing
+ * the original secret from the given shares.</p>
  */
-public interface SecretSharing {
+public interface SecretSharing extends CryptoEngine {
     
     /**
      * Creates <i>n</i> secret shares for the given data where <i>k</i> shares are required for reconstruction. 
      * @param data the data to share secretly
      * @return the n different secret shares for the given data
      */
+    @Override
     Share[] share(byte[] data);
     
     /**
@@ -22,6 +34,7 @@ public interface SecretSharing {
      * @return the reconstructed secret
      * @throws ReconstructionException thrown if the reconstruction failed
      */
+    @Override
     byte[] reconstruct(Share[] shares) throws ReconstructionException;
     
     /**

@@ -4,7 +4,7 @@ import static at.archistar.crypto.data.Share.ENC_ALGORITHM;
 import static at.archistar.crypto.data.Share.ENC_KEY;
 import static at.archistar.crypto.data.Share.ORIGINAL_LENGTH;
 import static at.archistar.crypto.data.Share.ShareType.KRAWCZYK;
-import static at.archistar.crypto.data.Share.ShareType.REED_SOLOMON;
+import static at.archistar.crypto.data.Share.ShareType.RABIN_IDS;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,35 +24,35 @@ public class TestShareValidation {
     
     @Test(expected=InvalidParametersException.class)
     public void xMustNotBe0() throws InvalidParametersException {
-        Share share = ShareFactory.create(Share.ShareType.SHAMIR, (byte)0,
+        Share share = ShareFactory.create(Share.ShareType.SHAMIR_PSS, (byte)0,
                                           data, emptyMetadata);
         assertThat(share).isNotNull();
     }
     
     @Test(expected=InvalidParametersException.class)
     public void yMustNotBeNull() throws InvalidParametersException {
-        Share share = ShareFactory.create(Share.ShareType.SHAMIR, (byte)7,
+        Share share = ShareFactory.create(Share.ShareType.SHAMIR_PSS, (byte)7,
                                           null, emptyMetadata);
         assertThat(share).isNotNull();
     }
 
     @Test
     public void allowValidShamirConstruction() throws InvalidParametersException {
-        Share share = ShareFactory.create(Share.ShareType.SHAMIR, (byte)7,
+        Share share = ShareFactory.create(Share.ShareType.SHAMIR_PSS, (byte)7,
                                           data, emptyMetadata);
         assertThat(share).isNotNull();
     }
     
     @Test(expected=InvalidParametersException.class)
     public void ShamirMetadataMustNotBeNull() throws InvalidParametersException {
-        Share share = ShareFactory.create(Share.ShareType.SHAMIR, (byte)7,
+        Share share = ShareFactory.create(Share.ShareType.SHAMIR_PSS, (byte)7,
                                           data, null);
         assertThat(share).isNotNull();
     }
     
     @Test(expected=InvalidParametersException.class)
     public void RabinMustHaveOriginalLength() throws InvalidParametersException {
-        Share share = ShareFactory.create(Share.ShareType.REED_SOLOMON, (byte)7,
+        Share share = ShareFactory.create(Share.ShareType.RABIN_IDS, (byte)7,
                                           data, emptyMetadata);
         assertThat(share).isNotNull();
     }
@@ -72,7 +72,7 @@ public class TestShareValidation {
         Map<Byte, byte[]> metadata = new HashMap<>();
         metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(1).array());
 
-        Share share = ShareFactory.create(REED_SOLOMON, (byte)7, data, metadata);
+        Share share = ShareFactory.create(RABIN_IDS, (byte)7, data, metadata);
         assertThat(share).isNotNull();
     }
     

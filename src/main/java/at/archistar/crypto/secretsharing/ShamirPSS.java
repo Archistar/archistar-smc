@@ -11,7 +11,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * <p>This class implements the <i>Perfect-Secret-Sharing</i>-scheme (PSS) developed by Adi Shamir.</p>
+ * <p>This class implements the Perfect-Secret-Sharing-scheme (PSS) developed by Adi Shamir.</p>
+ * 
+ * <p>This implementation utilizes GeometricSecretSharing to obtain most of this
+ * algorithm's implementation -- it's main addition is the encoding/decoding of
+ * secrets into the equations coefficients ([a_0 .. a_k] in GeometricSecretSharing's
+ * documentation). Shamir just sets one coefficient (a_0 in our implementation)
+ * to the secret and sets all other coefficients to random data. Compared to other
+ * schemes this yields security but has the payoff of being rather slow.</p>
  * 
  * <p>For a detailed description of the scheme, 
  * see: <a href='http://en.wikipedia.org/wiki/Shamir's_Secret_Sharing'>http://en.wikipedia.org/wiki/Shamir's_Secret_Sharing</a></p>
@@ -59,7 +66,7 @@ public class ShamirPSS extends GeometricSecretSharing {
         Map<Byte, byte[]> metadata = new HashMap<>();
         
         for (int i = 0; i < n; i++) {
-            shares[i] = ShareFactory.create(Share.ShareType.SHAMIR, (byte)xValues[i], results[i].getEncodedData(), metadata);
+            shares[i] = ShareFactory.create(Share.ShareType.SHAMIR_PSS, (byte)xValues[i], results[i].getEncodedData(), metadata);
         }
 
         return shares;

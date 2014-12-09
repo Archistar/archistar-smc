@@ -40,17 +40,25 @@ public class Share implements Comparable<Share> {
     
     /** which share types can we work with? */
     public static enum ShareType {
-        SHAMIR,
-        REED_SOLOMON,
+        /** type used for shamir */
+        SHAMIR_PSS,
+        /** type used for rabin (also called reed-solomon sometimes) */
+        RABIN_IDS,
+        /** krawcywk (rabin+shamir) */
         KRAWCZYK,
-        NTT_SHAMIR,
-        NTT_REED_SOLOMON
+        /** shamir shares, but calculated with NTT (need more meta data) */
+        NTT_SHAMIR_PSS,
+        /** rabin shares, but calculated with NTT (need more meta data) */
+        NTT_RABIN_IDS
     }
     
     /** which information checking schemas can we work with? */
     public static enum ICType {
+        /** no information checking was performed */
         NONE,
+        /** rabin-ben-or with fixed hashes */
         RABIN_BEN_OR,
+        /** cevallos with dynamic length hashes */
         CEVALLOS        
     }
     
@@ -86,7 +94,10 @@ public class Share implements Comparable<Share> {
      * @param macs  the macs generated during information checking
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    Share(ShareType shareType, byte id, byte[] body, Map<Byte, byte[]> metadata, ICType ic, Map<Byte, byte[]> macKeys, Map<Byte, byte[]> macs) {
+    Share(ShareType shareType, byte id, byte[] body,
+          Map<Byte, byte[]> metadata,
+          ICType ic, Map<Byte, byte[]> macKeys, Map<Byte, byte[]> macs) {
+        
         this.id = id;
         this.yValues = body;
         this.metadata = metadata;
@@ -176,8 +187,8 @@ public class Share implements Comparable<Share> {
      * @throws IOException 
      */
     public byte[] serialize() throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        DataOutputStream sout = new DataOutputStream(out);
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final DataOutputStream sout = new DataOutputStream(out);
         
         /* serialize main data */
         sout.write(getSerializedForHashing());
@@ -199,7 +210,7 @@ public class Share implements Comparable<Share> {
      * @return stored metadata casted to an integer
      */
     public int getMetadata(int key) {
-        byte[] tmp = this.metadata.get((byte)key);
+        final byte[] tmp = this.metadata.get((byte)key);
         if (tmp.length == 4) {
             return ByteBuffer.wrap(tmp).getInt();
         } else {
@@ -243,20 +254,37 @@ public class Share implements Comparable<Share> {
             return false;
         }
         
+        return checkShareInformation() && checkICType();
+    }
+    
+    private boolean checkShareInformation() {
         boolean result = true;
         
-        if (shareType == ShareType.SHAMIR) {
-            //no additional checks needed
-        } else if (shareType == ShareType.KRAWCZYK) {
-            result = metadata.containsKey(ENC_ALGORITHM) && metadata.containsKey(ORIGINAL_LENGTH) && metadata.containsKey(ENC_KEY);
-        } else if (shareType == ShareType.REED_SOLOMON) {
-            result = metadata.containsKey((byte)1);            
-        } else if (shareType == ShareType.NTT_REED_SOLOMON || shareType == ShareType.NTT_SHAMIR) {
-            result = metadata.containsKey(ORIGINAL_LENGTH) &&
-                     metadata.containsKey(NTT_SHARE_SIZE);            
-        } else {
-            throw new RuntimeException("impossible: unknown algorithm");
+        switch (shareType) {
+            case SHAMIR_PSS:
+                //no additional checks needed
+                break;
+            case KRAWCZYK:
+                result = metadata.containsKey(ENC_ALGORITHM) && metadata.containsKey(ORIGINAL_LENGTH) && metadata.containsKey(ENC_KEY);
+                break;
+            case RABIN_IDS:
+                result = metadata.containsKey((byte) 1);
+                break;
+            case NTT_RABIN_IDS:
+            case NTT_SHAMIR_PSS:
+                result = metadata.containsKey(ORIGINAL_LENGTH)
+                        && metadata.containsKey(NTT_SHARE_SIZE);
+                break;
+            default:
+                throw new RuntimeException("impossible: unknown algorithm");
         }
+        
+        return result;
+    }
+    
+    private boolean checkICType() {
+        
+        boolean result = true;
         
         switch (informationChecking) {
             case NONE:

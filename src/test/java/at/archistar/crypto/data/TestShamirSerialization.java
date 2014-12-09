@@ -16,7 +16,7 @@ public class TestShamirSerialization extends AbstractSerializationTest {
         Map<Byte, byte[]> metadata = new HashMap<>();
         metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(3).array());
         
-        share = ShareFactory.create(Share.ShareType.SHAMIR, (byte)7,
+        share = ShareFactory.create(Share.ShareType.SHAMIR_PSS, (byte)7,
                                     new byte[]{1,2,3}, metadata);
         
         serializedShare = share.serialize();

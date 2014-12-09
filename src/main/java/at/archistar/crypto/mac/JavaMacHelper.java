@@ -12,11 +12,8 @@ import at.archistar.crypto.data.Share;
 
 /**
  * A helper-class for computing and validating MACs for {@link Share}s.
- * 
- * @author Elias Frantar
- * @version 2014-7-24
  */
-public class ShareMacHelper implements MacHelper {
+public class JavaMacHelper implements MacHelper {
     
     private final Mac mac;
     
@@ -26,7 +23,7 @@ public class ShareMacHelper implements MacHelper {
      * @param algorithm the MAC algorithm to use (for example <i>SHA-256</i>)
      * @throws NoSuchAlgorithmException thrown if the given algorithm is not supported
      */
-    public ShareMacHelper(String algorithm) throws NoSuchAlgorithmException {
+    public JavaMacHelper(String algorithm) throws NoSuchAlgorithmException {
         this.mac = Mac.getInstance(algorithm);
     }
     

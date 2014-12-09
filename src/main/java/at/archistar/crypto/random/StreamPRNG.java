@@ -19,7 +19,7 @@ public class StreamPRNG implements RandomSource {
     /** identifier for the <i>HC128</i> algorithm */
     public static final String HC128 = "HC128";
     
-    private static final byte[] dummy = new byte[16]; // we are only interested in the key-stream (so fill with 0s)
+    private static final byte[] DUMMY = new byte[16]; // we are only interested in the key-stream (so fill with 0s)
     
     static {
         Security.addProvider(new BouncyCastleProvider()); // we need to add the "bouncycastle"-provider only once
@@ -49,7 +49,7 @@ public class StreamPRNG implements RandomSource {
      * Updates the cache with the next iteration of output from the stream-cipher.
      */
     private void fillCache() {
-        cache = cipher.update(dummy); // fill the cache with the keystream
+        cache = cipher.update(DUMMY); // fill the cache with the keystream
         counter = 0;
     }
 
