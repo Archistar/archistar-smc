@@ -9,14 +9,14 @@ page at http://checkstyle.sourceforge.net/config.html -->
   <module name="FileTabCharacter"/>
 
   <module name="StrictDuplicateCode">
-    <property name="min" value="33"/>
+    <property name="min" value="20"/>
   </module>
 
   <!-- All Java AST specific tests live under TreeWalker module. -->
   <module name="TreeWalker">
 
     <module name="CyclomaticComplexity">
-      <property name="max" value="13"/>
+      <property name="max" value="10"/>
     </module>
 
     <module name="ArrayTrailingComma"/>

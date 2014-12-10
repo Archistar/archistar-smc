@@ -46,6 +46,28 @@ public class CevallosUSRSS extends RabinBenOrRSS {
         this.mac = mac;
     }
     
+    private int getAcceptedCount(Share s1, Share[] shares, boolean[][] accepts) {
+        
+        int counter = 0;
+        
+        for (Share s2 : shares) {
+            try {
+                byte[] data = s1.getSerializedForHashing();
+                byte[] mac1 = s1.getMacs().get((byte) s2.getId());
+                byte[] mac2 = s2.getMacKeys().get((byte) s1.getId());
+
+                accepts[s1.getId()][s2.getId()] = mac.verifyMAC(data, mac1, mac2);
+                if (accepts[s1.getId()][s2.getId()]) {
+                    counter++;
+                }
+            } catch (IOException ex) {
+                throw new RuntimeException("this should never happen!");
+            }
+        }
+        
+        return counter;
+    }
+    
     @Override
     public Share[] checkShares(Share[] cshares) {
         
@@ -58,22 +80,8 @@ public class CevallosUSRSS extends RabinBenOrRSS {
         
         for (Share s1 : cshares) {
             
-            s1.setInformationChecking(Share.ICType.CEVALLOS);
+            a[s1.getId()] += getAcceptedCount(s1, cshares, accepts);
             
-            for (Share s2 : cshares) {
-                try {
-                    byte[] data = s1.getSerializedForHashing();
-                    byte[] mac1 = s1.getMacs().get((byte) s2.getId());
-                    byte[] mac2 = s2.getMacKeys().get((byte) s1.getId());
-                    
-                    accepts[s1.getId()][s2.getId()] = mac.verifyMAC(data, mac1, mac2);
-                    if (accepts[s1.getId()][s2.getId()]) {
-                        a[s1.getId()]++;
-                    }
-                } catch (IOException ex) {
-                    throw new RuntimeException("this should never happen!");
-                }
-            }
             if (a[s1.getId()] < k) {
                 queue.add((int)s1.getId());
             } else {

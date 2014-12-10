@@ -11,7 +11,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 /**
  * This is a stream-cipher RNG outputting the key-stream of a stream-cipher as random numbers.<br>
  */
-public class StreamPRNG implements RandomSource {
+public class StreamPRNG extends BaseRandomAlgorithm {
     
     /** identifier for the <i>Salsa20</i> algorithm */
     public static final String SALSA20 = "Salsa20";
@@ -27,10 +27,6 @@ public class StreamPRNG implements RandomSource {
     
     private final Cipher cipher;
     
-    private byte[] cache;
-    
-    private int counter;
-    
     /**
      * Constructor
      * @param algorithm the stream-cipher algorithm to use (do only pass constants of this class)
@@ -41,41 +37,15 @@ public class StreamPRNG implements RandomSource {
                 
         KeyGenerator kgen = KeyGenerator.getInstance(algorithm, "BC");
         cipher.init(Cipher.ENCRYPT_MODE, kgen.generateKey());
-                
-        fillCache();
     }
     
     /**
      * Updates the cache with the next iteration of output from the stream-cipher.
      */
-    private void fillCache() {
+    @Override
+    protected void fillCache() {
         cache = cipher.update(DUMMY); // fill the cache with the keystream
         counter = 0;
-    }
-
-    private int generateByte() {
-        byte b;
-        do {
-            if (counter > cache.length - 1) {
-                fillCache();
-            }
-        } while ((b = cache[counter++]) == 0); // result must not be 0
-        
-        return b & 0xff;
-    }
-    
-    @Override
-    public void fillBytes(byte[] toBeFilled) {
-        for (int i = 0; i < toBeFilled.length; i++) {
-            toBeFilled[i] = (byte)generateByte();
-        }
-    }
-    
-    @Override
-    public void fillBytesAsInts(int[] toBeFilled) {
-        for (int i = 0; i < toBeFilled.length; i++) {
-            toBeFilled[i] = generateByte();
-        }
     }
     
     /**

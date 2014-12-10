@@ -57,47 +57,53 @@ public class GenericMatrix implements GFMatrix {
         return result;
     }
     
+    private boolean findAndSwapNonZeroInRow(final int i, final int numRows, int tmpMatrix[][], int invMatrix[][], boolean throwException) {
+        
+        boolean found = false;
+        
+        for (int j = i + 1; j < numRows && !found; j++) {
+            if (tmpMatrix[j][i] != 0) {
+                // found it, swap rows ...
+                swapRows(tmpMatrix, i, j);
+                swapRows(invMatrix, i, j);
+                
+                // ... and quit searching
+                found = true;
+            }
+        }
+        
+        if (!found && throwException) {
+            throw new RuntimeException("blub");
+        }
+        
+        return found;
+    }
+    
     /* where is the dead store? */
     private GFMatrix inverse(boolean throwException) {
         
         int numRows = matrix.length;
         
-        // clone this matrix
+        // clone this matrix and initialize inverse matrix as unit matrix
         int[][] tmpMatrix = new int[numRows][];
+        int[][] invMatrix = new int[numRows][numRows];
+
         for (int i = numRows - 1; i >= 0; i--) {
             tmpMatrix[i] = Arrays.copyOf(matrix[i], matrix[i].length);
-        }
-
-        // initialize inverse matrix as unit matrix
-        int[][] invMatrix = new int[numRows][numRows];
-        for (int i = numRows - 1; i >= 0; i--) {
             invMatrix[i][i] = 1;
         }
 
         // simultaneously compute Gaussian reduction of tmpMatrix and unit matrix
         for (int i = 0; i < numRows; i++) {
-            // if diagonal element is zero
+            
+            // if diagonal element is zero swap a new row
             if (tmpMatrix[i][i] == 0) {
-                boolean foundNonZero = false;
                 // find a non-zero element in the same column
-                for (int j = i + 1; j < numRows; j++) {
-                    if (tmpMatrix[j][i] != 0) {
-                        // found it, swap rows ...
-                        foundNonZero = true;
-                        swapRows(tmpMatrix, i, j);
-                        swapRows(invMatrix, i, j);
-                        // ... and quit searching
-                        j = numRows;
-                    }
-                }
+                boolean foundNonZero = findAndSwapNonZeroInRow(i, numRows, tmpMatrix, invMatrix, throwException);
+                                
                 // if no non-zero element was found
                 if (!foundNonZero) {
-                    if (throwException) {
-                        throw new RuntimeException("blub");
-                    } else {
-                        // this row is dependent so eliminate it with the corresponding column
-                        numRows--; // this will only happen in the last row
-                    }
+                    numRows--; // this will only happen in the last row
                 }
             }
 

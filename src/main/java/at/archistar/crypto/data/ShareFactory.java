@@ -60,22 +60,10 @@ public class ShareFactory {
             }
 
             /* algorithm */
-            ShareType alg = null;
-            byte algByte = is.readByte();
-            if (algByte >= 0 && algByte < ShareType.values().length) {
-                alg = ShareType.values()[algByte];
-            } else {
-                throw new InvalidParametersException("unknown share type");
-            }
+            ShareType alg = readShareType(is);
             
             /* information checking type */
-            Share.ICType ic = null;
-            algByte = is.readByte();
-            if (algByte >= 0 && algByte < Share.ICType.values().length) {
-                ic = Share.ICType.values()[algByte];
-            } else {
-                throw new InvalidParametersException("unknown share type");
-            }
+            Share.ICType ic = readICType(is);
 
             /* id */
             byte id = is.readByte();
@@ -102,15 +90,19 @@ public class ShareFactory {
             Share result = create(alg, id, body, metadata, ic, macKeys, macs);
 
             // check for EOF
-            try {
-                is.readByte();
-                throw new InvalidParametersException("data was too long");
-            } catch (EOFException ex) {
-                return result;
-            }
-
+            checkForEOF(is);
+            
+            return result;
         } catch (IOException ex) {
             throw new InvalidParametersException("error during deserialization: " + ex.getLocalizedMessage());
+        }
+    }
+    
+    private static void checkForEOF(DataInputStream is) throws InvalidParametersException, IOException {
+        try {
+            is.readByte();
+            throw new InvalidParametersException("data was too long");
+        } catch (EOFException ex) {
         }
     }
     
@@ -169,5 +161,24 @@ public class ShareFactory {
             macs.put(tmpId, data);
         }
         return macs;
+    }
+
+    private static Share.ICType readICType(DataInputStream is) throws InvalidParametersException, IOException {
+            byte algByte = is.readByte();
+            
+            if (algByte >= 0 && algByte < Share.ICType.values().length) {
+                return Share.ICType.values()[algByte];
+            } else {
+                throw new InvalidParametersException("unknown share type");
+            }
+    }
+
+    private static ShareType readShareType(DataInputStream is) throws IOException, InvalidParametersException {
+        byte algByte = is.readByte();
+        if (algByte >= 0 && algByte < ShareType.values().length) {
+            return ShareType.values()[algByte];
+        } else {
+            throw new InvalidParametersException("unknown share type");
+        }
     }
 }

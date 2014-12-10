@@ -28,17 +28,26 @@ public class JavaSecureRandom implements RandomSource {
         rng.nextBoolean(); // force the rng to seed itself
     }
     
-
     /**
       * this whole procedure is 2x as fast as nextInt(255) + 1
-      * or three times as fast as rng.nextInt(8) & 0xff;
+      * or three times as fast as rng.nextInt(8) & 0xff.
+      * 
+     * @return a new random byte
       */
-    private int generateByte() {
+    protected int generateByte() {
         do {
             rng.nextBytes(bytes);
         } while (bytes[0] == 0); // the random byte must not be 0
         
         return ((byte)(bytes[0] & 0xff) + 256) % 256;
+    }
+    
+    /**
+     * @return human readable representation of this random source
+     */
+    @Override
+    public String toString() {
+        return "JavaSecureRandom(" + ALGORITHM +")";
     }
     
     @Override
@@ -53,13 +62,5 @@ public class JavaSecureRandom implements RandomSource {
         for (int i = 0; i < toBeFilled.length; i++) {
             toBeFilled[i] = generateByte();
         }
-    }
-    
-    /**
-     * @return human readable representation of this random source
-     */
-    @Override
-    public String toString() {
-        return "JavaSecureRandom(" + ALGORITHM +")";
     }
 }

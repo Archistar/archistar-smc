@@ -202,21 +202,10 @@ abstract class NTTSecretSharing extends BaseSecretSharing {
             throw new ReconstructionException();
         }
         
-        /* extract original length */
-        int origLength = shares[0].getMetadata(ORIGINAL_LENGTH);
-        for (int i = 1; i < shares.length; i++) {
-            if (shares[i].getMetadata(ORIGINAL_LENGTH) != origLength) {
-                throw new ReconstructionException("originalLenghts are different");
-            }
-        }
+        int origLength = extractOriginalLength(shares);
         
         /* extract share count */
-        int shareCount = shares[0].getMetadata(NTT_SHARE_SIZE);
-        for (int i = 1; i < shares.length; i++) {
-            if (shares[i].getMetadata(NTT_SHARE_SIZE) != shareCount) {
-                throw new ReconstructionException("shareCount are different");
-            }
-        }
+        int shareCount = extractShareCount(shares);
         
         /* create encoded array */
         int [][] encoded = new int[shares.length][];
@@ -248,5 +237,25 @@ abstract class NTTSecretSharing extends BaseSecretSharing {
             System.arraycopy(xValues, offset, selectedXValues, i*shareSize, shareSize);
         }
         return selectedXValues;
+    }
+
+    private int extractOriginalLength(Share[] shares) throws ReconstructionException {
+        int origLength = shares[0].getMetadata(ORIGINAL_LENGTH);
+        for (int i = 1; i < shares.length; i++) {
+            if (shares[i].getMetadata(ORIGINAL_LENGTH) != origLength) {
+                throw new ReconstructionException("originalLenghts are different");
+            }
+        }
+        return origLength;
+    }
+
+    private int extractShareCount(Share[] shares) throws ReconstructionException {
+        int shareCount = shares[0].getMetadata(NTT_SHARE_SIZE);
+        for (int i = 1; i < shares.length; i++) {
+            if (shares[i].getMetadata(NTT_SHARE_SIZE) != shareCount) {
+                throw new ReconstructionException("shareCount are different");
+            }
+        }
+        return shareCount;
     }
 }

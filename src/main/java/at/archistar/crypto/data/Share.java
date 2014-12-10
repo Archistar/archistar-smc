@@ -268,7 +268,7 @@ public class Share implements Comparable<Share> {
                 result = metadata.containsKey(ENC_ALGORITHM) && metadata.containsKey(ORIGINAL_LENGTH) && metadata.containsKey(ENC_KEY);
                 break;
             case RABIN_IDS:
-                result = metadata.containsKey((byte) 1);
+                result = metadata.containsKey(ORIGINAL_LENGTH);
                 break;
             case NTT_RABIN_IDS:
             case NTT_SHAMIR_PSS:
