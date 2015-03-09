@@ -8,11 +8,18 @@ public class ReconstructionException extends Exception {
     
     private final String msg;
 
-    ReconstructionException() {
+    /**
+     * creates a generic reconstruction exception
+     */
+    public ReconstructionException() {
         this.msg = "generic";
     }
     
-    ReconstructionException(String msg) {
+    /**
+     * creates a reconstuction exception with an error message
+     * @param msg  the to be used error message
+     */
+    public ReconstructionException(String msg) {
         this.msg = msg;
     }
 }
