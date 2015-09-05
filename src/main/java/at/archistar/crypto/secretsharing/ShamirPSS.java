@@ -51,7 +51,7 @@ public class ShamirPSS extends GeometricSecretSharing {
     @Override
     protected void encodeData(int[] coeffs, byte[] data, int offset, int length) {
         this.rng.fillBytesAsInts(coeffs);
-        coeffs[0] = data[offset];
+        coeffs[0] = (data[offset] < 0) ? data[offset] + 256 : data[offset];
     }
 
     @Override
