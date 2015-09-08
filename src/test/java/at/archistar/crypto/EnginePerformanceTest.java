@@ -41,6 +41,8 @@ public class EnginePerformanceTest {
         RandomSource rng = new FakeRandomSource();
         
         Object[][] data = new Object[][]{
+           {secrets, new ShamirEngine(4, 3, rng)},
+           {secrets, new ShamirEngine(7, 3, rng)},
            {secrets, new RabinBenOrEngine(4, 3, rng)},
            {secrets, new RabinBenOrEngine(7, 3, rng)},
         };
