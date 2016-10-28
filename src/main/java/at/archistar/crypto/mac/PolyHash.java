@@ -2,6 +2,7 @@ package at.archistar.crypto.mac;
 
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GenericPolyHelper;
+
 import java.security.InvalidKeyException;
 import java.util.Arrays;
 
@@ -13,12 +14,12 @@ public class PolyHash implements MacHelper {
     private final int keylength;
 
     private final GF gf;
-    
+
     private final GenericPolyHelper polyHelper;
 
     /**
      * create a new hash
-     * 
+     *
      * @param keylength output keylength
      * @param gf mathematical field within which operations should be performed
      */
@@ -31,18 +32,18 @@ public class PolyHash implements MacHelper {
     private static int[] createIntArrayFromByte(byte[] a) {
         int[] b = new int[a.length];
         for (int i = 0; i < a.length; i++) {
-            b[i] = (a[i] < 0) ? a[i]+256 : a[i];
+            b[i] = (a[i] < 0) ? a[i] + 256 : a[i];
         }
         return b;
     }
 
     /**
      * Compute macs for the given data
-     * 
+     *
      * @param data for which data do we need the mac?
      * @param key the key used for the macd tag that should be compared
      * @return mac for data (with key)
-     * @throws InvalidKeyException 
+     * @throws InvalidKeyException
      */
     @Override
     public byte[] computeMAC(byte[] data, byte[] key) throws InvalidKeyException {
@@ -87,7 +88,7 @@ public class PolyHash implements MacHelper {
 
     /**
      * Verify mac for the given data
-     * 
+     *
      * @param data for which data do we need the mac?
      * @param key the key used for the mac
      * @param tag the compute
@@ -109,7 +110,7 @@ public class PolyHash implements MacHelper {
      * the size of the input key (in bytes) needed for the MAC. We could also
      * add an RandomSource to the class but I'm not too sure which way would be
      * more maintainable.
-     * 
+     *
      * @return the needed input key size
      */
     @Override

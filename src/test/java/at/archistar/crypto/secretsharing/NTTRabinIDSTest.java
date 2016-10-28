@@ -8,17 +8,16 @@ import at.archistar.crypto.math.ntt.NTTSlow;
 import org.junit.Before;
 
 /**
- *
  * @author andy
  */
 public class NTTRabinIDSTest extends BasicSecretSharingTest {
-    
+
     private static final int generator = 3;
-    
+
     public NTTRabinIDSTest() {
         super(4, 3);
     }
-    
+
     @Before
     public void setup() throws WeakSecurityException {
         GF257Factory gffactory = new GF257Factory();

@@ -11,27 +11,27 @@ import javax.crypto.NoSuchPaddingException;
  * This is a counter-mode-cipher RNG outputting the result of running a symmetric cipher in counter-mode.
  */
 public class CTRPRNG extends BaseRandomAlgorithm {
-    
+
     private static final String ALGORITHM = "AES";
-    
+
     private static final String PARAMS = "/ECB/NoPadding"; // we perform CTR by ourself
-    
+
     private final Cipher cipher;
-    
+
     private final byte[] state;
-    
+
     /**
      * Constructor
      */
     public CTRPRNG() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException {
         cipher = Cipher.getInstance(ALGORITHM + PARAMS);
-            
+
         KeyGenerator kgen = KeyGenerator.getInstance(ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, kgen.generateKey());
-            
+
         state = kgen.generateKey().getEncoded(); // simply reuse the keygen to compute an IV
     }
-    
+
     /**
      * Updates the cache with the encryption of the next block.
      */
@@ -39,10 +39,10 @@ public class CTRPRNG extends BaseRandomAlgorithm {
     protected void fillCache() {
         cache = cipher.update(state);
         counter = 0;
-        
+
         incrementState();
     }
-    
+
     /**
      * Increments the counter-block by one.
      */
@@ -59,6 +59,6 @@ public class CTRPRNG extends BaseRandomAlgorithm {
      */
     @Override
     public String toString() {
-        return "CTRPRNG(" + ALGORITHM + PARAMS +")";
+        return "CTRPRNG(" + ALGORITHM + PARAMS + ")";
     }
 }

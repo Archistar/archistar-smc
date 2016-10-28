@@ -6,11 +6,11 @@ package at.archistar.crypto.data;
  */
 public class InvalidParametersException extends Exception {
     private final String errorMsg;
-    
+
     InvalidParametersException(String msg) {
         this.errorMsg = msg;
     }
-    
+
     InvalidParametersException() {
         this.errorMsg = "generic error";
     }

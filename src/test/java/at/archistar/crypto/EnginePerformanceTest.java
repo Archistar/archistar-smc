@@ -5,6 +5,7 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
+
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,20 +18,20 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 /**
- * Tests the performance of the different Secret-Sharing algorithms. 
+ * Tests the performance of the different Secret-Sharing algorithms.
  */
 @RunWith(value = Parameterized.class)
 public class EnginePerformanceTest {
 
     private final byte[][][] input;
     private final CryptoEngine engine;
-    
+
     private static final int size = TestHelper.REDUCED_TEST_SIZE;
-    
+
     @Parameters
     public static Collection<Object[]> data() throws WeakSecurityException, NoSuchAlgorithmException {
-        
-        System.err.println("Data-Size per Test: " + size/1024/1024 + "MByte");
+
+        System.err.println("Data-Size per Test: " + size / 1024 / 1024 + "MByte");
 
         byte[][][] secrets = new byte[4][][];
         secrets[0] = TestHelper.createArray(size, 4 * 1024);       // typical file system block size
@@ -39,12 +40,12 @@ public class EnginePerformanceTest {
         secrets[3] = TestHelper.createArray(size, 4096 * 1024);    // audio, high-quality pictures
 
         RandomSource rng = new FakeRandomSource();
-        
+
         Object[][] data = new Object[][]{
-           {secrets, new ShamirEngine(4, 3, rng)},
-           {secrets, new ShamirEngine(7, 3, rng)},
-           {secrets, new RabinBenOrEngine(4, 3, rng)},
-           {secrets, new RabinBenOrEngine(7, 3, rng)},
+                {secrets, new ShamirEngine(4, 3, rng)},
+                {secrets, new ShamirEngine(7, 3, rng)},
+                {secrets, new RabinBenOrEngine(4, 3, rng)},
+                {secrets, new RabinBenOrEngine(7, 3, rng)},
         };
 
         return Arrays.asList(data);
@@ -79,7 +80,7 @@ public class EnginePerformanceTest {
                 /* test that the reconstructed stuff is the same as the original one */
                 assertThat(reconstructed).isEqualTo(data);
             }
-            System.err.format("%40s %4dkB %10.1f %10.1f\n", engine, input[i][0].length/1024, (size / 1024) / (sumShare / 1000.0), (size / 1024) / (sumCombine / 1000.0));
+            System.err.format("%40s %4dkB %10.1f %10.1f\n", engine, input[i][0].length / 1024, (size / 1024) / (sumShare / 1000.0), (size / 1024) / (sumCombine / 1000.0));
         }
     }
 }

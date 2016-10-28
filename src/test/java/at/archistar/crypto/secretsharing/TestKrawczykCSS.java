@@ -21,11 +21,11 @@ public class TestKrawczykCSS extends BasicSecretSharingTest {
     /* setup and tear-down */
     @Before
     public void setup() throws WeakSecurityException {
-        
+
         GFFactory gffactory = new GF256Factory();
         DecoderFactory df = new ErasureDecoderFactory(gffactory);
         GF gf = gffactory.createHelper();
-        
+
         algorithm = new KrawczykCSS(n, k, new FakeRandomSource(), new AESEncryptor(), df, gf);
     }
 }

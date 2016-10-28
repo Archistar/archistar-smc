@@ -1,6 +1,7 @@
 package at.archistar.crypto.mac;
 
 import at.archistar.crypto.informationchecking.CevallosUSRSS;
+
 import java.security.NoSuchAlgorithmException;
 
 /**
@@ -10,7 +11,7 @@ import java.security.NoSuchAlgorithmException;
 public class BCShortenedMacHelperFactory {
     /**
      * create a new mac helper
-     * 
+     *
      * @param t ???
      * @param dataLength the wished-for mac length
      * @return the to-be-used mac

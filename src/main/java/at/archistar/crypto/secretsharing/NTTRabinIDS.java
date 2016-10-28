@@ -13,7 +13,7 @@ public class NTTRabinIDS extends NTTSecretSharing {
 
     /**
      * create a new NTTRabinIDS secret-sharing
-     * 
+     *
      * @param n amount of shares to be generated
      * @param k minimum amount of shares for reconstruction
      * @param generator the generator
@@ -25,13 +25,13 @@ public class NTTRabinIDS extends NTTSecretSharing {
                        GFFactory factory,
                        AbstractNTT ntt,
                        DecoderFactory decoderFactory) throws WeakSecurityException {
-        
+
         super(n, k, generator, factory, ntt, decoderFactory);
-        
+
         shareSize = nttBlockLength / n;
         dataPerNTT = nttBlockLength / n * k;
     }
-    
+
     @Override
     protected int[] encodeData(int tmp[], int[] data, int offset, int length) {
         System.arraycopy(data, offset, tmp, 0, length);
@@ -42,12 +42,12 @@ public class NTTRabinIDS extends NTTSecretSharing {
     protected Share.ShareType getShareType() {
         return ShareType.NTT_RABIN_IDS;
     }
-    
+
     /**
      * @return human-readable description of this secret-sharing scheme
      */
     @Override
     public String toString() {
-        return "NTTRabinIDS(" + n + "/" + k + ", NTTLength: " + nttBlockLength +")";
+        return "NTTRabinIDS(" + n + "/" + k + ", NTTLength: " + nttBlockLength + ")";
     }
 }

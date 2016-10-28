@@ -11,21 +11,22 @@ import at.archistar.crypto.secretsharing.NTTShamirPSS;
 import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
 import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
 import org.bouncycastle.util.Arrays;
+
 import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
  * Basic BerlekampWelch-Decoder Test
  */
 public class TestBerlekampWelchDecoder {
-    
+
     private static final GFFactory gffactory = new GF256Factory();
 
     /**
      * Generates a random array of the given size in O(r) time. This array will
      * have distinct integers of the given range.
      *
-     * It is important that n <= r <= 256. 
-
+     * It is important that n <= r <= 256.
+     *
      * @param n the number of bytes
      * @param r the range of the numbers will be in the range [0, r - 1]
      */
@@ -38,10 +39,10 @@ public class TestBerlekampWelchDecoder {
         for (int i = 0; i < r; i++) {
             num[i] = i;
         }
-        
+
         int tmpBytes[] = new int[1];
 
-        // Use Fisher-Yates algorithm to shuffle this array. 
+        // Use Fisher-Yates algorithm to shuffle this array.
         for (int i = num.length - 1; i >= 1; i--) {
             rng.fillBytesAsInts(tmpBytes);
             int j = tmpBytes[0] % i;
@@ -72,11 +73,11 @@ public class TestBerlekampWelchDecoder {
 
         int[] idx = new int[n];
         int[] delta = new int[255];
-        
+
         generateRandomIntegerArray(idx, f, n);
         generateRandomIntegerArray(delta, f, 255);
 
-        // Adding a number in range [1, 255] to a number will change it for sure. 
+        // Adding a number in range [1, 255] to a number will change it for sure.
         for (int i = 0; i < f; i++) {
             y[idx[i]] = (y[idx[i]] + delta[i] + 1) % 256;
         }
@@ -117,11 +118,11 @@ public class TestBerlekampWelchDecoder {
 
     @Test
     public void testErrorDecodeRandom82() throws UnsolvableException {
-        
+
         int n = 8;
         int coeffs = 2;
         int f = 2;
-        
+
         int[] x = new int[n];
         int[] y = new int[n];
         int[] expected = new int[coeffs];
@@ -145,21 +146,21 @@ public class TestBerlekampWelchDecoder {
 
     @Test(expected = UnsolvableException.class)
     public void testErrorDecode85WrongFail() throws UnsolvableException {
-        
+
         final int n = 8;
         final int f = 5;
         final int coeffs = 2;
-        
+
         int[] x = new int[n];
         int[] y = new int[n];
         int[] expected = new int[coeffs];
-        
+
         genRandomTest(x, y, expected, coeffs, n, f);
 
         Decoder polySolver = new BerlekampWelchDecoder(x, coeffs, gffactory);
         polySolver.decode(y, f);
     }
-    
+
     /**
      * test if a GF257-based Decoder can be built
      */
@@ -168,14 +169,14 @@ public class TestBerlekampWelchDecoder {
         final int NTTBlockLength = 256;
         final int n = 7;
         final int k = 3;
-        final int minLength = (NTTBlockLength/n)*k;
-        
+        final int minLength = (NTTBlockLength / n) * k;
+
         final GFFactory gf257factory = new GF257Factory();
         int[] xValues = NTTShamirPSS.prepareXValuesFor(minLength, gf257factory.createHelper());
-        
+
         /* limit to k results */
         int[] resultXValues = Arrays.copyOf(xValues, minLength);
-        
+
         /* create decoder */
         Decoder decoder = new BerlekampWelchDecoder(resultXValues, minLength, gf257factory);
         assertThat(decoder).isNotNull();

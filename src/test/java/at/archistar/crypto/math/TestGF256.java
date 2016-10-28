@@ -2,6 +2,7 @@ package at.archistar.crypto.math;
 
 import at.archistar.crypto.math.bc.BCGF256;
 import at.archistar.crypto.math.gf256.GF256;
+
 import static org.fest.assertions.api.Assertions.*;
 
 import org.junit.Test;

@@ -17,6 +17,7 @@ import at.archistar.crypto.secretsharing.KrawczykCSS;
 import at.archistar.crypto.secretsharing.SecretSharing;
 import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import at.archistar.crypto.symmetric.Encryptor;
+
 import java.security.NoSuchAlgorithmException;
 
 /**
@@ -24,26 +25,25 @@ import java.security.NoSuchAlgorithmException;
  * rabin-ben-or information checking scheme.
  */
 public class RabinBenOrEngine implements CryptoEngine {
-    
+
     /** the secret sharing scheme */
     private final SecretSharing sharing;
-    
+
     /** the information checking algorithm that will be employed */
     private final InformationChecking ic;
-    
+
     /** how many shares should be generated */
     private final int n;
-    
+
     /** minimum amount of shares needed to reconstruct original data */
     private final int k;
 
     /**
      * Create a new Rabin-Ben-Or Engine utilizing the default random number
      * generator.
-     * 
+     *
      * @param n total number of shares
      * @param k minimum count of shares needed to recreate the original data
-     * 
      * @throws NoSuchAlgorithmException
      * @throws WeakSecurityException if the k/n selection is insecure
      */
@@ -53,11 +53,10 @@ public class RabinBenOrEngine implements CryptoEngine {
 
     /**
      * Create a new Rabin-Ben-Or Engine.
-     * 
+     *
      * @param n total number of shares
      * @param k minimum count of shares needed to recreate the original data
      * @param rng random number generator to be used
-     * 
      * @throws NoSuchAlgorithmException
      * @throws WeakSecurityException if the k/n selection is insecure
      */
@@ -81,7 +80,7 @@ public class RabinBenOrEngine implements CryptoEngine {
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
         return sharing.reconstruct(ic.checkShares(shares));
     }
-    
+
     @Override
     public String toString() {
         return "Rabin-Ben-Or(Krawzywk(ChaCha20), Poly1305, " + k + "/" + n + ")";

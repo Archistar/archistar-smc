@@ -6,12 +6,12 @@ import at.archistar.crypto.math.GFFactory;
  * Factory for creating ErasureDecoders
  */
 public class ErasureDecoderFactory implements DecoderFactory {
-    
+
     private final GFFactory gffactory;
-    
+
     /**
      * construct a new factory
-     * 
+     *
      * @param gffactory the field in which we'll be performing operations
      */
     public ErasureDecoderFactory(final GFFactory gffactory) {
@@ -20,7 +20,7 @@ public class ErasureDecoderFactory implements DecoderFactory {
 
     /**
      * create a new decoder
-     * 
+     *
      * @param xValues our known xValues
      * @param k size of the to-be-solved matrix
      * @return the created decoder

@@ -5,15 +5,14 @@ import org.bouncycastle.crypto.digests.SHA1Digest;
 import org.bouncycastle.crypto.prng.DigestRandomGenerator;
 
 /**
- *
  * @author andy
  */
 public class BCDigestRandomSource implements RandomSource {
-    
+
     private final DigestRandomGenerator drng;
-    
+
     private final Digest digest;
-    
+
     /**
      * create a new RandomSource using default params (SHA1-based)
      */
@@ -24,6 +23,7 @@ public class BCDigestRandomSource implements RandomSource {
 
     /**
      * create a new RandomSource using the passed digest
+     *
      * @param digest the algorithm to base the RandomSource on
      */
     public BCDigestRandomSource(Digest digest) {
@@ -33,6 +33,7 @@ public class BCDigestRandomSource implements RandomSource {
 
     /**
      * fill an (byte) array with random data
+     *
      * @param toBeFilled the array to be filled
      */
     @Override
@@ -42,18 +43,19 @@ public class BCDigestRandomSource implements RandomSource {
 
     /**
      * fill an (byte) array with random data
+     *
      * @param toBeFilled the array to be filled
      */
     @Override
     public void fillBytesAsInts(int[] toBeFilled) {
         byte[] result = new byte[toBeFilled.length];
         fillBytes(result);
-        
+
         for (int i = 0; i < toBeFilled.length; i++) {
             toBeFilled[i] = (result[i] < 0) ? result[i] + 256 : result[i];
         }
     }
-    
+
     /**
      * @return human readable representation of this random source
      */

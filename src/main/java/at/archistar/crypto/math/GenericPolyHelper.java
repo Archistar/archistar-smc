@@ -11,7 +11,7 @@ public class GenericPolyHelper {
 
     /**
      * create a new helper for operations upon polynomials within the field gf
-     * 
+     *
      * @param gf the field within which operations will be performed
      */
     public GenericPolyHelper(GF gf) {
@@ -117,7 +117,7 @@ public class GenericPolyHelper {
 
     /**
      * add two polynomials
-     * 
+     *
      * @param a
      * @param b
      * @return a+b
@@ -144,8 +144,9 @@ public class GenericPolyHelper {
         return result;
     }
 
-    /** multiply 2 polynomials
-     * 
+    /**
+     * multiply 2 polynomials
+     *
      * @param a
      * @param b
      * @return a*b

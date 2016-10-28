@@ -6,11 +6,13 @@ import at.archistar.crypto.secretsharing.ReconstructionException;
 import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
+
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 
 import static org.fest.assertions.api.Assertions.*;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,7 +29,7 @@ public class TestRabinBenOrEngine {
 
     /**
      * create a new RabinBenOr CryptoEngine
-     * 
+     *
      * @throws WeakSecurityException should not happen due to fixed setup
      * @throws NoSuchAlgorithmException should not happen due to fixed setup
      */
@@ -39,7 +41,7 @@ public class TestRabinBenOrEngine {
     /**
      * After a simple share+reconstruct step the reconstructed data should be
      * the same as the original data
-     * 
+     *
      * @throws WeakSecurityException should not happen due to fixed setup
      * @throws ReconstructionException should not happen due to fixed setup
      */
@@ -53,15 +55,15 @@ public class TestRabinBenOrEngine {
 
     /**
      * Reconstruct should work as long as share count > k
-     * 
+     *
      * @throws WeakSecurityException should not happen due to fixed setup
      * @throws ReconstructionException should not happen due to fixed setup
      */
     @Test
     public void reconstructWithSufficientSubSet() throws ReconstructionException, WeakSecurityException {
         Share shares[] = algorithm.share(data);
-        
-        for (int i = k+1; i < n; i++) {
+
+        for (int i = k + 1; i < n; i++) {
             Share shares1[] = Arrays.copyOfRange(shares, 0, i);
             byte reconstructedData[] = algorithm.reconstruct(shares1);
             assertThat(reconstructedData).isEqualTo(data);
@@ -70,7 +72,7 @@ public class TestRabinBenOrEngine {
 
     /**
      * Reconstruct should work with shuffled shares
-     * 
+     *
      * @throws WeakSecurityException should not happen due to fixed setup
      * @throws ReconstructionException should not happen due to fixed setup
      */
@@ -85,16 +87,16 @@ public class TestRabinBenOrEngine {
 
     /**
      * Reconstruct should fail if insufficient shares were provided
-     * 
+     *
      * @throws WeakSecurityException should not happen due to fixed setup
      */
     @Test
     public void notEnoughSharesTest() throws WeakSecurityException {
         Share shares[] = algorithm.share(data);
-        
+
         for (int i = 0; i < k; i++) {
             Share[] shares1 = Arrays.copyOfRange(shares, 0, i);
-            
+
             try {
                 algorithm.reconstruct(shares1);
                 fail("reconstruct with less than k shares did work. How?");

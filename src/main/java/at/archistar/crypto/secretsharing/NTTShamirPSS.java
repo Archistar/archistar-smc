@@ -10,12 +10,12 @@ import at.archistar.crypto.random.RandomSource;
  * Perform shamir's secret sharing using an NTT operation
  */
 public class NTTShamirPSS extends NTTSecretSharing {
-    
+
     private final RandomSource rng;
-    
+
     /**
      * create a new shamir's secret sharing instance
-     * 
+     *
      * @param n how many shares should be created
      * @param k how many shares need to be present to reconstruct the data
      * @param generator the generator used for the ntt operation
@@ -28,18 +28,18 @@ public class NTTShamirPSS extends NTTSecretSharing {
                         RandomSource rng, AbstractNTT ntt,
                         DecoderFactory decoderFactory)
             throws WeakSecurityException {
-        
+
         super(n, k, generator, factory, ntt, decoderFactory);
-        
+
         this.rng = rng;
-        
+
         /** how much (in bytes) can we fit per share (n shares must fit into
-          * a NTTBlock)
-          */
+         * a NTTBlock)
+         */
         shareSize = nttBlockLength / n;
         dataPerNTT = nttBlockLength / n * 1;
     }
-    
+
     @Override
     protected int[] encodeData(int tmp[], int[] data, int offset, int length) {
         System.arraycopy(data, offset, tmp, 0, length);
@@ -49,10 +49,10 @@ public class NTTShamirPSS extends NTTSecretSharing {
         rng.fillBytesAsInts(random);
 
         System.arraycopy(random, 0, tmp, dataPerNTT, random.length);
-        
+
         return tmp;
     }
-    
+
     @Override
     protected Share.ShareType getShareType() {
         return Share.ShareType.NTT_SHAMIR_PSS;
@@ -60,6 +60,6 @@ public class NTTShamirPSS extends NTTSecretSharing {
 
     @Override
     public String toString() {
-        return "NTTShamirPSS(" + n + "/" + k + ", NTTLength: " + nttBlockLength +")";
+        return "NTTShamirPSS(" + n + "/" + k + ", NTTLength: " + nttBlockLength + ")";
     }
 }
