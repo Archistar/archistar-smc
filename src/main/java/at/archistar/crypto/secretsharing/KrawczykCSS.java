@@ -18,6 +18,9 @@ import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.StaticOutputEncoderConverter;
 import at.archistar.crypto.math.gf257.GF257;
 import at.archistar.crypto.random.RandomSource;
+import at.archistar.crypto.symmetric.AESEncryptor;
+import at.archistar.crypto.symmetric.AESGCMEncryptor;
+import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import at.archistar.crypto.symmetric.Encryptor;
 
 import java.io.IOException;
@@ -88,16 +91,23 @@ public class KrawczykCSS extends BaseSecretSharing {
             this.rng.fillBytes(encKey);
             byte[] encSource = cryptor.encrypt(data, encKey);
 
+            int base_data_length = data.length;
+            // block cyphers use 16 byte blocks and add an extra block at the end
+            if (cryptor instanceof AESEncryptor || cryptor instanceof AESGCMEncryptor) {
+                base_data_length = ((data.length / 16) + 1) * 16;
+            }
+            int new_data_length = base_data_length % k == 0 ? base_data_length / k : (base_data_length / k) + 1;
+
             /* share key and content */
             OutputEncoderConverter outputContent[] = new OutputEncoderConverter[n];
             OutputEncoderConverter outputKey[] = new OutputEncoderConverter[n];
             for (int i = 0; i < n; i++) {
                 if (gf instanceof GF257) {
                     outputKey[i] = new DynamicOutputEncoderConverter(encKey.length, gf);
-                    outputContent[i] = new DynamicOutputEncoderConverter(data.length, gf);
+                    outputContent[i] = new DynamicOutputEncoderConverter(new_data_length, gf);
                 } else {
                     outputKey[i] = new StaticOutputEncoderConverter(encKey.length);
-                    outputContent[i] = new StaticOutputEncoderConverter(data.length);
+                    outputContent[i] = new StaticOutputEncoderConverter(new_data_length);
                 }
             }
 
@@ -148,7 +158,7 @@ public class KrawczykCSS extends BaseSecretSharing {
 
             return cryptor.decrypt(encShare, key);
         } catch (GeneralSecurityException | IOException | IllegalStateException | InvalidCipherTextException e) {
-            // dencryption should actually never fail
+            // decryption should actually never fail
             throw new RuntimeException("impossible: reconstruction failed (" + e.getMessage() + ")");
         }
     }

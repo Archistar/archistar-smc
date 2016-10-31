@@ -7,6 +7,7 @@ import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -101,8 +102,17 @@ public class TestRabinBenOrEngine {
                 algorithm.reconstruct(shares1);
                 fail("reconstruct with less than k shares did work. How?");
             } catch (ReconstructionException ex) {
-                // this is acutally the good case
+                // this is actually the good case
             }
+        }
+    }
+
+    @Test
+    public void it_produces_shares_of_the_right_size() throws IOException {
+        final Share[] shares = algorithm.share(data);
+        final int new_length = data.length % k == 0 ? data.length / k : (data.length / k) + 1;
+        for (Share s : shares) {
+            assertThat(s.getYValues().length).isEqualTo(new_length);
         }
     }
 }

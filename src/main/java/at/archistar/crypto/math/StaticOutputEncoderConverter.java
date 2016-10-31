@@ -1,6 +1,6 @@
 package at.archistar.crypto.math;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Arrays;
 
 /**
  * custom version of ByteArrayOutputStream -- this is roughly 50% faster for
@@ -50,9 +50,8 @@ public class StaticOutputEncoderConverter implements OutputEncoderConverter {
     /**
      * @return encoded data
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     @Override
     public byte[] getEncodedData() {
-        return buffer;
+        return Arrays.copyOf(buffer, pos);
     }
 }
