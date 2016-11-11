@@ -1,8 +1,11 @@
 package at.archistar.crypto.secretsharing;
 
+import at.archistar.crypto.data.InvalidParametersException;
+import at.archistar.crypto.data.NTTShamirShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.ntt.AbstractNTT;
 import at.archistar.crypto.random.RandomSource;
 
@@ -54,12 +57,43 @@ public class NTTShamirPSS extends NTTSecretSharing {
     }
 
     @Override
-    protected Share.ShareType getShareType() {
-        return Share.ShareType.NTT_SHAMIR_PSS;
+    int extractShareCount(Share[] shares) throws ReconstructionException {
+        for (Share s : shares) {
+            if (!(s instanceof NTTShamirShare)) {
+                throw new ReconstructionException("Not all shares are NTT Shamir shares");
+            }
+        }
+        int shareCount = ((NTTShamirShare) shares[0]).getNttShareSize();
+        for (Share s : shares) {
+            if (((NTTShamirShare) s).getNttShareSize() != shareCount) {
+                throw new ReconstructionException("Shares have different original length");
+            }
+        }
+        return shareCount;
     }
 
     @Override
     public String toString() {
         return "NTTShamirPSS(" + n + "/" + k + ", NTTLength: " + nttBlockLength + ")";
+    }
+
+    @Override
+    public Share[] share(byte[] data) {
+        int[] dataInt = new int[data.length];
+        for (int i = 0; i < data.length; i++) {
+            dataInt[i] = (data[i] < 0) ? data[i] + 256 : data[i];
+        }
+
+        OutputEncoderConverter[] encoded = encode(dataInt);
+
+        Share shares[] = new Share[n];
+        for (int j = 0; j < n; j++) {
+            try {
+                shares[j] = new NTTShamirShare((byte) (j + 1), encoded[j].getEncodedData(), data.length, shareSize);
+            } catch (InvalidParametersException e) {
+                throw new RuntimeException("impossible: cannot happen");
+            }
+        }
+        return shares;
     }
 }

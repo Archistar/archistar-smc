@@ -13,8 +13,12 @@ page at http://checkstyle.sourceforge.net/config.html -->
         <property name="min" value="20"/>
     </module>
 
+    <module name="SuppressWarningsFilter"/>
+
     <!-- All Java AST specific tests live under TreeWalker module. -->
     <module name="TreeWalker">
+
+        <module name="SuppressWarningsHolder"/>
 
         <module name="CyclomaticComplexity">
             <property name="max" value="10"/>

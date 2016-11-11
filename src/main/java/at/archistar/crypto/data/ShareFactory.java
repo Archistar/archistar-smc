@@ -1,7 +1,6 @@
 package at.archistar.crypto.data;
 
-import at.archistar.crypto.data.Share.ShareType;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.bouncycastle.util.encoders.Base64;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -16,84 +15,153 @@ import java.util.Map;
 public class ShareFactory {
 
     /**
-     * Deserialize a single share out of the input byte array.
+     * Deserialize a single share out of the raw shared data plus metadata.
      *
      * Note: this method does *not* employ (possible) information checking data
      * when determining if the share is valid
      *
-     * @param byteInput the serialized share
+     * @param data the raw shared data (plus IC data at the end)
+     * @param metaData the additional data needed to reconstruct the share
      * @return the deserialized share
-     * @throws InvalidParametersException if the input did not contain a valid
-     * share
+     * @throws InvalidParametersException if the input did not contain a valid share
      */
-    public static Share deserialize(byte[] byteInput) throws InvalidParametersException {
-        if (byteInput == null) {
-            throw new InvalidParametersException("how should you deserialize from null?");
+    @SuppressWarnings("cyclomaticcomplexity")
+    public static Share deserialize(byte[] data, Map<String, String> metaData) throws InvalidParametersException {
+
+        if (data == null || data.length == 0) {
+            throw new InvalidParametersException("No data received");
         }
 
-        ByteArrayInputStream bis = new ByteArrayInputStream(byteInput);
-        DataInputStream is = new DataInputStream(bis);
+        final String version = metaData.get("archistar-version");
+        if (version == null) {
+            throw new InvalidParametersException("Invalid share. No \"version\" datum found");
+        }
+        if (!version.equalsIgnoreCase(Integer.toString(Share.VERSION))) {
+            throw new InvalidParametersException("This share is of version " + version +
+                    ", but version " + Share.VERSION + " was expected");
+        }
 
-        return ShareFactory.deserialize(is);
-    }
+        /* information checking type */
+        final String icS = metaData.get("archistar-ic-type");
+        if (icS == null) {
+            throw new InvalidParametersException("Invalid share. No \"ic-type\" datum found");
+        }
+        final Share.ICType ic = parseICType(icS);
 
-    /**
-     * Deserialize a single share out of the input stream.
-     *
-     * Note: this method does *not* employ (possible) information checking data
-     * when determining if the share is valid
-     *
-     * @param is the serialized share
-     * @return the deserialized share
-     * @throws InvalidParametersException if the input did not contain a valid
-     * share
-     */
-    public static Share deserialize(DataInputStream is) throws InvalidParametersException {
-        if (is == null) {
-            throw new InvalidParametersException("how should you deserialize from null?");
+        /* id == x-value of the share */
+        final String idS = metaData.get("archistar-id");
+        if (idS == null) {
+            throw new InvalidParametersException("Invalid share. No \"id\" datum found");
+        }
+        final byte id = Byte.parseByte(idS);
+
+        /* length of the data part of the share (rest is IC metadata) */
+        final String lenS = metaData.get("archistar-length");
+        if (lenS == null) {
+            throw new InvalidParametersException("Invalid share. No \"length\" datum found");
+        }
+        final int length = Integer.parseInt(lenS);
+
+        if (data.length > length && ic == Share.ICType.NONE) {
+            throw new InvalidParametersException("Invalid share. Data too long");
         }
 
         try {
-            /* version */
-            int version = is.readInt();
-            if (version != Share.VERSION) {
-                throw new InvalidParametersException("Different on-disk format verson");
+
+            byte body[];
+            Map<Byte, byte[]> macs;
+            Map<Byte, byte[]> macKeys;
+
+            if (data.length <= length || ic == Share.ICType.NONE) {
+                // if data.length <= length, this must be a partial share
+                // so: no IC info either
+                body = data;
+                macs = new HashMap<>();
+                macKeys = new HashMap<>();
+            } else {
+                // a full share with IC info
+                body = new byte[length];
+                ByteArrayInputStream bis = new ByteArrayInputStream(data);
+                DataInputStream is = new DataInputStream(bis);
+                is.readFully(body);
+                macs = readMap(is);
+                macKeys = readMap(is);
+                // after reading the mac keys, we should be at the end;
+                // check if we have a full read
+                checkForEOF(is);
             }
 
             /* algorithm */
-            ShareType alg = readShareType(is);
-
-            /* information checking type */
-            Share.ICType ic = readICType(is);
-
-            /* id */
-            byte id = is.readByte();
-
-            /* metadata */
-            Map<Byte, byte[]> metadata = readMap(is);
-
-            /* body */
-            int tmpLength = is.readInt();
-            byte body[] = new byte[tmpLength];
-            is.readFully(body);
-
-            Map<Byte, byte[]> macs;
-            Map<Byte, byte[]> macKeys;
-            if (ic != Share.ICType.NONE) {
-                macs = readMap(is);
-                macKeys = readMap(is);
-            } else {
-                macs = new HashMap<>();
-                macKeys = new HashMap<>();
+            final String sT = metaData.get("archistar-share-type");
+            if (sT == null) {
+                throw new InvalidParametersException("Invalid share. No \"share-type\" datum found");
             }
 
-            /* create share */
-            Share result = create(alg, id, body, metadata, ic, macKeys, macs);
+            switch (sT) {
+                case "SHAMIR":
+                    return new ShamirShare(id, body, ic, macKeys, macs);
 
-            // check for EOF
-            checkForEOF(is);
+                case "RABIN":
+                    final String olrS = metaData.get("archistar-original-length");
+                    if (olrS == null) {
+                        throw new InvalidParametersException("Invalid Rabin share. No \"original-length\" datum found");
+                    }
+                    final int originalLengthRabin = Integer.parseInt(olrS);
 
-            return result;
+                    return new RabinShare(id, body, ic, macKeys, macs, originalLengthRabin);
+
+                case "KRAWCZYK":
+                    final String olkS = metaData.get("archistar-original-length");
+                    if (olkS == null) {
+                        throw new InvalidParametersException("Invalid Krawczyk share. No \"original-length\" datum found");
+                    }
+                    final int originalLengthKrawczyk = Integer.parseInt(olkS);
+
+                    final String encAlgoS = metaData.get("archistar-krawczyk-algorithm");
+                    if (encAlgoS == null) {
+                        throw new InvalidParametersException("Invalid Krawczyk share. No \"krawczyk-algorithm\" datum found");
+                    }
+                    int encAlgorithm = Integer.parseInt(encAlgoS);
+
+                    final String encKeyS = metaData.get("archistar-krawczyk-key");
+                    if (encKeyS == null) {
+                        throw new InvalidParametersException("Invalid Krawczyk share. No \"krawczyk-key\" datum found");
+                    }
+                    final byte[] encKey = Base64.decode(encKeyS);
+
+                    return new KrawczykShare(id, body, ic, macKeys, macs, originalLengthKrawczyk, encAlgorithm, encKey);
+
+                case "NTT_SHAMIR":
+                    final String olnsS = metaData.get("archistar-original-length");
+                    if (olnsS == null) {
+                        throw new InvalidParametersException("Invalid NTT Shamir share. No \"original-length\" datum found");
+                    }
+                    final int originalLengthNTTShamir = Integer.parseInt(olnsS);
+
+                    final String nsS = metaData.get("archistar-ntt-share-size");
+                    if (nsS == null) {
+                        throw new InvalidParametersException("Invalid NTT Shamir share. No \"ntt-share-size\" datum found");
+                    }
+                    final int nttShamirShareSize = Integer.parseInt(nsS);
+                    return new NTTShamirShare(id, body, ic, macKeys, macs, originalLengthNTTShamir, nttShamirShareSize);
+
+                case "NTT_RABIN":
+                    final String olnrS = metaData.get("archistar-original-length");
+                    if (olnrS == null) {
+                        throw new InvalidParametersException("Invalid NTT Rabin share. No \"original-length\" datum found");
+                    }
+                    final int originalLengthNTTRabin = Integer.parseInt(olnrS);
+
+                    final String nrS = metaData.get("archistar-ntt-share-size");
+                    if (nrS == null) {
+                        throw new InvalidParametersException("Invalid NTT Rabin share. No \"ntt-share-size\" datum found");
+                    }
+                    final int nttRabinShareSize = Integer.parseInt(nrS);
+                    return new NTTRabinShare(id, body, ic, macKeys, macs, originalLengthNTTRabin, nttRabinShareSize);
+
+                default:
+                    throw new InvalidParametersException("Unknown share type: " + sT);
+            }
         } catch (IOException ex) {
             throw new InvalidParametersException("error during deserialization: " + ex.getLocalizedMessage());
         }
@@ -103,51 +171,7 @@ public class ShareFactory {
         try {
             is.readByte();
             throw new InvalidParametersException("data was too long");
-        } catch (EOFException ex) {
-        }
-    }
-
-    /**
-     * create a new share from given data (without information checking data)
-     *
-     * @param algorithm the share type
-     * @param id the share's id (i.e. x value)
-     * @param yValues the share's body (i.e. y values)
-     * @param metadata attached metadata
-     * @return the newly created share
-     */
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public static Share create(ShareType algorithm, byte id, byte[] yValues, Map<Byte, byte[]> metadata) throws InvalidParametersException {
-        return create(algorithm, id, yValues, metadata,
-                Share.ICType.NONE,
-                new HashMap<Byte, byte[]>(),
-                new HashMap<Byte, byte[]>());
-    }
-
-    /**
-     * create a new share from given data with information checking data
-     *
-     * @param algorithm the share type
-     * @param id the share's id (i.e. x value)
-     * @param yValues the share's body (i.e. y values)
-     * @param metadata attached metadata
-     * @param ic the information checking scheme that was used
-     * @param macs the macs which were generated during information checking
-     * @param macKeys the keys used during information checking
-     * @return the newly created share
-     */
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public static Share create(ShareType algorithm, byte id, byte[] yValues,
-                               Map<Byte, byte[]> metadata,
-                               Share.ICType ic, Map<Byte, byte[]> macKeys, Map<Byte, byte[]> macs) throws InvalidParametersException {
-
-        Share share = new Share(algorithm, id, yValues, metadata,
-                ic, macKeys, macs);
-
-        if (share.isValid()) {
-            return share;
-        } else {
-            throw new InvalidParametersException("not a valid share");
+        } catch (EOFException ignored) {
         }
     }
 
@@ -164,20 +188,10 @@ public class ShareFactory {
         return macs;
     }
 
-    private static Share.ICType readICType(DataInputStream is) throws InvalidParametersException, IOException {
-        byte algByte = is.readByte();
-
-        if (algByte >= 0 && algByte < Share.ICType.values().length) {
-            return Share.ICType.values()[algByte];
-        } else {
-            throw new InvalidParametersException("unknown share type");
-        }
-    }
-
-    private static ShareType readShareType(DataInputStream is) throws IOException, InvalidParametersException {
-        byte algByte = is.readByte();
-        if (algByte >= 0 && algByte < ShareType.values().length) {
-            return ShareType.values()[algByte];
+    private static Share.ICType parseICType(String s) throws InvalidParametersException {
+        int idx = Integer.parseInt(s);
+        if (idx >= 0 && idx < Share.ICType.values().length) {
+            return Share.ICType.values()[idx];
         } else {
             throw new InvalidParametersException("unknown share type");
         }

@@ -12,8 +12,6 @@ import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.StaticOutputEncoderConverter;
 import at.archistar.crypto.math.gf257.GF257;
 
-import static at.archistar.crypto.secretsharing.BaseSecretSharing.validateShareCount;
-
 /**
  * <p>this contains basic functionality utilized by RabinIDS and ShamirPSS.</p>
  *
@@ -137,18 +135,6 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
                                             int originalLength) throws InvalidParametersException;
 
     /**
-     * Calculates and retrieves the length of the original (now encrypted) data.
-     * This varies between algorithms, i.e. with ShamirPSS the original length
-     * is the same as the share's body length. With RabinIDS the orignial length
-     * must be stored as meta data as it cannot be automatically derived from the
-     * body's length
-     *
-     * @param shares all input shares
-     * @return original length of the encrypted secret data
-     */
-    protected abstract int retrieveInputLength(Share[] shares);
-
-    /**
      * Attempts to reconstruct the secret from the given input stream.
      * This will fail if there are fewer than k (previously initialized) valid shares.
      *
@@ -192,7 +178,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
         if (!validateShareCount(shares.length, k)) {
-            throw new ReconstructionException();
+            throw new ReconstructionException("Not enough shares to reconstruct");
         }
 
         EncodingConverter input[] = new EncodingConverter[shares.length];
@@ -200,7 +186,13 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
             input[i] = new EncodingConverter(shares[i].getYValues(), gf);
         }
 
-        int originalLength = retrieveInputLength(shares);
+        int originalLength = shares[0].getOriginalLength();
+        for (Share s : shares) {
+            if (s.getOriginalLength() != originalLength) {
+                throw new ReconstructionException("Shares have different original length");
+            }
+        }
+
         // we only need k x-values for reconstruction
         int xTmpValues[] = extractXVals(shares, k);
 

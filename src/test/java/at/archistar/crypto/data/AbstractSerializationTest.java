@@ -1,8 +1,8 @@
 package at.archistar.crypto.data;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
@@ -21,59 +21,56 @@ public abstract class AbstractSerializationTest {
     /** a correctly serialized "this.share" */
     protected byte[] serializedShare;
 
+    /** correct metadata for "this.share" */
+    protected HashMap<String, String> metaData;
+
     /**
-     * deserializing null should fail. This tests the byte[] method
+     * deserializing null should fail
      *
      * @throws at.archistar.crypto.data.InvalidParametersException this should be thrown
      * @throws java.io.IOException this shouldn't be thrown
      */
     @Test(expected = InvalidParametersException.class)
     public void deserializingNullFails() throws InvalidParametersException, IOException {
-        ShareFactory.deserialize((byte[]) null);
+        ShareFactory.deserialize(null, null);
         fail("you shouldn't be able to deserialize a share from null");
     }
 
     /**
-     * deserializing null should fail. This tests the DataInputStream Method
+     * deserializing empty data should fail
      *
      * @throws at.archistar.crypto.data.InvalidParametersException this should be thrown
      * @throws java.io.IOException this shouldn't be thrown
      */
     @Test(expected = InvalidParametersException.class)
-    public void deserializingNullFails2() throws InvalidParametersException, IOException {
-        ShareFactory.deserialize((DataInputStream) null);
-        fail("you shouldn't be able to deserialize a share from null");
+    public void deserializingEmptyData() throws InvalidParametersException, IOException {
+        ShareFactory.deserialize(new byte[0], new HashMap<String, String>());
+        fail("you shouldn't be able to deserialize a share from empty data");
     }
 
     /**
-     * deserializing an invalid share-ondisk version should fail.
+     * deserializing an invalid share-on-disk version should fail.
      *
      * @throws at.archistar.crypto.data.InvalidParametersException this should be thrown
      * @throws java.io.IOException this shouldn't be thrown
      */
     @Test(expected = InvalidParametersException.class)
     public void itFailsForDifferentVersions() throws IOException, InvalidParametersException {
-        byte[] tmp = serializedShare.clone();
-        tmp[3] = 42;
-        ShareFactory.deserialize(tmp);
+        HashMap<String, String> tmp = (HashMap<String, String>) metaData.clone();
+        tmp.put("archistar-version","1");
+        ShareFactory.deserialize(serializedShare, tmp);
         fail("this should have been a different serialization format version");
     }
 
     /**
-     * Our header has at least 15 byte. Deserializing byte-arrays smaller than
-     * that should fail.
+     * Deserializing shares with incomplete metadata should fail
      *
      * @throws at.archistar.crypto.data.InvalidParametersException this should be thrown
      * @throws java.io.IOException this shouldn't be thrown
      */
     @Test(expected = InvalidParametersException.class)
-    public void itFailsIfTheresNoFullHeader() throws InvalidParametersException, IOException {
-
-        /* header should be 15 byte */
-        for (int i = 0; i < 15; i++) {
-            byte[] tmp = Arrays.copyOf(serializedShare, i);
-            ShareFactory.deserialize(tmp);
-        }
+    public void itFailsIfTheresNoCompleteMetaData() throws InvalidParametersException, IOException {
+        ShareFactory.deserialize(serializedShare, new HashMap<String, String>());
         fail("without a header a reconstruction should not have been possible");
     }
 
@@ -85,9 +82,9 @@ public abstract class AbstractSerializationTest {
      */
     @Test(expected = InvalidParametersException.class)
     public void itFailsIfTheresAnUnknownType() throws IOException, InvalidParametersException {
-        byte[] tmp = serializedShare.clone();
-        tmp[4] = 99;
-        ShareFactory.deserialize(tmp);
+        HashMap<String, String> tmp = (HashMap<String, String>) metaData.clone();
+        tmp.put("archistar-share-type", "XYZ");
+        ShareFactory.deserialize(serializedShare, tmp);
         fail("without a valid type a reconstruction should not have been possible");
     }
 
@@ -99,22 +96,9 @@ public abstract class AbstractSerializationTest {
      */
     @Test
     public void testDeserialize() throws IOException, InvalidParametersException {
-        Share deserialized = ShareFactory.deserialize(serializedShare);
+        Share deserialized = ShareFactory.deserialize(serializedShare, metaData);
         assertThat(deserialized.compareTo(share)).isEqualTo(0);
         assertThat(deserialized).isEqualTo(share);
-    }
-
-    /**
-     * test if an short-read produces an exception
-     *
-     * @throws at.archistar.crypto.data.InvalidParametersException this should be thrown
-     * @throws java.io.IOException this shouldn't be thrown
-     */
-    @Test(expected = InvalidParametersException.class)
-    public void itFailsIfDataIsTooLong() throws IOException, InvalidParametersException {
-        byte[] tmp = Arrays.copyOf(serializedShare, serializedShare.length + 20);
-        ShareFactory.deserialize(tmp);
-        fail("there was much data for this type of share");
     }
 
     /**
@@ -125,9 +109,23 @@ public abstract class AbstractSerializationTest {
      * @throws java.io.IOException this shouldn't be thrown
      */
     @Test(expected = InvalidParametersException.class)
-    public void itFailsIfDataIsTooShort() throws IOException, InvalidParametersException {
+    public void itFailsIfDataIsTooLong() throws IOException, InvalidParametersException {
+        byte[] tmp = Arrays.copyOf(serializedShare, serializedShare.length + 20);
+        ShareFactory.deserialize(tmp, metaData);
+        fail("there was much data for this type of share");
+    }
+
+    /**
+     * test if we can pass in partial shares
+     * without IC, we should - with IC we should not
+     *
+     * @throws at.archistar.crypto.data.InvalidParametersException this shouldn't be thrown
+     * @throws java.io.IOException this shouldn't be thrown
+     */
+    @Test
+    public void failingWithPartialShares() throws IOException, InvalidParametersException {
         byte[] tmp = Arrays.copyOf(serializedShare, serializedShare.length - 1);
-        ShareFactory.deserialize(tmp);
-        fail("there was not enough data for this type of share");
+        Share s = ShareFactory.deserialize(tmp, metaData);
+        assertThat(s).isNotNull();
     }
 }

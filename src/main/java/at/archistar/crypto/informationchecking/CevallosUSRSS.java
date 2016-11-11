@@ -5,7 +5,6 @@ import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,17 +51,13 @@ public class CevallosUSRSS extends RabinBenOrRSS {
         int counter = 0;
 
         for (Share s2 : shares) {
-            try {
-                byte[] data = s1.getSerializedForHashing();
-                byte[] mac1 = s1.getMacs().get((byte) s2.getId());
-                byte[] mac2 = s2.getMacKeys().get((byte) s1.getId());
+            byte[] data = s1.getYValues();
+            byte[] mac1 = s1.getMacs().get((byte) s2.getId());
+            byte[] mac2 = s2.getMacKeys().get((byte) s1.getId());
 
-                accepts[s1.getId()][s2.getId()] = mac.verifyMAC(data, mac1, mac2);
-                if (accepts[s1.getId()][s2.getId()]) {
-                    counter++;
-                }
-            } catch (IOException ex) {
-                throw new RuntimeException("this should never happen!");
+            accepts[s1.getId()][s2.getId()] = mac.verifyMAC(data, mac1, mac2);
+            if (accepts[s1.getId()][s2.getId()]) {
+                counter++;
             }
         }
 

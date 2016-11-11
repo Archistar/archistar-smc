@@ -4,7 +4,6 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
 
-import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
 
@@ -45,11 +44,11 @@ public class RabinBenOrRSS implements InformationChecking {
                 try {
                     byte[] key = new byte[this.mac.keySize()];
                     this.rng.fillBytes(key);
-                    byte[] tag = this.mac.computeMAC(share1.getSerializedForHashing(), key);
+                    byte[] tag = this.mac.computeMAC(share1.getYValues(), key);
 
                     share1.getMacs().put((byte) share2.getId(), tag);
                     share2.getMacKeys().put((byte) share1.getId(), key);
-                } catch (InvalidKeyException | IOException e) {
+                } catch (InvalidKeyException e) {
                     throw new RuntimeException("this cannot happen");
                 }
             }
@@ -62,26 +61,20 @@ public class RabinBenOrRSS implements InformationChecking {
         Share[] valid = new Share[rboshares.length];
         int counter = 0;
 
-        for (int i = 0; i < rboshares.length; i++) { // go through all shares
+        for (Share rboshare1 : rboshares) { // go through all shares
             int accepts = 0; // number of participants accepting i
             for (Share rboshare : rboshares) {
-                try {
-                    // go through all shares
+                byte[] data = rboshare1.getYValues();
+                byte[] macCmp = rboshare1.getMacs().get((byte) rboshare.getId());
+                byte[] macKey = rboshare.getMacKeys().get((byte) rboshare1.getId());
 
-                    byte[] data = rboshares[i].getSerializedForHashing();
-                    byte[] macCmp = rboshares[i].getMacs().get((byte) rboshare.getId());
-                    byte[] macKey = rboshare.getMacKeys().get((byte) rboshares[i].getId());
-
-                    if (mac.verifyMAC(data, macCmp, macKey)) {
-                        accepts++;
-                    }
-                } catch (IOException ex) {
-                    throw new RuntimeException("this cannot happen!");
+                if (mac.verifyMAC(data, macCmp, macKey)) {
+                    accepts++;
                 }
             }
 
             if (accepts >= k) { // if there are at least k accepts, this share is counted as valid
-                valid[counter++] = rboshares[i];
+                valid[counter++] = rboshare1;
             }
         }
         return Arrays.copyOfRange(valid, 0, counter);

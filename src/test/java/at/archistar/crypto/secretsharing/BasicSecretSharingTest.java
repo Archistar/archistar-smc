@@ -46,26 +46,20 @@ public abstract class BasicSecretSharingTest {
     }
 
     @Test
-    public void itReconstrutsShuffledShares() throws ReconstructionException {
+    public void itReconstructsShuffledShares() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
         Collections.shuffle(Arrays.asList(shares));
         byte reconstructedData[] = algorithm.reconstruct(shares);
         assertThat(reconstructedData).isEqualTo(data);
     }
 
-    @Test
-    public void itFailsWhenThereAreTooFewShares() {
+    @Test(expected = ReconstructionException.class)
+    public void itFailsWhenThereAreTooFewShares() throws ReconstructionException {
         Share shares[] = algorithm.share(data);
-
         for (int i = 0; i < k; i++) {
             Share[] shares1 = Arrays.copyOf(shares, i);
-
-            try {
-                algorithm.reconstruct(shares1);
-                fail("too few shares to reconstruct, what was returned?");
-            } catch (ReconstructionException ex) {
-                // this is the good (expected) case
-            }
+            algorithm.reconstruct(shares1);
+            fail("too few shares to reconstruct, what was returned?");
         }
     }
 }

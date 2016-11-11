@@ -1,9 +1,11 @@
 package at.archistar.crypto.secretsharing;
 
+import at.archistar.crypto.data.InvalidParametersException;
+import at.archistar.crypto.data.NTTRabinShare;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.data.Share.ShareType;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.ntt.AbstractNTT;
 
 /**
@@ -38,16 +40,46 @@ public class NTTRabinIDS extends NTTSecretSharing {
         return tmp;
     }
 
-    @Override
-    protected Share.ShareType getShareType() {
-        return ShareType.NTT_RABIN_IDS;
-    }
-
     /**
      * @return human-readable description of this secret-sharing scheme
      */
     @Override
     public String toString() {
         return "NTTRabinIDS(" + n + "/" + k + ", NTTLength: " + nttBlockLength + ")";
+    }
+
+    @Override
+    public Share[] share(byte[] data) {
+        int[] dataInt = new int[data.length];
+        for (int i = 0; i < data.length; i++) {
+            dataInt[i] = (data[i] < 0) ? data[i] + 256 : data[i];
+        }
+
+        OutputEncoderConverter[] encoded = encode(dataInt);
+
+        Share shares[] = new Share[n];
+        for (int j = 0; j < n; j++) {
+            try {
+                shares[j] = new NTTRabinShare((byte) (j + 1), encoded[j].getEncodedData(), data.length, shareSize);
+            } catch (InvalidParametersException e) {
+                throw new RuntimeException("impossible: cannot happen");
+            }
+        }
+        return shares;
+    }
+
+    int extractShareCount(Share[] shares) throws ReconstructionException {
+        for (Share s : shares) {
+            if (!(s instanceof NTTRabinShare)) {
+                throw new ReconstructionException("Not all shares are NTT Rabin shares");
+            }
+        }
+        int shareCount = ((NTTRabinShare) shares[0]).getNttShareSize();
+        for (Share s : shares) {
+            if (((NTTRabinShare) s).getNttShareSize() != shareCount) {
+                throw new ReconstructionException("Shares have different original length");
+            }
+        }
+        return shareCount;
     }
 }

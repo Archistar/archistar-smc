@@ -1,14 +1,9 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.InvalidParametersException;
+import at.archistar.crypto.data.KrawczykShare;
 import at.archistar.crypto.data.Share;
 
-import static at.archistar.crypto.data.Share.ENC_ALGORITHM;
-import static at.archistar.crypto.data.Share.ENC_KEY;
-import static at.archistar.crypto.data.Share.ORIGINAL_LENGTH;
-
-import at.archistar.crypto.data.Share.ShareType;
-import at.archistar.crypto.data.ShareFactory;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
 import at.archistar.crypto.math.DynamicOutputEncoderConverter;
@@ -20,21 +15,17 @@ import at.archistar.crypto.math.gf257.GF257;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.AESGCMEncryptor;
-import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import at.archistar.crypto.symmetric.Encryptor;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 /**
  * <p>This class implements the Computational Secret Sharing scheme developed by Krawczyk.</p>
  *
- * <p>This is a hybrid sheme that combines classical symmetric encryption, ShamirPSS
+ * <p>This is a hybrid scheme that combines classical symmetric encryption, ShamirPSS
  * and RabinIDS. The secret data is initially encrypted using an traditional
  * symmetric encryption scheme (i.e. AES, Salsa, ChaCha..). The resulting encoded
  * data is then distributed between participants with the fast but insecure
@@ -91,12 +82,12 @@ public class KrawczykCSS extends BaseSecretSharing {
             this.rng.fillBytes(encKey);
             byte[] encSource = cryptor.encrypt(data, encKey);
 
-            int base_data_length = data.length;
+            int baseDataLength = data.length;
             // block cyphers use 16 byte blocks and add an extra block at the end
             if (cryptor instanceof AESEncryptor || cryptor instanceof AESGCMEncryptor) {
-                base_data_length = ((data.length / 16) + 1) * 16;
+                baseDataLength = ((data.length / 16) + 1) * 16;
             }
-            int new_data_length = base_data_length % k == 0 ? base_data_length / k : (base_data_length / k) + 1;
+            int newDataLength = baseDataLength % k == 0 ? baseDataLength / k : (baseDataLength / k) + 1;
 
             /* share key and content */
             OutputEncoderConverter outputContent[] = new OutputEncoderConverter[n];
@@ -104,10 +95,10 @@ public class KrawczykCSS extends BaseSecretSharing {
             for (int i = 0; i < n; i++) {
                 if (gf instanceof GF257) {
                     outputKey[i] = new DynamicOutputEncoderConverter(encKey.length, gf);
-                    outputContent[i] = new DynamicOutputEncoderConverter(new_data_length, gf);
+                    outputContent[i] = new DynamicOutputEncoderConverter(newDataLength, gf);
                 } else {
                     outputKey[i] = new StaticOutputEncoderConverter(encKey.length);
-                    outputContent[i] = new StaticOutputEncoderConverter(new_data_length);
+                    outputContent[i] = new StaticOutputEncoderConverter(newDataLength);
                 }
             }
 
@@ -117,14 +108,9 @@ public class KrawczykCSS extends BaseSecretSharing {
             //Generate a new array of encrypted shares
             Share[] kshares = new Share[n];
             for (int i = 0; i < kshares.length; i++) {
-                Map<Byte, byte[]> metadata = new HashMap<>();
-                metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(encSource.length).array());
-                metadata.put(ENC_ALGORITHM, ByteBuffer.allocate(4).putInt(1).array());
-                metadata.put(ENC_KEY, outputKey[i].getEncodedData());
+                kshares[i] = new KrawczykShare((byte) (i + 1), outputContent[i].getEncodedData(),
+                        encSource.length, 1, outputKey[i].getEncodedData());
 
-                kshares[i] = ShareFactory.create(ShareType.KRAWCZYK, (byte) (i + 1),
-                        outputContent[i].getEncodedData(),
-                        metadata);
             }
 
             return kshares;
@@ -138,18 +124,24 @@ public class KrawczykCSS extends BaseSecretSharing {
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
 
         if (shares.length < k) {
-            throw new ReconstructionException("to few shares");
+            throw new ReconstructionException("too few shares");
+        }
+
+        for (Share s : shares) {
+            if (!(s instanceof KrawczykShare)) {
+                throw new ReconstructionException("Not all shares are Krawczyk shares");
+            }
         }
 
         try {
             int[] xValues = GeometricSecretSharing.extractXVals(shares, k);
-            int originalLengthKey = shares[0].getMetadataArray(ENC_KEY).length;
-            int originalLengthContent = shares[0].getMetadata(ORIGINAL_LENGTH);
+            int originalLengthKey = ((KrawczykShare) shares[0]).getKey().length;
+            int originalLengthContent = shares[0].getOriginalLength();
 
             EncodingConverter[] ecKey = new EncodingConverter[shares.length];
             EncodingConverter[] ecContent = new EncodingConverter[shares.length];
             for (int i = 0; i < shares.length; i++) {
-                ecKey[i] = new EncodingConverter(shares[i].getMetadataArray(ENC_KEY), gf);
+                ecKey[i] = new EncodingConverter(((KrawczykShare) shares[i]).getKey(), gf);
                 ecContent[i] = new EncodingConverter(shares[i].getYValues(), gf);
             }
 
@@ -165,6 +157,6 @@ public class KrawczykCSS extends BaseSecretSharing {
 
     @Override
     public String toString() {
-        return "KrawczzkCSS(" + n + "/" + k + ", " + cryptor + ")";
+        return "KrawczykCSS(" + n + "/" + k + ", " + cryptor + ")";
     }
 }

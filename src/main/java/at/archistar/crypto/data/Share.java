@@ -5,15 +5,15 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Represent a Share in memory (including metadata and information checking
  * information). Shares are always created by the ShareFactory helper class.
  */
-public class Share implements Comparable<Share> {
+public abstract class Share implements Comparable<Share> {
 
     /** the share's id, mostly this will be it's "x" value */
     private final byte id;
@@ -21,40 +21,20 @@ public class Share implements Comparable<Share> {
     /** the share's body, mostly this will be it's "y" values */
     private final byte[] yValues;
 
-    /** free-form metadata. Attention: meta-data is not encrypted! */
-    private final Map<Byte, byte[]> metadata;
-
     /** keys used during information checking */
     private final Map<Byte, byte[]> macKeys;
 
     /** macs generated during information checking */
     private final Map<Byte, byte[]> macs;
 
-    /** which kind of share is this? */
-    private final ShareType shareType;
-
     /** which kind of information checking (if any) was employed? */
     private ICType informationChecking;
 
     /** on-disk version of the share */
-    public static final int VERSION = 3;
-
-    /** which share types can we work with? */
-    public static enum ShareType {
-        /** type used for shamir */
-        SHAMIR_PSS,
-        /** type used for rabin (also called reed-solomon sometimes) */
-        RABIN_IDS,
-        /** krawcywk (rabin+shamir) */
-        KRAWCZYK,
-        /** shamir shares, but calculated with NTT (need more meta data) */
-        NTT_SHAMIR_PSS,
-        /** rabin shares, but calculated with NTT (need more meta data) */
-        NTT_RABIN_IDS
-    }
+    public static final int VERSION = 4;
 
     /** which information checking schemas can we work with? */
-    public static enum ICType {
+    public enum ICType {
         /** no information checking was performed */
         NONE,
         /** rabin-ben-or with fixed hashes */
@@ -64,51 +44,47 @@ public class Share implements Comparable<Share> {
     }
 
     /**
-     * metadata key for the share's data original length. Needed
-     * by some algorithms to detect padding
-     */
-    public static final byte ORIGINAL_LENGTH = 1;
-
-    /**
-     * some algorithms employ traditional cryptography. This denotes the
-     * crypto-algorithm that was used during this step.
-     */
-    public static final byte ENC_ALGORITHM = 2;
-
-    /**
-     * some algorithms employ traditional cryptography. This denotes the
-     * the key that was used during this step.
-     */
-    public static final byte ENC_KEY = 3;
-
-    /**
-     * NTT-based algorithms need to know how large the NTT-matrix was.
-     */
-    public static final byte NTT_SHARE_SIZE = 4;
-
-    /**
      * Constructor with information checking information.
      *
-     * @param shareType type of the share
      * @param id the share's id (i.e. x value)
      * @param body the share's body (i.e. y values)
-     * @param metadata the share's metadata
      * @param ic the information checking algorithm used by the share
      * @param macKeys the mac keys used for information checking
      * @param macs the macs generated during information checking
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    Share(ShareType shareType, byte id, byte[] body,
-          Map<Byte, byte[]> metadata,
-          ICType ic, Map<Byte, byte[]> macKeys, Map<Byte, byte[]> macs) {
-
+    Share(byte id, byte[] body, ICType ic, Map<Byte, byte[]> macKeys, Map<Byte, byte[]> macs) throws InvalidParametersException {
+        if (id == 0) {
+            throw new InvalidParametersException("id must not be 0");
+        }
+        if (body == null || body.length == 0) {
+            throw new InvalidParametersException("body must not be empty");
+        }
         this.id = id;
         this.yValues = body;
-        this.metadata = metadata;
-        this.shareType = shareType;
         this.macs = macs;
         this.macKeys = macKeys;
         this.informationChecking = ic;
+    }
+
+    /**
+     * Constructor without information checking
+     *
+     * @param id the share's id (i.e. x value)
+     * @param body the share's body (i.e. y values)
+     */
+    Share(byte id, byte[] body) throws InvalidParametersException {
+        if (id == 0) {
+            throw new InvalidParametersException("id must not be 0");
+        }
+        if (body == null || body.length == 0) {
+            throw new InvalidParametersException("body must not be empty");
+        }
+        this.id = id;
+        this.yValues = body;
+        this.macs = new HashMap<>();
+        this.macKeys = new HashMap<>();
+        this.informationChecking = ICType.NONE;
     }
 
     /**
@@ -142,36 +118,6 @@ public class Share implements Comparable<Share> {
         return yValues;
     }
 
-    /**
-     * During information checking the algorithms need to create macs over
-     * shares. This method returns a byte array which contains all elements
-     * that need to be part of the mac.
-     *
-     * @return byte[] array representing all data of this share that needs
-     * to be part of the information checking hash
-     * @throws IOException
-     */
-    public byte[] getSerializedForHashing() throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        DataOutputStream sout = new DataOutputStream(out);
-
-        sout.writeInt(VERSION);
-        sout.writeByte((byte) shareType.ordinal());
-        sout.writeByte((byte) informationChecking.ordinal());
-
-        /* serialize the x-value */
-        sout.writeByte((byte) getId());
-
-        /* write metadata */
-        writeMap(sout, metadata);
-
-        /* serialize body */
-        sout.writeInt(yValues.length);
-        sout.write(yValues);
-
-        return out.toByteArray();
-    }
-
     private static void writeMap(DataOutputStream sout, Map<Byte, byte[]> map) throws IOException {
         sout.writeInt(map.size());
         for (Map.Entry<Byte, byte[]> e : map.entrySet()) {
@@ -185,17 +131,17 @@ public class Share implements Comparable<Share> {
     }
 
     /**
-     * This returns a serialized form of the share.
+     * This returns a serialized form of the content (plus IC info) of the share.
      *
      * @return the share's byte[] representation containing all information
      * @throws IOException
      */
-    public byte[] serialize() throws IOException {
+    public byte[] getSerializedData() throws IOException {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final DataOutputStream sout = new DataOutputStream(out);
 
         /* serialize main data */
-        sout.write(getSerializedForHashing());
+        sout.write(yValues);
 
         if (informationChecking != ICType.NONE) {
             /* serialize macs */
@@ -209,29 +155,26 @@ public class Share implements Comparable<Share> {
     }
 
     /**
-     * access metadata (which will be casted into an int)
+     * This returns a Map of the metadata that are common to all share types;
+     * the idea is that the getMetaData()-implementations in all the share types
+     * first get this Map and then add their own special keys
      *
-     * @param key the byte key for the metadata
-     * @return stored metadata casted to an integer
+     * @return the metadata that are common to all shares
      */
-    public int getMetadata(int key) {
-        final byte[] tmp = this.metadata.get((byte) key);
-        if (tmp.length == 4) {
-            return ByteBuffer.wrap(tmp).getInt();
-        } else {
-            throw new RuntimeException("this cannot happen, key not found!");
-        }
+    HashMap<String, String> getCommonMetaData() {
+        HashMap<String, String> res = new HashMap<>();
+        res.put("archistar-share-type", getShareType());
+        res.put("archistar-version", Integer.toString(VERSION));
+        res.put("archistar-id", Byte.toString(id));
+        res.put("archistar-ic-type", Integer.toString(informationChecking.ordinal()));
+        res.put("archistar-length", Integer.toString(yValues.length));
+        return res;
     }
 
     /**
-     * access metadata
-     *
-     * @param key the byte key for the metadata
-     * @return stored metadata
+     * @return the (internal) metadata of a share necessary for reconstruction
      */
-    public byte[] getMetadataArray(int key) {
-        return this.metadata.get((byte) key);
-    }
+    public abstract HashMap<String, String> getMetaData();
 
     /**
      * @return macs used during secret checking (TODO: add sane interface)
@@ -248,44 +191,12 @@ public class Share implements Comparable<Share> {
     }
 
     /**
-     * validates if a share is valid. This is a rather high-level check that
-     * does not check attached mac/keys, etc. To check those the information
-     * checking algorithm should be instantiated and called.
+     * a (too) simple method for validation
      *
      * @return is this share valid?
      */
     public boolean isValid() {
-
-        if (id <= 0 || yValues == null || metadata == null) {
-            return false;
-        }
-
-        return checkShareInformation() && checkICType();
-    }
-
-    private boolean checkShareInformation() {
-        boolean result = true;
-
-        switch (shareType) {
-            case SHAMIR_PSS:
-                //no additional checks needed
-                break;
-            case KRAWCZYK:
-                result = metadata.containsKey(ENC_ALGORITHM) && metadata.containsKey(ORIGINAL_LENGTH) && metadata.containsKey(ENC_KEY);
-                break;
-            case RABIN_IDS:
-                result = metadata.containsKey(ORIGINAL_LENGTH);
-                break;
-            case NTT_RABIN_IDS:
-            case NTT_SHAMIR_PSS:
-                result = metadata.containsKey(ORIGINAL_LENGTH)
-                        && metadata.containsKey(NTT_SHARE_SIZE);
-                break;
-            default:
-                throw new RuntimeException("impossible: unknown algorithm");
-        }
-
-        return result;
+        return !(id <= 0 || yValues == null) && checkICType();
     }
 
     private boolean checkICType() {
@@ -316,7 +227,7 @@ public class Share implements Comparable<Share> {
     public int compareTo(Share t) {
 
         try {
-            if (Arrays.equals(serialize(), t.serialize())) {
+            if (Arrays.equals(getSerializedData(), t.getSerializedData())) {
                 return 0;
             } else {
                 return t.id - id;
@@ -351,4 +262,14 @@ public class Share implements Comparable<Share> {
         assert false : "hashCode not implemented";
         return 42;
     }
+
+    /**
+     * @return a String representation of the type of the share
+     */
+    public abstract String getShareType();
+
+    /**
+     * @return the length of the original file
+     */
+    public abstract int getOriginalLength();
 }

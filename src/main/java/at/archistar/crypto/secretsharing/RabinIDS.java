@@ -1,18 +1,12 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.InvalidParametersException;
+import at.archistar.crypto.data.RabinShare;
 import at.archistar.crypto.data.Share;
 
-import static at.archistar.crypto.data.Share.ORIGINAL_LENGTH;
-
-import at.archistar.crypto.data.ShareFactory;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.OutputEncoderConverter;
-
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * <p>This class implements Rabin IDS (aka Reed-Solomon Code).</p>
@@ -77,20 +71,12 @@ public class RabinIDS extends GeometricSecretSharing {
 
     @Override
     protected Share[] createShares(int[] xValues, OutputEncoderConverter[] results, int originalLength) throws InvalidParametersException {
-
         Share shares[] = new Share[n];
-        Map<Byte, byte[]> metadata = new HashMap<>();
-        metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(originalLength).array());
 
         for (int i = 0; i < n; i++) {
-            shares[i] = ShareFactory.create(Share.ShareType.RABIN_IDS, (byte) xValues[i], results[i].getEncodedData(), metadata);
+            shares[i] = new RabinShare((byte) xValues[i], results[i].getEncodedData(), originalLength);
         }
 
         return shares;
-    }
-
-    @Override
-    protected int retrieveInputLength(Share[] shares) {
-        return shares[0].getMetadata(ORIGINAL_LENGTH);
     }
 }
