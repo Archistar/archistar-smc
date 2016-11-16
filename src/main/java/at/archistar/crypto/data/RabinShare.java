@@ -27,9 +27,6 @@ public class RabinShare extends Share {
      */
     public RabinShare(byte id, byte[] body, int originalLength) throws InvalidParametersException {
         super(id, body);
-        if (originalLength <= body.length) {
-            throw new InvalidParametersException("the given original length cannot be right");
-        }
         this.originalLength = originalLength;
     }
 

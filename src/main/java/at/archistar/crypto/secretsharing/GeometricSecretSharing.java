@@ -101,6 +101,9 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
      */
     @Override
     public Share[] share(byte[] data) {
+        if (data == null) {
+            data = new byte[0];
+        }
         try {
             OutputEncoderConverter output[] = new OutputEncoderConverter[n];
             for (int i = 0; i < n; i++) {

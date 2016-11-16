@@ -79,6 +79,9 @@ public class NTTShamirPSS extends NTTSecretSharing {
 
     @Override
     public Share[] share(byte[] data) {
+        if (data == null) {
+            data = new byte[0];
+        }
         int[] dataInt = new int[data.length];
         for (int i = 0; i < data.length; i++) {
             dataInt[i] = (data[i] < 0) ? data[i] + 256 : data[i];

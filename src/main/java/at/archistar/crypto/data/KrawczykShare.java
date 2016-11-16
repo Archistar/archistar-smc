@@ -24,13 +24,10 @@ public class KrawczykShare extends Share {
     public KrawczykShare(byte id, byte[] body, ICType ic, Map<Byte, byte[]> macKeys, Map<Byte, byte[]> macs,
                          int originalLength, int encAlgorithm, byte[] encKey) throws InvalidParametersException {
         super(id, body, ic, macKeys, macs);
-        if (originalLength <= body.length) {
-            throw new InvalidParametersException("the given original length cannot be right");
-        }
         if (encKey == null || encKey.length != 32) {
             throw new InvalidParametersException("invalid key");
         }
-        if (encAlgorithm < 0 || encAlgorithm >= ICType.values().length) {
+        if (encAlgorithm <= 0 || encAlgorithm >= ICType.values().length) {
             throw new InvalidParametersException("invalid algorithm");
         }
         this.originalLength = originalLength;
@@ -44,13 +41,10 @@ public class KrawczykShare extends Share {
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public KrawczykShare(byte id, byte[] body, int originalLength, int encAlgorithm, byte[] encKey) throws InvalidParametersException {
         super(id, body);
-        if (originalLength <= body.length) {
-            throw new InvalidParametersException("the given original length cannot be right");
-        }
         if (encKey == null || encKey.length != 32) {
             throw new InvalidParametersException("invalid key");
         }
-        if (encAlgorithm < 0 || encAlgorithm >= ICType.values().length) {
+        if (encAlgorithm <= 0 || encAlgorithm >= ICType.values().length) {
             throw new InvalidParametersException("invalid algorithm");
         }
         this.originalLength = originalLength;

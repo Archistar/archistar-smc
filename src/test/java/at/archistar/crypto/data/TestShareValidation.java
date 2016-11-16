@@ -22,8 +22,8 @@ public class TestShareValidation {
         assertThat(share).isNotNull();
     }
 
-    @Test(expected = InvalidParametersException.class)
-    public void yMustNotBeNull() throws InvalidParametersException {
+    @Test
+    public void yMayBeNull() throws InvalidParametersException {
         Share share = new ShamirShare((byte) 7, null);
         assertThat(share).isNotNull();
     }

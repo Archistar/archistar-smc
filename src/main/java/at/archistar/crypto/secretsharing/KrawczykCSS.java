@@ -77,6 +77,9 @@ public class KrawczykCSS extends BaseSecretSharing {
     @Override
     public Share[] share(byte[] data) {
         try {
+            if (data == null) {
+                data = new byte[0];
+            }
             /* encrypt the data */
             byte[] encKey = new byte[cryptor.getKeyLength()];
             this.rng.fillBytes(encKey);
@@ -133,11 +136,19 @@ public class KrawczykCSS extends BaseSecretSharing {
             }
         }
 
+        int originalLengthContent = shares[0].getOriginalLength();
+        int originalLengthKey = ((KrawczykShare) shares[0]).getKey().length;
+        for (Share s : shares) {
+            if (s.getOriginalLength() != originalLengthContent) {
+                throw new ReconstructionException("Shares have different original length");
+            }
+            if (((KrawczykShare) s).getKey().length != originalLengthKey) {
+                throw new ReconstructionException("Shares have different key length");
+            }
+        }
+
         try {
             int[] xValues = GeometricSecretSharing.extractXVals(shares, k);
-            int originalLengthKey = ((KrawczykShare) shares[0]).getKey().length;
-            int originalLengthContent = shares[0].getOriginalLength();
-
             EncodingConverter[] ecKey = new EncodingConverter[shares.length];
             EncodingConverter[] ecContent = new EncodingConverter[shares.length];
             for (int i = 0; i < shares.length; i++) {

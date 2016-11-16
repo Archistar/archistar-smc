@@ -57,9 +57,6 @@ public abstract class Share implements Comparable<Share> {
         if (id == 0) {
             throw new InvalidParametersException("id must not be 0");
         }
-        if (body == null || body.length == 0) {
-            throw new InvalidParametersException("body must not be empty");
-        }
         this.id = id;
         this.yValues = body;
         this.macs = macs;
@@ -76,9 +73,6 @@ public abstract class Share implements Comparable<Share> {
     Share(byte id, byte[] body) throws InvalidParametersException {
         if (id == 0) {
             throw new InvalidParametersException("id must not be 0");
-        }
-        if (body == null || body.length == 0) {
-            throw new InvalidParametersException("body must not be empty");
         }
         this.id = id;
         this.yValues = body;

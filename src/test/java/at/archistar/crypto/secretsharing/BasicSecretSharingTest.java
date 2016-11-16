@@ -62,4 +62,12 @@ public abstract class BasicSecretSharingTest {
             fail("too few shares to reconstruct, what was returned?");
         }
     }
+
+    @Test
+    public void itStoresEmptyData() {
+        Share[] shares = algorithm.share(new byte[0]);
+        Share[] shares2 = algorithm.share(null);
+        assertThat(shares).isNotEmpty();
+        assertThat(shares2).isNotEmpty();
+    }
 }
