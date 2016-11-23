@@ -1,0 +1,22 @@
+@startuml
+
+actor LibraryUser
+
+LibraryUser -> ShamirPSS: share(data)
+
+ShamirPSS -> ShamirPSS: share(OutputEncoderConverter[], data)
+
+hnote over ShamirPSS
+  secret sharing happens here
+end note
+
+ShamirPSS -> ShamirPSS: createShares(xvalues,\nOutputEncoderConverter[],\noriginalLength)
+
+group iterate on OutputEncoderConverter
+  ShamirPSS -> ShamirShare: new(xValue, yValues)
+  ShamirShare -> ShamirPSS: ShamirShare
+end
+
+ShamirPSS -> LibraryUser: Share[]
+
+@enduml
