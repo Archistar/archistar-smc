@@ -10,14 +10,14 @@ public class FakeRandomSource implements RandomSource {
 
     @Override
     public void fillBytes(byte[] toBeFilled) {
-        Arrays.fill(toBeFilled, (byte)4);
+        Arrays.fill(toBeFilled, (byte) 4);
     }
-    
+
     @Override
     public void fillBytesAsInts(int[] toBeFilled) {
-        Arrays.fill(toBeFilled, (byte)4);
+        Arrays.fill(toBeFilled, (byte) 4);
     }
-    
+
     /**
      * @return human readable representation of this random source
      */

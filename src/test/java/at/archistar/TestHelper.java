@@ -10,11 +10,12 @@ public class TestHelper {
 
     /** test size for normal tests */
     public static final int TEST_SIZE = 10 * REDUCED_TEST_SIZE;
-    
+
     /**
      * create test data
+     *
      * @param elementSize fragment size in byte, this will create an array with
-     *                    elements sized "elementsSize" and a total size of TEST_SIZE
+     * elements sized "elementsSize" and a total size of TEST_SIZE
      * @return test data
      */
     public static byte[][] createArray(int elementSize) {
@@ -23,9 +24,10 @@ public class TestHelper {
 
     /**
      * create test data
+     *
      * @param size overall test data size
      * @param elementSize fragment size in byte, this will create an array with
-     *                    elements sized "elementsSize" and a total size of "size"
+     * elements sized "elementsSize" and a total size of "size"
      * @return test data
      */
     public static byte[][] createArray(int size, int elementSize) {

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Security;
+import java.util.Arrays;
+
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESFastEngine;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
@@ -14,7 +16,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * basic AES-GCM based encryption
- * 
+ *
  * TODO: we are currently using a fixed IV!
  */
 public class AESGCMEncryptor implements Encryptor {
@@ -24,7 +26,7 @@ public class AESGCMEncryptor implements Encryptor {
     static {
         Security.addProvider(new BouncyCastleProvider());
     }
-    
+
     @Override
     public byte[] encrypt(byte[] data, byte[] randomKeyBytes) throws IOException, InvalidKeyException,
             InvalidAlgorithmParameterException, InvalidCipherTextException {
@@ -40,9 +42,11 @@ public class AESGCMEncryptor implements Encryptor {
         int length1 = cipher.processBytes(data, 0, data.length, outBuf, 0);
         int length2 = cipher.doFinal(outBuf, length1);
         int actualLength = length1 + length2;
-        byte[] result = new byte[actualLength];
-        System.arraycopy(outBuf, 0, result, 0, result.length);
-        return result;
+        if (actualLength == minSize) {
+            return outBuf;
+        } else {
+            return Arrays.copyOf(outBuf, actualLength);
+        }
     }
 
     @Override
@@ -54,12 +58,12 @@ public class AESGCMEncryptor implements Encryptor {
         cipher.init(false, new AEADParameters(new KeyParameter(randomKey), 128, randomIvBytes));
         return cipherData(cipher, data);
     }
-    
+
     @Override
     public int getKeyLength() {
         return 32;
     }
-    
+
     @Override
     public String toString() {
         return "AESGCMCryptor()";

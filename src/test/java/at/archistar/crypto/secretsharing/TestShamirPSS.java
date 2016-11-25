@@ -22,7 +22,7 @@ public class TestShamirPSS extends BasicSecretSharingTest {
         GFFactory gffactory = new GF256Factory();
         DecoderFactory df = new ErasureDecoderFactory(gffactory);
         GF gf = gffactory.createHelper();
-        
+
         algorithm = new ShamirPSS(n, k, new FakeRandomSource(), df, gf);
     }
 }

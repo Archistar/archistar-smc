@@ -24,16 +24,16 @@ public class RNGPerformanceTest {
 
     @Parameters
     public static Collection<Object[]> data() throws GeneralSecurityException {
-        
+
         System.err.println("All operations are performed upon 500 pieces of 1MB share.");
-        
+
         Object[][] data = new Object[][]{
-            {new FakeRandomSource()},
-            {new StreamPRNG(StreamPRNG.SALSA20)},
-            {new StreamPRNG(StreamPRNG.HC128)},
-            {new CTRPRNG()},
-            {new JavaSecureRandom()},
-            {new BCDigestRandomSource()},
+                {new FakeRandomSource()},
+                {new StreamPRNG(StreamPRNG.SALSA20)},
+                {new StreamPRNG(StreamPRNG.HC128)},
+                {new CTRPRNG()},
+                {new JavaSecureRandom()},
+                {new BCDigestRandomSource()},
         };
 
         return Arrays.asList(data);
@@ -51,7 +51,7 @@ public class RNGPerformanceTest {
 
         System.out.format("%40s(as byte) %10dms\n", rng, end - start);
     }
-    
+
     @Test
     public void testPerformanceArrayInt() {
         int[] toBeFilled = new int[1024 * 1024];

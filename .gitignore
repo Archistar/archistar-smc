@@ -12,3 +12,6 @@ target/
 .classpath
 .project
 .settings
+
+.idea
+archistar-smc.iml

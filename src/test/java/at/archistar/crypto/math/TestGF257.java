@@ -1,14 +1,16 @@
 package at.archistar.crypto.math;
 
 import at.archistar.crypto.math.gf257.GF257;
+
 import static org.fest.assertions.api.Assertions.assertThat;
+
 import org.junit.Test;
 
 /**
  * @author andy
  */
 public class TestGF257 {
-    
+
     private final GF257 gf = new GF257();
 
     @Test
@@ -40,7 +42,7 @@ public class TestGF257 {
                 int tmp = gf.mult(i, j);
                 assertThat(tmp).isGreaterThanOrEqualTo(0);
                 assertThat(tmp).isLessThan(gf.getFieldSize());
-           }
+            }
         }
     }
 

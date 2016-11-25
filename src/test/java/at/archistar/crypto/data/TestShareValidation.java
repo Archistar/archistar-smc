@@ -1,111 +1,67 @@
 package at.archistar.crypto.data;
 
-import static at.archistar.crypto.data.Share.ENC_ALGORITHM;
-import static at.archistar.crypto.data.Share.ENC_KEY;
-import static at.archistar.crypto.data.Share.ORIGINAL_LENGTH;
-import static at.archistar.crypto.data.Share.ShareType.KRAWCZYK;
-import static at.archistar.crypto.data.Share.ShareType.RABIN_IDS;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.Test;
+
 import static org.fest.assertions.api.Assertions.*;
 
 /**
  * test share validations
- * 
+ *
  * TODO: need to document these
  */
 public class TestShareValidation {
-    
+
     private static final byte[] data = {1, 2, 3};
-    private static final Map<Byte, byte[]> emptyMetadata = new HashMap<>();
-    private static final Map<Byte, byte[]> emptyMacs = new HashMap<>();
-    
-    @Test(expected=InvalidParametersException.class)
+
+    private static final byte[] key = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,
+            21,22,23,24,25,26,27,28,29,30,31,32};
+
+    @Test(expected = InvalidParametersException.class)
     public void xMustNotBe0() throws InvalidParametersException {
-        Share share = ShareFactory.create(Share.ShareType.SHAMIR_PSS, (byte)0,
-                                          data, emptyMetadata);
+        Share share = new ShamirShare((byte) 0, data);
         assertThat(share).isNotNull();
     }
-    
-    @Test(expected=InvalidParametersException.class)
-    public void yMustNotBeNull() throws InvalidParametersException {
-        Share share = ShareFactory.create(Share.ShareType.SHAMIR_PSS, (byte)7,
-                                          null, emptyMetadata);
+
+    @Test
+    public void yMayBeNull() throws InvalidParametersException {
+        Share share = new ShamirShare((byte) 7, null);
         assertThat(share).isNotNull();
     }
 
     @Test
     public void allowValidShamirConstruction() throws InvalidParametersException {
-        Share share = ShareFactory.create(Share.ShareType.SHAMIR_PSS, (byte)7,
-                                          data, emptyMetadata);
+        Share share = new ShamirShare((byte) 7, data);
         assertThat(share).isNotNull();
     }
-    
-    @Test(expected=InvalidParametersException.class)
-    public void ShamirMetadataMustNotBeNull() throws InvalidParametersException {
-        Share share = ShareFactory.create(Share.ShareType.SHAMIR_PSS, (byte)7,
-                                          data, null);
-        assertThat(share).isNotNull();
-    }
-    
-    @Test(expected=InvalidParametersException.class)
-    public void RabinMustHaveOriginalLength() throws InvalidParametersException {
-        Share share = ShareFactory.create(Share.ShareType.RABIN_IDS, (byte)7,
-                                          data, emptyMetadata);
-        assertThat(share).isNotNull();
-    }
-    
-    @Test(expected=InvalidParametersException.class)
-    public void KrawcywkMustHaveOriginalLength() throws InvalidParametersException {
-        Map<Byte, byte[]> metadata = new HashMap<>();
-        metadata.put(ENC_ALGORITHM, ByteBuffer.allocate(4).putInt(1).array());
-        metadata.put(ENC_KEY, data);
-        
-        Share share = ShareFactory.create(Share.ShareType.KRAWCZYK, (byte)7, data , metadata);
-        assertThat(share).isNotNull();
-    }
-    
+
     @Test
     public void allowValidRabinConstruction() throws InvalidParametersException {
-        Map<Byte, byte[]> metadata = new HashMap<>();
-        metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(1).array());
-
-        Share share = ShareFactory.create(RABIN_IDS, (byte)7, data, metadata);
+        Share share = new RabinShare((byte) 7, data, 4);
         assertThat(share).isNotNull();
     }
-    
+
     @Test
-    public void allowValidKrawczwkConstruction() throws InvalidParametersException {
-        Map<Byte, byte[]> metadata = new HashMap<>();
-        metadata.put(ENC_ALGORITHM, ByteBuffer.allocate(4).putInt(1).array());
-        metadata.put(ENC_KEY, data);
-        metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(1).array());
-        
-        Share share = ShareFactory.create(KRAWCZYK, (byte)7, data , metadata);
+    public void allowValidKrawczykConstruction() throws InvalidParametersException {
+        Share share = new KrawczykShare((byte) 7, data, 10, 1, key);
         assertThat(share).isNotNull();
     }
 
-    
-    @Test(expected=InvalidParametersException.class)
+
+    @Test(expected = InvalidParametersException.class)
     public void KrawczykAlgMustNotBeNull() throws InvalidParametersException {
-        Map<Byte, byte[]> metadata = new HashMap<>();
-        metadata.put(ENC_KEY, data);
-        metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(1).array());
-
-        Share share = ShareFactory.create(KRAWCZYK, (byte)7, data, metadata);
+        Share share = new KrawczykShare((byte) 7, data, 1, 0, key);
         assertThat(share).isNotNull();
     }
 
-    @Test(expected=InvalidParametersException.class)
-    public void KrawczykKeyYMustNotBeNull() throws InvalidParametersException {
-        
-        Map<Byte, byte[]> metadata = new HashMap<>();
-        metadata.put(ENC_ALGORITHM, ByteBuffer.allocate(4).putInt(1).array());
-        metadata.put(ORIGINAL_LENGTH, ByteBuffer.allocate(4).putInt(1).array());
+    @Test(expected = InvalidParametersException.class)
+    public void KrawczykKeyMustNotBeNull() throws InvalidParametersException {
+        Share share = new KrawczykShare((byte) 7, data, 1, 1, null);
+        assertThat(share).isNotNull();
+    }
 
-        Share share = ShareFactory.create(KRAWCZYK, (byte) 7, data, metadata);
+    @Test(expected = InvalidParametersException.class)
+    public void KrawczykKeyMustBe32Bytes() throws InvalidParametersException {
+        Share share = new KrawczykShare((byte) 7, data, 1, 1, new byte[]{1,2,3});
         assertThat(share).isNotNull();
     }
 }
