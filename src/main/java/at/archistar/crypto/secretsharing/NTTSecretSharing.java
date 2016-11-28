@@ -205,6 +205,11 @@ abstract class NTTSecretSharing extends BaseSecretSharing {
         }
     }
 
+    @Override
+    public byte[] reconstructPartial(Share[] shares) throws ReconstructionException {
+        throw new ReconstructionException("Partial reconstruction is not possible with NTT Secret Sharing");
+    }
+
     protected int[] setupXValues(Share[] sshares, int shareSize) {
         int[] selectedXValues = new int[shareSize * sshares.length];
         for (int i = 0; i < sshares.length; i++) {

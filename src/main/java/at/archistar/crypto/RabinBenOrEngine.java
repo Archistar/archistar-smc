@@ -82,6 +82,14 @@ public class RabinBenOrEngine implements CryptoEngine {
     }
 
     @Override
+    public byte[] reconstructPartial(Share[] shares) throws ReconstructionException {
+        for (Share s : shares) {
+            s.setInformationChecking(Share.ICType.NONE);
+        }
+        return sharing.reconstructPartial(shares);
+    }
+
+    @Override
     public String toString() {
         return "Rabin-Ben-Or(Krawzywk(ChaCha20), Poly1305, " + k + "/" + n + ")";
     }

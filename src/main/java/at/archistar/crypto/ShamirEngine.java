@@ -47,7 +47,7 @@ public class ShamirEngine implements CryptoEngine {
      * @param rng random number generator to be used
      * @throws WeakSecurityException if the k/n selection is insecure
      */
-    ShamirEngine(int n, int k, RandomSource rng) throws WeakSecurityException {
+    public ShamirEngine(int n, int k, RandomSource rng) throws WeakSecurityException {
         GFFactory gffactory = new GF256Factory();
         DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
 
@@ -64,6 +64,14 @@ public class ShamirEngine implements CryptoEngine {
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
         return this.shamir.reconstruct(shares);
+    }
+
+    @Override
+    public byte[] reconstructPartial(Share[] shares) throws ReconstructionException {
+        for (Share s : shares) {
+            s.setInformationChecking(Share.ICType.NONE);
+        }
+        return this.shamir.reconstructPartial(shares);
     }
 
     @Override

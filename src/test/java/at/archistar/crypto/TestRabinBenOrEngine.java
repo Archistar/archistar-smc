@@ -1,5 +1,7 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.data.InvalidParametersException;
+import at.archistar.crypto.data.KrawczykShare;
 import at.archistar.crypto.informationchecking.RabinBenOrRSS;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.secretsharing.ReconstructionException;
@@ -22,7 +24,7 @@ import org.junit.Test;
  */
 public class TestRabinBenOrEngine {
 
-    private final byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    private final byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17};
     private final int n = 8;
     private final int k = 5;
     private final static RandomSource rng = new FakeRandomSource();
@@ -113,6 +115,26 @@ public class TestRabinBenOrEngine {
         final int new_length = data.length % k == 0 ? data.length / k : (data.length / k) + 1;
         for (Share s : shares) {
             assertThat(s.getYValues().length).isEqualTo(new_length);
+        }
+    }
+
+    @Test
+    public void reconstructPartialShares() throws InvalidParametersException, ReconstructionException {
+        Share[] shares = algorithm.share(data);
+        assertThat(shares.length).isEqualTo(n);
+        Share[] truncated = new Share[n];
+        int sharedLength = shares[0].getYValues().length;
+        for (int i = sharedLength + 1; i > 0; i--) {
+            for (int s = 0; s < n; s++) {
+                assert(shares[s] instanceof KrawczykShare);
+                KrawczykShare share = (KrawczykShare) shares[s];
+                truncated[s] = new KrawczykShare((byte) share.getX(), Arrays.copyOf(share.getYValues(), i),
+                        share.getOriginalLength(), 1, share.getKey());
+            }
+            byte[] reconstructed = algorithm.reconstructPartial(truncated);
+            int truncation = Math.min(data.length, i % k == 0 ? i * k : i * (k - 1));
+            // truncation of the reconstructed data is actually only needed when we are on the last block
+            assertThat(Arrays.copyOf(reconstructed, truncation)).isEqualTo(Arrays.copyOf(data, truncation));
         }
     }
 }

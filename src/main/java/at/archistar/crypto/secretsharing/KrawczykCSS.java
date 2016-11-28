@@ -123,8 +123,8 @@ public class KrawczykCSS extends BaseSecretSharing {
         }
     }
 
-    @Override
-    public byte[] reconstruct(Share[] shares) throws ReconstructionException {
+    @SuppressWarnings("cyclomaticcomplexity")
+    private byte[] reconstruct(Share[] shares, boolean partial) throws ReconstructionException {
 
         if (shares.length < k) {
             throw new ReconstructionException("too few shares");
@@ -157,13 +157,38 @@ public class KrawczykCSS extends BaseSecretSharing {
             }
 
             byte[] key = shamir.reconstruct(ecKey, xValues, originalLengthKey);
-            byte[] encShare = rs.reconstruct(ecContent, xValues, originalLengthContent);
+            byte[] encShare;
+            if (partial) {
+                int actualLengthContent = shares[0].getYValues().length;
+                for (Share s : shares) {
+                    if (s.getYValues().length != actualLengthContent) {
+                        throw new ReconstructionException("Shares have different actual length");
+                    }
+                }
+                int reconstructionLength = actualLengthContent % k == 0 ? actualLengthContent * k : actualLengthContent * (k - 1);
+                encShare = rs.reconstruct(ecContent, xValues, reconstructionLength);
+            } else {
+                encShare = rs.reconstruct(ecContent, xValues, originalLengthContent);
+            }
 
             return cryptor.decrypt(encShare, key);
         } catch (GeneralSecurityException | IOException | IllegalStateException | InvalidCipherTextException e) {
             // decryption should actually never fail
             throw new RuntimeException("impossible: reconstruction failed (" + e.getMessage() + ")");
         }
+    }
+
+    @Override
+    public byte[] reconstruct(Share[] shares) throws ReconstructionException {
+        return reconstruct(shares, false);
+    }
+
+    @Override
+    public byte[] reconstructPartial(Share[] shares) throws ReconstructionException {
+        if (cryptor instanceof AESEncryptor || cryptor instanceof AESGCMEncryptor) {
+            throw new ReconstructionException("Partial reconstruction not possible with given cypher");
+        }
+        return reconstruct(shares, true);
     }
 
     @Override
