@@ -82,11 +82,11 @@ public class RabinBenOrEngine implements CryptoEngine {
     }
 
     @Override
-    public byte[] reconstructPartial(Share[] shares) throws ReconstructionException {
+    public byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException {
         for (Share s : shares) {
             s.setInformationChecking(Share.ICType.NONE);
         }
-        return sharing.reconstructPartial(shares);
+        return sharing.reconstructPartial(shares, start);
     }
 
     @Override

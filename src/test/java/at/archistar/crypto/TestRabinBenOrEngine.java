@@ -118,23 +118,33 @@ public class TestRabinBenOrEngine {
         }
     }
 
+    /**
+     * test the reconstruction of partial shares by chopping off all possible parts
+     * of the shared data; therefore, reconstruction happens in increments of k
+     * (the index computations required for byte-precise access are the responsibility
+     * of the client)
+     */
     @Test
     public void reconstructPartialShares() throws InvalidParametersException, ReconstructionException {
         Share[] shares = algorithm.share(data);
         assertThat(shares.length).isEqualTo(n);
         Share[] truncated = new Share[n];
         int sharedLength = shares[0].getYValues().length;
-        for (int i = sharedLength + 1; i > 0; i--) {
-            for (int s = 0; s < n; s++) {
-                assert(shares[s] instanceof KrawczykShare);
-                KrawczykShare share = (KrawczykShare) shares[s];
-                truncated[s] = new KrawczykShare((byte) share.getX(), Arrays.copyOf(share.getYValues(), i),
-                        share.getOriginalLength(), 1, share.getKey());
+        for (int i = 0; i < sharedLength; i++) {
+            for (int j = i + 1; j <= sharedLength; j++) {
+                for (int s = 0; s < n; s++) {
+                    assert (shares[s] instanceof KrawczykShare);
+                    KrawczykShare share = (KrawczykShare) shares[s];
+                    truncated[s] = new KrawczykShare((byte) share.getX(), Arrays.copyOfRange(share.getYValues(), i, j),
+                            share.getOriginalLength(), 1, share.getKey());
+                }
+                byte[] reconstructed = algorithm.reconstructPartial(truncated, i * k);
+                int trunc_begin = i * k;
+                int trunc_end = Math.min(data.length, j * k);
+                int truncation = j * k > data.length ? data.length - (i * k) : (j - i) * k;
+                // truncation of the reconstructed data is actually only needed when we are on the last block
+                assertThat(Arrays.copyOf(reconstructed, truncation)).isEqualTo(Arrays.copyOfRange(data, trunc_begin, trunc_end));
             }
-            byte[] reconstructed = algorithm.reconstructPartial(truncated);
-            int truncation = Math.min(data.length, i % k == 0 ? i * k : i * (k - 1));
-            // truncation of the reconstructed data is actually only needed when we are on the last block
-            assertThat(Arrays.copyOf(reconstructed, truncation)).isEqualTo(Arrays.copyOf(data, truncation));
         }
     }
 }

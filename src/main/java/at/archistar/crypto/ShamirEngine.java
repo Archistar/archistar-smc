@@ -67,11 +67,11 @@ public class ShamirEngine implements CryptoEngine {
     }
 
     @Override
-    public byte[] reconstructPartial(Share[] shares) throws ReconstructionException {
+    public byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException {
         for (Share s : shares) {
             s.setInformationChecking(Share.ICType.NONE);
         }
-        return this.shamir.reconstructPartial(shares);
+        return this.shamir.reconstructPartial(shares, start);
     }
 
     @Override

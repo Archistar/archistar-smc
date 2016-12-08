@@ -50,8 +50,9 @@ public interface CryptoEngine {
      * reconstruct a part of the original data from the given partial shares
 
      * @param shares the split up data (should be a minimum of k shares)
+     * @param start the starting position relative to the original data
      * @return a part of the original data
      * @throws ReconstructionException is thrown is partial reconstruction failed or impossible in the given scheme
      */
-    public byte[] reconstructPartial(Share[] shares) throws ReconstructionException;
+    public byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException;
 }

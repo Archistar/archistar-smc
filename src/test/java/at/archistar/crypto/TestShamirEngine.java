@@ -46,7 +46,7 @@ public class TestShamirEngine {
             for (int s = 0; s < n; s++) {
                 truncated[s] = new ShamirShare((byte) shares[s].getX(), Arrays.copyOf(shares[s].getYValues(), i));
             }
-            byte[] reconstructed = algorithm.reconstructPartial(truncated);
+            byte[] reconstructed = algorithm.reconstructPartial(truncated, 0);
             assertThat(reconstructed).isEqualTo(Arrays.copyOf(data, i));
         }
     }

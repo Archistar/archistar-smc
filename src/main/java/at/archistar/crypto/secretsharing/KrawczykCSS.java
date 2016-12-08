@@ -15,6 +15,7 @@ import at.archistar.crypto.math.gf257.GF257;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.AESGCMEncryptor;
+import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import at.archistar.crypto.symmetric.Encryptor;
 
 import java.io.IOException;
@@ -124,8 +125,11 @@ public class KrawczykCSS extends BaseSecretSharing {
     }
 
     @SuppressWarnings("cyclomaticcomplexity")
-    private byte[] reconstruct(Share[] shares, boolean partial) throws ReconstructionException {
+    private byte[] reconstruct(Share[] shares, boolean partial, long start) throws ReconstructionException {
 
+        if (partial && !(cryptor instanceof ChaCha20Encryptor)) {
+            throw new ReconstructionException("Partial reconstruction non-compatible cypher attempted");
+        }
         if (shares.length < k) {
             throw new ReconstructionException("too few shares");
         }
@@ -157,7 +161,6 @@ public class KrawczykCSS extends BaseSecretSharing {
             }
 
             byte[] key = shamir.reconstruct(ecKey, xValues, originalLengthKey);
-            byte[] encShare;
             if (partial) {
                 int actualLengthContent = shares[0].getYValues().length;
                 for (Share s : shares) {
@@ -165,13 +168,11 @@ public class KrawczykCSS extends BaseSecretSharing {
                         throw new ReconstructionException("Shares have different actual length");
                     }
                 }
-                int reconstructionLength = actualLengthContent % k == 0 ? actualLengthContent * k : actualLengthContent * (k - 1);
-                encShare = rs.reconstruct(ecContent, xValues, reconstructionLength);
+                int reconstructionLength = actualLengthContent * k;
+                return ((ChaCha20Encryptor) cryptor).decrypt(rs.reconstruct(ecContent, xValues, reconstructionLength), key, start);
             } else {
-                encShare = rs.reconstruct(ecContent, xValues, originalLengthContent);
+                return cryptor.decrypt(rs.reconstruct(ecContent, xValues, originalLengthContent), key);
             }
-
-            return cryptor.decrypt(encShare, key);
         } catch (GeneralSecurityException | IOException | IllegalStateException | InvalidCipherTextException e) {
             // decryption should actually never fail
             throw new RuntimeException("impossible: reconstruction failed (" + e.getMessage() + ")");
@@ -180,15 +181,15 @@ public class KrawczykCSS extends BaseSecretSharing {
 
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
-        return reconstruct(shares, false);
+        return reconstruct(shares, false, 0);
     }
 
     @Override
-    public byte[] reconstructPartial(Share[] shares) throws ReconstructionException {
+    public byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException {
         if (cryptor instanceof AESEncryptor || cryptor instanceof AESGCMEncryptor) {
             throw new ReconstructionException("Partial reconstruction not possible with given cypher");
         }
-        return reconstruct(shares, true);
+        return reconstruct(shares, true, start);
     }
 
     @Override
