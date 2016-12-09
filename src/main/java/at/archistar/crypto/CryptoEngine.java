@@ -4,7 +4,7 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.secretsharing.ReconstructionException;
 
 /**
- * <p>This is the preferred interface for users of archistar-smc. It's implementations
+ * <p>This is the preferred interface for users of archistar-smc. Its implementations
  * combine all needed parts (secret-sharing, information-checking, decoder, etc.)
  * into usable crypto engines.</p>
  *
@@ -17,6 +17,15 @@ import at.archistar.crypto.secretsharing.ReconstructionException;
  * <p>This interface offers a simplified view to secret sharing, the two main
  * operations are: share for creating shares and reconstruct for reconstructing
  * the original secret from the given shares.</p>
+ *
+ * <p>There is also the possibility of trying to reconstruct partial shares. This
+ * is useful to access specific parts of the shared data.
+ * However, this is not possible when using a Krawczyk secret-sharing scheme with
+ * a cypher that tries to authenticate the data. Any attempt to reconstruct such a
+ * partial share will immediately throw a ReconstructionException. Also, be aware
+ * that the different secret-sharing schemes may impose different constraints on the
+ * alignment of the partial shares, and may also return data that has to be truncated
+ * on one or both ends.</p>
  */
 public interface CryptoEngine {
 
@@ -36,4 +45,14 @@ public interface CryptoEngine {
      * @throws ReconstructionException is thrown is reconstruction failed
      */
     public byte[] reconstruct(Share[] shares) throws ReconstructionException;
+
+    /**
+     * reconstruct a part of the original data from the given partial shares
+
+     * @param shares the split up data (should be a minimum of k shares)
+     * @param start the starting position relative to the original data
+     * @return a part of the original data
+     * @throws ReconstructionException is thrown is partial reconstruction failed or impossible in the given scheme
+     */
+    public byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException;
 }

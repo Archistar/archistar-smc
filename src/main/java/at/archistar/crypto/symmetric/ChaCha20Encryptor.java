@@ -49,6 +49,24 @@ public class ChaCha20Encryptor implements Encryptor {
         return result;
     }
 
+    /**
+     * Special method to decrypt partial data
+     *
+     * @param data to decrypt
+     * @param randomKeyBytes key to use
+     * @param startingByte the starting position within the (complete) data
+     * @return decrypted data
+     */
+    public byte[] decrypt(byte[] data, byte[] randomKeyBytes, long startingByte) {
+
+        ChaChaEngine cipher = new ChaChaEngine();
+        cipher.init(false, new ParametersWithIV(new KeyParameter(randomKeyBytes), randomIvBytes));
+        cipher.skip(startingByte);
+        byte[] result = new byte[data.length];
+        cipher.processBytes(data, 0, data.length, result, 0);
+        return result;
+    }
+
     @Override
     public int getKeyLength() {
         return 32;

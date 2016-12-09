@@ -203,6 +203,19 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
     }
 
     /**
+     * For this kind of scheme, partial reconstruction is the same as full reconstruction
+     *
+     * @param shares the partial shares to reconstruct the secret from
+     * @param start the starting position relative to the original data (ignored here)
+     * @return the partially reconstructed secret
+     * @throws ReconstructionException thrown if the reconstruction failed
+     */
+    @Override
+    public byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException {
+        return reconstruct(shares);
+    }
+
+    /**
      * While reconstructing the original secret the encrypted data is passed on
      * to an equation solver. The result of this operation is passed on to this
      * method which should extract the original data from the solver's result.
