@@ -10,7 +10,7 @@ page at http://checkstyle.sourceforge.net/config.html -->
     <module name="FileTabCharacter"/>
 
     <module name="StrictDuplicateCode">
-        <property name="min" value="20"/>
+        <property name="min" value="30"/>
     </module>
 
     <module name="SuppressWarningsFilter"/>

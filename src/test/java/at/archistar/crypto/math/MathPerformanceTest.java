@@ -2,7 +2,6 @@ package at.archistar.crypto.math;
 
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.gf256.GF256;
-import at.archistar.crypto.math.gf257.GF257;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -36,7 +35,6 @@ public class MathPerformanceTest {
         int b = 2;
         int c;
 
-        GF gf257 = new GF257();
         GF gf256 = new GF256();
         GF256 nativeGF256 = new GF256();
 
@@ -70,14 +68,6 @@ public class MathPerformanceTest {
             after = System.currentTimeMillis();
 
             sumGF256AddPoly += (after - before);
-        }
-
-        for (long i = 0; i < count; i++) {
-            before = System.currentTimeMillis();
-            c = gf257.add(a, b);
-            after = System.currentTimeMillis();
-
-            sumGF257AddPoly += (after - before);
         }
 
         for (long i = 0; i < count; i++) {
@@ -119,7 +109,6 @@ public class MathPerformanceTest {
         int b = 2;
         int c;
 
-        GF gf257 = new GF257();
         GF gf256 = new GF256();
         GF256 nativeGF256 = new GF256();
 
@@ -153,14 +142,6 @@ public class MathPerformanceTest {
             after = System.currentTimeMillis();
 
             sumGF256MultPoly += (after - before);
-        }
-
-        for (long i = 0; i < count; i++) {
-            before = System.currentTimeMillis();
-            c = gf257.mult(a, b);
-            after = System.currentTimeMillis();
-
-            sumGF257MultPoly += (after - before);
         }
 
         for (long i = 0; i < count; i++) {

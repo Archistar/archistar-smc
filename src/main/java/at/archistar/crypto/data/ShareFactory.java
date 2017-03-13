@@ -131,34 +131,6 @@ public class ShareFactory {
 
                     return new KrawczykShare(id, body, ic, macKeys, macs, originalLengthKrawczyk, encAlgorithm, encKey);
 
-                case "NTT_SHAMIR":
-                    final String olnsS = metaData.get("archistar-original-length");
-                    if (olnsS == null) {
-                        throw new InvalidParametersException("Invalid NTT Shamir share. No \"original-length\" datum found");
-                    }
-                    final int originalLengthNTTShamir = Integer.parseInt(olnsS);
-
-                    final String nsS = metaData.get("archistar-ntt-share-size");
-                    if (nsS == null) {
-                        throw new InvalidParametersException("Invalid NTT Shamir share. No \"ntt-share-size\" datum found");
-                    }
-                    final int nttShamirShareSize = Integer.parseInt(nsS);
-                    return new NTTShamirShare(id, body, ic, macKeys, macs, originalLengthNTTShamir, nttShamirShareSize);
-
-                case "NTT_RABIN":
-                    final String olnrS = metaData.get("archistar-original-length");
-                    if (olnrS == null) {
-                        throw new InvalidParametersException("Invalid NTT Rabin share. No \"original-length\" datum found");
-                    }
-                    final int originalLengthNTTRabin = Integer.parseInt(olnrS);
-
-                    final String nrS = metaData.get("archistar-ntt-share-size");
-                    if (nrS == null) {
-                        throw new InvalidParametersException("Invalid NTT Rabin share. No \"ntt-share-size\" datum found");
-                    }
-                    final int nttRabinShareSize = Integer.parseInt(nrS);
-                    return new NTTRabinShare(id, body, ic, macKeys, macs, originalLengthNTTRabin, nttRabinShareSize);
-
                 default:
                     throw new InvalidParametersException("Unknown share type: " + sT);
             }

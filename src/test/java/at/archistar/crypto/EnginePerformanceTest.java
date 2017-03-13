@@ -46,6 +46,8 @@ public class EnginePerformanceTest {
                 {secrets, new ShamirEngine(7, 3, rng)},
                 {secrets, new RabinBenOrEngine(4, 3, rng)},
                 {secrets, new RabinBenOrEngine(7, 3, rng)},
+                {secrets, new KrawczykEngine(4, 3, rng)},
+                {secrets, new KrawczykEngine(7, 3, rng)},
         };
 
         return Arrays.asList(data);

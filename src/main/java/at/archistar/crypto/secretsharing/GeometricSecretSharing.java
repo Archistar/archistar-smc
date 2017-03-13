@@ -5,12 +5,10 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
-import at.archistar.crypto.math.DynamicOutputEncoderConverter;
 import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.StaticOutputEncoderConverter;
-import at.archistar.crypto.math.gf257.GF257;
 
 /**
  * <p>this contains basic functionality utilized by RabinIDS and ShamirPSS.</p>
@@ -107,11 +105,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
         try {
             OutputEncoderConverter output[] = new OutputEncoderConverter[n];
             for (int i = 0; i < n; i++) {
-                if (gf instanceof GF257) {
-                    output[i] = new DynamicOutputEncoderConverter(data.length, gf);
-                } else {
-                    output[i] = new StaticOutputEncoderConverter(data.length);
-                }
+                output[i] = new StaticOutputEncoderConverter(data.length);
             }
 
             share(output, data);

@@ -6,12 +6,9 @@ import at.archistar.crypto.data.Share;
 
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
-import at.archistar.crypto.math.DynamicOutputEncoderConverter;
 import at.archistar.crypto.math.EncodingConverter;
 import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.StaticOutputEncoderConverter;
-import at.archistar.crypto.math.gf257.GF257;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.AESGCMEncryptor;
@@ -94,16 +91,11 @@ public class KrawczykCSS extends BaseSecretSharing {
             int newDataLength = baseDataLength % k == 0 ? baseDataLength / k : (baseDataLength / k) + 1;
 
             /* share key and content */
-            OutputEncoderConverter outputContent[] = new OutputEncoderConverter[n];
-            OutputEncoderConverter outputKey[] = new OutputEncoderConverter[n];
+            StaticOutputEncoderConverter outputContent[] = new StaticOutputEncoderConverter[n];
+            StaticOutputEncoderConverter outputKey[] = new StaticOutputEncoderConverter[n];
             for (int i = 0; i < n; i++) {
-                if (gf instanceof GF257) {
-                    outputKey[i] = new DynamicOutputEncoderConverter(encKey.length, gf);
-                    outputContent[i] = new DynamicOutputEncoderConverter(newDataLength, gf);
-                } else {
-                    outputKey[i] = new StaticOutputEncoderConverter(encKey.length);
-                    outputContent[i] = new StaticOutputEncoderConverter(newDataLength);
-                }
+                outputKey[i] = new StaticOutputEncoderConverter(encKey.length);
+                outputContent[i] = new StaticOutputEncoderConverter(newDataLength);
             }
 
             rs.share(outputContent, encSource);

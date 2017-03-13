@@ -7,9 +7,6 @@ import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.GFFactory;
 import at.archistar.crypto.math.gf256.GF256Factory;
-import at.archistar.crypto.math.gf257.GF257Factory;
-import at.archistar.crypto.math.ntt.AbstractNTT;
-import at.archistar.crypto.math.ntt.NTTDit2;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
@@ -57,17 +54,12 @@ public class PerformanceTest {
         RandomSource rng = new FakeRandomSource();
 
         GFFactory gffactory = new GF256Factory();
-        GFFactory gf257factory = new GF257Factory();
-        AbstractNTT ntt = new NTTDit2(gf257factory);
         DecoderFactory df = new ErasureDecoderFactory(gffactory);
-        DecoderFactory df257 = new ErasureDecoderFactory(gf257factory);
         GF gf = gffactory.createHelper();
 
         Object[][] data = new Object[][]{
                 {secrets, new ShamirPSS(n, k, rng, df, gf)},
                 {secrets, new RabinIDS(n, k, df, gf)},
-                {secrets, new NTTShamirPSS(n, k, generator, gf257factory, rng, ntt, df257)},
-                {secrets, new NTTRabinIDS(n, k, generator, gf257factory, ntt, df257)},
                 {secrets, new KrawczykCSS(n, k, rng, new AESEncryptor(), df, gf)},
                 {secrets, new KrawczykCSS(n, k, rng, new AESGCMEncryptor(), df, gf)},
                 {secrets, new KrawczykCSS(n, k, rng, new ChaCha20Encryptor(), df, gf)}
@@ -94,26 +86,18 @@ public class PerformanceTest {
                 long betweenOperations = System.currentTimeMillis();
 
                 long afterAll;
-                if (algorithm instanceof NTTSecretSharing) {
-                    /* don't test reconstruction for now, it's way too slow */
-                    afterAll = System.currentTimeMillis();
-                } else {
-                    byte[] reconstructed = algorithm.reconstruct(shares);
-                    afterAll = System.currentTimeMillis();
+                byte[] reconstructed = algorithm.reconstruct(shares);
+                afterAll = System.currentTimeMillis();
 
-                    /* test that the reconstructed stuff is the same as the original one */
-                    assertThat(reconstructed).isEqualTo(data);
-                }
-
+                /* test that the reconstructed stuff is the same as the original one */
+                assertThat(reconstructed).isEqualTo(data);
+                
                 sumShare += (betweenOperations - beforeShare);
                 sumCombine += (afterAll - betweenOperations);
             }
 
-            if (algorithm instanceof NTTSecretSharing) {
-                System.err.format("%33s %4dkB %12.1f\n", algorithm, input[i][0].length / 1024, (TestHelper.TEST_SIZE / 1024) / (sumShare / 1000.0));
-            } else {
-                System.err.format("%33s %4dkB %12.1f %12.1f\n", algorithm, this.input[i][0].length / 1024, (TestHelper.TEST_SIZE / 1024) / (sumShare / 1000.0), (TestHelper.TEST_SIZE / 1024) / (sumCombine / 1000.0));
-            }
+
+           System.err.format("%33s %4dkB %12.1f %12.1f\n", algorithm, this.input[i][0].length / 1024, (TestHelper.TEST_SIZE / 1024) / (sumShare / 1000.0), (TestHelper.TEST_SIZE / 1024) / (sumCombine / 1000.0));
         }
     }
 }
