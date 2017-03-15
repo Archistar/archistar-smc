@@ -6,7 +6,6 @@ import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.math.EncodingConverter;
-import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.StaticOutputEncoderConverter;
 import at.archistar.crypto.math.gf256.GF256;
 
@@ -70,7 +69,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
      * @param data the data to share secretly
      * @param output n buffers where the output will be stored
      */
-    public void share(OutputEncoderConverter output[], byte[] data) {
+    public void share(StaticOutputEncoderConverter output[], byte[] data) {
         assert (output.length == n);
         int coeffs[] = new int[k];
 
@@ -80,7 +79,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
             /* calculate the share a value for this byte for every share */
             for (int j = 0; j < n; j++) {
                 // skip evaluation in case all coefficients are 0
-                output[j].append(checkForZeros(coeffs) ? 0 : GF256.evaluateAt(coeffs, xValues[j]));
+                output[j].write(checkForZeros(coeffs) ? 0 : GF256.evaluateAt(coeffs, xValues[j]));
             }
         }
     }
@@ -98,7 +97,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
             data = new byte[0];
         }
         try {
-            OutputEncoderConverter output[] = new OutputEncoderConverter[n];
+            StaticOutputEncoderConverter output[] = new StaticOutputEncoderConverter[n];
             for (int i = 0; i < n; i++) {
                 output[i] = new StaticOutputEncoderConverter(data.length);
             }
@@ -123,7 +122,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
      * @throws InvalidParametersException if no valid share was build
      */
     protected abstract Share[] createShares(int[] xValues,
-                                            OutputEncoderConverter[] results,
+                                            StaticOutputEncoderConverter[] results,
                                             int originalLength) throws InvalidParametersException;
 
     /**

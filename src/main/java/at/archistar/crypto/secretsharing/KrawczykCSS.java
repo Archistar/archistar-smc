@@ -100,8 +100,8 @@ public class KrawczykCSS extends BaseSecretSharing {
             //Generate a new array of encrypted shares
             Share[] kshares = new Share[n];
             for (int i = 0; i < kshares.length; i++) {
-                kshares[i] = new KrawczykShare((byte) (i + 1), outputContent[i].getEncodedData(),
-                        encSource.length, 1, outputKey[i].getEncodedData());
+                kshares[i] = new KrawczykShare((byte) (i + 1), outputContent[i].toByteArray(),
+                        encSource.length, 1, outputKey[i].toByteArray());
 
             }
 

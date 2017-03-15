@@ -5,7 +5,7 @@ import at.archistar.crypto.data.RabinShare;
 import at.archistar.crypto.data.Share;
 
 import at.archistar.crypto.decode.DecoderFactory;
-import at.archistar.crypto.math.OutputEncoderConverter;
+import at.archistar.crypto.math.StaticOutputEncoderConverter;
 
 /**
  * <p>This class implements Rabin IDS (aka Reed-Solomon Code).</p>
@@ -68,11 +68,11 @@ public class RabinIDS extends GeometricSecretSharing {
     }
 
     @Override
-    protected Share[] createShares(int[] xValues, OutputEncoderConverter[] results, int originalLength) throws InvalidParametersException {
+    protected Share[] createShares(int[] xValues, StaticOutputEncoderConverter[] results, int originalLength) throws InvalidParametersException {
         Share shares[] = new Share[n];
 
         for (int i = 0; i < n; i++) {
-            shares[i] = new RabinShare((byte) xValues[i], results[i].getEncodedData(), originalLength);
+            shares[i] = new RabinShare((byte) xValues[i], results[i].toByteArray(), originalLength);
         }
 
         return shares;

@@ -9,7 +9,7 @@ import java.util.Arrays;
  * This version does not do any conversion -- thus it can only be used for
  * operations within a GF <= 2^8
  */
-public class StaticOutputEncoderConverter implements OutputEncoderConverter {
+public class StaticOutputEncoderConverter {
 
     private final byte buffer[];
 
@@ -27,8 +27,7 @@ public class StaticOutputEncoderConverter implements OutputEncoderConverter {
      *
      * @param value to be added
      */
-    @Override
-    public void append(int value) {
+    public void write(int value) {
         buffer[pos++] = (byte) value;
     }
 
@@ -39,8 +38,7 @@ public class StaticOutputEncoderConverter implements OutputEncoderConverter {
      * @param offset from where to start to take the values from
      * @param count how many values to take
      */
-    @Override
-    public void append(int[] values, int offset, int count) {
+    public void write(int[] values, int offset, int count) {
 
         for (int i = 0; i < count; i++) {
             buffer[pos++] = (byte) values[offset + i];
@@ -50,8 +48,7 @@ public class StaticOutputEncoderConverter implements OutputEncoderConverter {
     /**
      * @return encoded data
      */
-    @Override
-    public byte[] getEncodedData() {
+    public byte[] toByteArray() {
         return Arrays.copyOf(buffer, pos);
     }
 }

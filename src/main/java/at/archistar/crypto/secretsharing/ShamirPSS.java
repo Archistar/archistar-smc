@@ -4,7 +4,7 @@ import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
-import at.archistar.crypto.math.OutputEncoderConverter;
+import at.archistar.crypto.math.StaticOutputEncoderConverter;
 import at.archistar.crypto.random.RandomSource;
 
 /**
@@ -58,11 +58,11 @@ public class ShamirPSS extends GeometricSecretSharing {
     }
 
     @Override
-    protected Share[] createShares(int[] xValues, OutputEncoderConverter[] results, int originalLength) throws InvalidParametersException {
+    protected Share[] createShares(int[] xValues, StaticOutputEncoderConverter[] results, int originalLength) throws InvalidParametersException {
         Share shares[] = new Share[n];
 
         for (int i = 0; i < n; i++) {
-            shares[i] = new ShamirShare((byte) xValues[i], results[i].getEncodedData());
+            shares[i] = new ShamirShare((byte) xValues[i], results[i].toByteArray());
         }
 
         return shares;
