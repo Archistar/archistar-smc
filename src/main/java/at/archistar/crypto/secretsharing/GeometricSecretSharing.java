@@ -6,9 +6,9 @@ import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.math.EncodingConverter;
-import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.math.StaticOutputEncoderConverter;
+import at.archistar.crypto.math.gf256.GF256;
 
 /**
  * <p>this contains basic functionality utilized by RabinIDS and ShamirPSS.</p>
@@ -26,9 +26,6 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
 
     private final DecoderFactory decoderFactory;
 
-    /** the mathematical field all operations are performed in */
-    protected final GF gf;
-
     /**
      * this describes how many (secret) original data bytes are encoded per
      * encryption round -- this is supposed to be overwritten by subclasses
@@ -43,13 +40,11 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
      * @param n the number of shares to create
      * @param k the minimum number of shares required for reconstruction
      * @param decoderFactory the solving algorithm to use for reconstructing the secret
-     * @param gf the field within which we will be doing all our computation
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
-    public GeometricSecretSharing(int n, int k, DecoderFactory decoderFactory, GF gf) throws WeakSecurityException {
+    public GeometricSecretSharing(int n, int k, DecoderFactory decoderFactory) throws WeakSecurityException {
         super(n, k);
         this.decoderFactory = decoderFactory;
-        this.gf = gf;
 
         xValues = new int[n];
         for (int i = 0; i < n; i++) {
@@ -85,7 +80,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
             /* calculate the share a value for this byte for every share */
             for (int j = 0; j < n; j++) {
                 // skip evaluation in case all coefficients are 0
-                output[j].append(checkForZeros(coeffs) ? 0 : gf.evaluateAt(coeffs, xValues[j]));
+                output[j].append(checkForZeros(coeffs) ? 0 : GF256.evaluateAt(coeffs, xValues[j]));
             }
         }
     }
@@ -180,7 +175,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
 
         EncodingConverter input[] = new EncodingConverter[shares.length];
         for (int i = 0; i < shares.length; i++) {
-            input[i] = new EncodingConverter(shares[i].getYValues(), gf);
+            input[i] = new EncodingConverter(shares[i].getYValues());
         }
 
         int originalLength = shares[0].getOriginalLength();

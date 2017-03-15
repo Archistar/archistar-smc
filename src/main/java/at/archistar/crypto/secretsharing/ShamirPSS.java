@@ -4,7 +4,6 @@ import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
-import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.OutputEncoderConverter;
 import at.archistar.crypto.random.RandomSource;
 
@@ -34,8 +33,8 @@ public class ShamirPSS extends GeometricSecretSharing {
      * @param decoderFactory the solving algorithm to use for reconstructing the secret
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
-    public ShamirPSS(int n, int k, RandomSource rng, DecoderFactory decoderFactory, GF gf) throws WeakSecurityException {
-        super(n, k, decoderFactory, gf);
+    public ShamirPSS(int n, int k, RandomSource rng, DecoderFactory decoderFactory) throws WeakSecurityException {
+        super(n, k, decoderFactory);
 
         this.dataPerRound = 1;
         this.rng = rng;

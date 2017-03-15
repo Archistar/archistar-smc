@@ -3,8 +3,6 @@ package at.archistar.crypto;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
-import at.archistar.crypto.math.GFFactory;
-import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.BCDigestRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.KrawczykCSS;
@@ -50,10 +48,9 @@ public class KrawczykEngine implements CryptoEngine {
      * @throws WeakSecurityException if the k/n selection is insecure
      */
     public KrawczykEngine(int n, int k, RandomSource rng) throws WeakSecurityException {
-        GFFactory gffactory = new GF256Factory();
-        DecoderFactory decoderFactory = new ErasureDecoderFactory(gffactory);
+        DecoderFactory decoderFactory = new ErasureDecoderFactory();
 
-        this.shamir = new KrawczykCSS(n, k, rng, new ChaCha20Encryptor(), decoderFactory, gffactory.createHelper());
+        this.shamir = new KrawczykCSS(n, k, rng, new ChaCha20Encryptor(), decoderFactory);
         this.n = n;
         this.k = k;
     }

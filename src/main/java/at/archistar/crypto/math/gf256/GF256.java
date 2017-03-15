@@ -1,6 +1,5 @@
 package at.archistar.crypto.math.gf256;
 
-import at.archistar.crypto.math.GF;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
@@ -27,7 +26,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * So this class may not be suitable for all use-cases.
  * (but definitively suitable for the <i>Archistar</i>-project)
  */
-public class GF256 implements GF {
+public class GF256 {
     private static final int GEN_POLY = 0x11D; // a generator polynomial of GF(256)
 
     /**
@@ -85,8 +84,7 @@ public class GF256 implements GF {
      * @param b number in range 0 - 255
      * @return the result of <i>a + b</i> in GF(256) (will be in range 0 - 255)
      */
-    @Override
-    public int add(int a, int b) {
+    public static int add(int a, int b) {
         return a ^ b;
     }
 
@@ -98,8 +96,7 @@ public class GF256 implements GF {
      * @param b number in range 0 - 255
      * @return the result of <i>a - b</i> in GF(256) (will be in range 0 - 255)
      */
-    @Override
-    public int sub(int a, int b) {
+    public static int sub(int a, int b) {
         return a ^ b;
     }
 
@@ -110,8 +107,7 @@ public class GF256 implements GF {
      * @param b number in range 0 - 255
      * @return the result of <i>a × b</i> in GF(256) (will be in range 0 - 255)
      */
-    @Override
-    public int mult(int a, int b) {
+    public static int mult(int a, int b) {
         return ALOG_TABLE[LOG_TABLE[a] + LOG_TABLE[b]];
     }
 
@@ -122,8 +118,7 @@ public class GF256 implements GF {
      * @param p the exponent; a number in range 0 - 255
      * @return the result of <i>a<sup>p</sup></i> in GF(256) (will be in range 0 - 255)
      */
-    @Override
-    public int pow(int a, int p) {
+    public static int pow(int a, int p) {
         // The use of 512 for LOG[0] and the all-zero last half of ALOG cleverly
         // avoids testing 0 in mult, but can't survive arbitrary p*...%255 here.
         if (0 == a && 0 != p) {
@@ -138,13 +133,11 @@ public class GF256 implements GF {
      * @param a number in range 0 - 255
      * @return the inverse of a <i>(a<sup>-1</sup>)</i> in GF(256) (will be in range 0 - 255)
      */
-    @Override
-    public int inverse(int a) {
+    public static int inverse(int a) {
         return ALOG_TABLE[255 - (LOG_TABLE[a] % 255)];
     }
 
-    @Override
-    public int div(int a, int b) {
+    public static int div(int a, int b) {
         if (b == 0) { // a / 0
             throw new ArithmeticException("Division by 0");
         }
@@ -152,8 +145,7 @@ public class GF256 implements GF {
         return ALOG_TABLE[LOG_TABLE[a] + 255 - LOG_TABLE[b]];
     }
 
-    @Override
-    public int evaluateAt(int coeffs[], int x) {
+    public static int evaluateAt(int coeffs[], int x) {
         int degree = coeffs.length - 1;
 
         /* @author flexiprovider */
@@ -164,8 +156,7 @@ public class GF256 implements GF {
         return result;
     }
 
-    @Override
-    public int getFieldSize() {
+    public static int getFieldSize() {
         return 256;
     }
 }

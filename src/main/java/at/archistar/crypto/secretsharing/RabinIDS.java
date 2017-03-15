@@ -5,7 +5,6 @@ import at.archistar.crypto.data.RabinShare;
 import at.archistar.crypto.data.Share;
 
 import at.archistar.crypto.decode.DecoderFactory;
-import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.OutputEncoderConverter;
 
 /**
@@ -31,11 +30,10 @@ public class RabinIDS extends GeometricSecretSharing {
      * @param n the number of shares to create
      * @param k the minimum number of shares required for reconstruction
      * @param decoderFactory the solving algorithm to use for reconstructing the secret
-     * @param gf the field within which we will be doing all our computation
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
-    public RabinIDS(int n, int k, DecoderFactory decoderFactory, GF gf) throws WeakSecurityException {
-        super(n, k, decoderFactory, gf);
+    public RabinIDS(int n, int k, DecoderFactory decoderFactory) throws WeakSecurityException {
+        super(n, k, decoderFactory);
 
         this.dataPerRound = k;
     }

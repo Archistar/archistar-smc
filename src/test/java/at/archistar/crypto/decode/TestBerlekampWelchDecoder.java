@@ -1,14 +1,11 @@
 package at.archistar.crypto.decode;
 
-import at.archistar.crypto.math.GFFactory;
-import at.archistar.crypto.math.gf256.GF256Factory;
 import org.junit.Test;
 
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.random.JavaSecureRandom;
 import org.bouncycastle.pqc.math.linearalgebra.GF2mField;
 import org.bouncycastle.pqc.math.linearalgebra.PolynomialGF2mSmallM;
-import org.bouncycastle.util.Arrays;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
@@ -16,8 +13,6 @@ import static org.fest.assertions.api.Assertions.assertThat;
  * Basic BerlekampWelch-Decoder Test
  */
 public class TestBerlekampWelchDecoder {
-
-    private static final GFFactory gffactory = new GF256Factory();
 
     /**
      * Generates a random array of the given size in O(r) time. This array will
@@ -88,7 +83,7 @@ public class TestBerlekampWelchDecoder {
         int[] y = {153, 174, 168, 62}; // 153, 174, 168, 62
         int[] expected = {117, 234};
 
-        Decoder polySolver = new BerlekampWelchDecoder(x, 2, gffactory);
+        Decoder polySolver = new BerlekampWelchDecoder(x, 2);
         assertThat(polySolver.decode(y, 0)).isEqualTo(expected);
     }
 
@@ -99,7 +94,7 @@ public class TestBerlekampWelchDecoder {
         int[] y = {153, 174, 244, 62}; // 153, 174, 168, 62
         int[] expected = {117, 234};
 
-        Decoder polySolver = new BerlekampWelchDecoder(x, 2, gffactory);
+        Decoder polySolver = new BerlekampWelchDecoder(x, 2);
         assertThat(polySolver.decode(y, 1)).isEqualTo(expected);
     }
 
@@ -110,7 +105,7 @@ public class TestBerlekampWelchDecoder {
         int[] y = {153, 174, 168, 62}; // 153, 174, 168, 62
         int[] expected = {117, 234};
 
-        Decoder polySolver = new BerlekampWelchDecoder(x, 2, gffactory);
+        Decoder polySolver = new BerlekampWelchDecoder(x, 2);
         assertThat(polySolver.decode(y, 1)).isEqualTo(expected);
     }
 
@@ -127,7 +122,7 @@ public class TestBerlekampWelchDecoder {
 
         genRandomTest(x, y, expected, coeffs, n, f);
 
-        Decoder polySolver = new BerlekampWelchDecoder(x, coeffs, gffactory);
+        Decoder polySolver = new BerlekampWelchDecoder(x, coeffs);
         assertThat(polySolver.decode(y, f)).isEqualTo(expected);
     }
 
@@ -138,7 +133,7 @@ public class TestBerlekampWelchDecoder {
         int[] y = {37, 225, 176, 89, 210}; // 37, 224, 176, 89, 210
         int[] expected = {23, 235, 78};
 
-        Decoder polySolver = new BerlekampWelchDecoder(x, 3, gffactory);
+        Decoder polySolver = new BerlekampWelchDecoder(x, 3);
         assertThat(polySolver.decode(y, 1)).isEqualTo(expected);
     }
 
@@ -155,7 +150,7 @@ public class TestBerlekampWelchDecoder {
 
         genRandomTest(x, y, expected, coeffs, n, f);
 
-        Decoder polySolver = new BerlekampWelchDecoder(x, coeffs, gffactory);
+        Decoder polySolver = new BerlekampWelchDecoder(x, coeffs);
         polySolver.decode(y, f);
     }
 }

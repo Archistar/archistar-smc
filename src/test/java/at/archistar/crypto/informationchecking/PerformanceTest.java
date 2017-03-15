@@ -7,8 +7,6 @@ import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.mac.BCPoly1305MacHelper;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.mac.JavaMacHelper;
-import at.archistar.crypto.math.GFFactory;
-import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.SecretSharing;
@@ -51,13 +49,12 @@ public class PerformanceTest {
         final int n = 5;
         final int k = 3;
 
-        GFFactory gffactory = new GF256Factory();
-        ErasureDecoderFactory df = new ErasureDecoderFactory(gffactory);
+        ErasureDecoderFactory df = new ErasureDecoderFactory();
 
         RandomSource rng = new FakeRandomSource();
         MacHelper mac = new JavaMacHelper("HMacSHA256");
         MacHelper macPoly1305 = new BCPoly1305MacHelper();
-        SecretSharing secretSharing = new ShamirPSS(n, k, rng, df, gffactory.createHelper());
+        SecretSharing secretSharing = new ShamirPSS(n, k, rng, df);
 
         Share[][] shares = new Share[][]{
                 secretSharing.share(createData(4 * 1024)),

@@ -7,7 +7,6 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
 import at.archistar.crypto.math.EncodingConverter;
-import at.archistar.crypto.math.GF;
 import at.archistar.crypto.math.StaticOutputEncoderConverter;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
@@ -48,8 +47,6 @@ public class KrawczykCSS extends BaseSecretSharing {
 
     private final Encryptor cryptor;
 
-    private final GF gf;
-
     /**
      * Constructor
      * (Applying the default settings for the Shamir-RNG and the decoders: {@link SHA1PRNG} and {@link ErasureDecoder})
@@ -62,14 +59,13 @@ public class KrawczykCSS extends BaseSecretSharing {
      */
     public KrawczykCSS(int n, int k, RandomSource rng,
                        Encryptor cryptor,
-                       DecoderFactory decFactory, GF gf) throws WeakSecurityException {
+                       DecoderFactory decFactory) throws WeakSecurityException {
         super(n, k);
 
-        this.shamir = new ShamirPSS(n, k, rng, decFactory, gf);
-        this.rs = new RabinIDS(n, k, decFactory, gf);
+        this.shamir = new ShamirPSS(n, k, rng, decFactory);
+        this.rs = new RabinIDS(n, k, decFactory);
         this.cryptor = cryptor;
         this.rng = rng;
-        this.gf = gf;
     }
 
     @Override
@@ -148,8 +144,8 @@ public class KrawczykCSS extends BaseSecretSharing {
             EncodingConverter[] ecKey = new EncodingConverter[shares.length];
             EncodingConverter[] ecContent = new EncodingConverter[shares.length];
             for (int i = 0; i < shares.length; i++) {
-                ecKey[i] = new EncodingConverter(((KrawczykShare) shares[i]).getKey(), gf);
-                ecContent[i] = new EncodingConverter(shares[i].getYValues(), gf);
+                ecKey[i] = new EncodingConverter(((KrawczykShare) shares[i]).getKey());
+                ecContent[i] = new EncodingConverter(shares[i].getYValues());
             }
 
             byte[] key = shamir.reconstruct(ecKey, xValues, originalLengthKey);

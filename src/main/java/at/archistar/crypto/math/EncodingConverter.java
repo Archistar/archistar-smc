@@ -22,7 +22,7 @@ public class EncodingConverter {
      * @param gf
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public EncodingConverter(byte[] data, GF gf) {
+    public EncodingConverter(byte[] data) {
         this.data = data;
     }
 

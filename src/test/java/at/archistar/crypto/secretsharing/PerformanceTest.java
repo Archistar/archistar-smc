@@ -4,9 +4,6 @@ import at.archistar.TestHelper;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
-import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.GFFactory;
-import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
@@ -53,16 +50,14 @@ public class PerformanceTest {
 
         RandomSource rng = new FakeRandomSource();
 
-        GFFactory gffactory = new GF256Factory();
-        DecoderFactory df = new ErasureDecoderFactory(gffactory);
-        GF gf = gffactory.createHelper();
+        DecoderFactory df = new ErasureDecoderFactory();
 
         Object[][] data = new Object[][]{
-                {secrets, new ShamirPSS(n, k, rng, df, gf)},
-                {secrets, new RabinIDS(n, k, df, gf)},
-                {secrets, new KrawczykCSS(n, k, rng, new AESEncryptor(), df, gf)},
-                {secrets, new KrawczykCSS(n, k, rng, new AESGCMEncryptor(), df, gf)},
-                {secrets, new KrawczykCSS(n, k, rng, new ChaCha20Encryptor(), df, gf)}
+                {secrets, new ShamirPSS(n, k, rng, df)},
+                {secrets, new RabinIDS(n, k, df)},
+                {secrets, new KrawczykCSS(n, k, rng, new AESEncryptor(), df)},
+                {secrets, new KrawczykCSS(n, k, rng, new AESGCMEncryptor(), df)},
+                {secrets, new KrawczykCSS(n, k, rng, new ChaCha20Encryptor(), df)}
         };
 
         return Arrays.asList(data);

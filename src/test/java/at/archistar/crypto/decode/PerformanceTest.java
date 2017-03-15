@@ -3,9 +3,6 @@ package at.archistar.crypto.decode;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.secretsharing.ReconstructionException;
 import at.archistar.crypto.secretsharing.WeakSecurityException;
-import at.archistar.crypto.math.GFFactory;
-import at.archistar.crypto.math.bc.BCGFFactory;
-import at.archistar.crypto.math.gf256.GF256Factory;
 import at.archistar.crypto.secretsharing.RabinIDS;
 import at.archistar.crypto.secretsharing.SecretSharing;
 
@@ -30,9 +27,6 @@ public class PerformanceTest {
     private final SecretSharing algorithm;
     private final String name;
 
-    private static final GFFactory gf256factory = new GF256Factory();
-    private static final GFFactory bcgffactory = new BCGFFactory();
-
     private static final int size = 1024;
 
     private static byte[][] createArray(int testSize) {
@@ -55,10 +49,8 @@ public class PerformanceTest {
         final int k = 3;
 
         Object[][] data = new Object[][]{
-                {"Rabin/Erasure mit GF256", secrets256, new RabinIDS(n, k, new ErasureDecoderFactory(gf256factory), gf256factory.createHelper())},
-                {"Rabin/Erasure mit BCGF256", secrets256, new RabinIDS(n, k, new ErasureDecoderFactory(bcgffactory), bcgffactory.createHelper())},
-                {"Rabin/BW mit GF256", secrets256, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(gf256factory), gf256factory.createHelper())},
-                {"Rabin/BW mit BCGF256", secrets256, new RabinIDS(n, k, new BerlekampWelchDecoderFactory(bcgffactory), bcgffactory.createHelper())},
+                {"Rabin/Erasure mit GF256", secrets256, new RabinIDS(n, k, new ErasureDecoderFactory())},
+                {"Rabin/BW mit GF256", secrets256, new RabinIDS(n, k, new BerlekampWelchDecoderFactory())},
         };
         return Arrays.asList(data);
     }
