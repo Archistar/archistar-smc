@@ -24,7 +24,7 @@ public class PolyHash implements MacHelper {
     private static int[] createIntArrayFromByte(byte[] a) {
         int[] b = new int[a.length];
         for (int i = 0; i < a.length; i++) {
-            b[i] = (a[i] < 0) ? a[i] + 256 : a[i];
+            b[i] = a[1] & 0xff;
         }
         return b;
     }

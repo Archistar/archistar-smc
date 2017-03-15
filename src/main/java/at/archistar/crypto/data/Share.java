@@ -111,7 +111,7 @@ public abstract class Share implements Comparable<Share> {
     public byte[] getYValues() {
         return yValues;
     }
-
+    
     private static void writeMap(DataOutputStream sout, Map<Byte, byte[]> map) throws IOException {
         sout.writeInt(map.size());
         for (Map.Entry<Byte, byte[]> e : map.entrySet()) {

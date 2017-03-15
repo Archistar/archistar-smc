@@ -30,8 +30,11 @@ public class TestRabinIDS extends BasicSecretSharingTest {
     public void it_produces_shares_of_the_right_size() throws IOException {
         final Share[] shares = algorithm.share(data);
         final int new_length = data.length % k == 0 ? data.length / k : (data.length / k) + 1;
+        
         for (Share s : shares) {
-            assertThat(s.getYValues().length).isEqualTo(new_length);
+            int len1 = s.getYValues().length;
+            
+            assertThat(len1).isEqualTo(new_length);
         }
     }
 }

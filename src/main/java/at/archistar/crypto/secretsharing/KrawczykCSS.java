@@ -6,8 +6,6 @@ import at.archistar.crypto.data.Share;
 
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
-import at.archistar.crypto.math.EncodingConverter;
-import at.archistar.crypto.math.StaticOutputEncoderConverter;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.AESGCMEncryptor;
@@ -87,21 +85,17 @@ public class KrawczykCSS extends BaseSecretSharing {
             int newDataLength = baseDataLength % k == 0 ? baseDataLength / k : (baseDataLength / k) + 1;
 
             /* share key and content */
-            StaticOutputEncoderConverter outputContent[] = new StaticOutputEncoderConverter[n];
-            StaticOutputEncoderConverter outputKey[] = new StaticOutputEncoderConverter[n];
-            for (int i = 0; i < n; i++) {
-                outputKey[i] = new StaticOutputEncoderConverter(encKey.length);
-                outputContent[i] = new StaticOutputEncoderConverter(newDataLength);
-            }
-
+            byte[][] outputContent = new byte[n][newDataLength];
+            byte[][] outputKey = new byte[n][encKey.length];
+            
             rs.share(outputContent, encSource);
             shamir.share(outputKey, encKey);
 
             //Generate a new array of encrypted shares
             Share[] kshares = new Share[n];
             for (int i = 0; i < kshares.length; i++) {
-                kshares[i] = new KrawczykShare((byte) (i + 1), outputContent[i].toByteArray(),
-                        encSource.length, 1, outputKey[i].toByteArray());
+                kshares[i] = new KrawczykShare((byte) (i + 1), outputContent[i],
+                        encSource.length, 1, outputKey[i]);
 
             }
 
@@ -141,13 +135,15 @@ public class KrawczykCSS extends BaseSecretSharing {
 
         try {
             int[] xValues = GeometricSecretSharing.extractXVals(shares, k);
-            EncodingConverter[] ecKey = new EncodingConverter[shares.length];
-            EncodingConverter[] ecContent = new EncodingConverter[shares.length];
-            for (int i = 0; i < shares.length; i++) {
-                ecKey[i] = new EncodingConverter(((KrawczykShare) shares[i]).getKey());
-                ecContent[i] = new EncodingConverter(shares[i].getYValues());
-            }
+           
+            byte[][] ecContent = new byte[n][];
+            byte[][] ecKey = new byte[n][];
 
+            for(int i = 0; i < k; i++) {
+                ecContent[i] = shares[i].getYValues();
+                ecKey[i] = ((KrawczykShare) shares[i]).getKey();
+            }
+            
             byte[] key = shamir.reconstruct(ecKey, xValues, originalLengthKey);
             if (partial) {
                 int actualLengthContent = shares[0].getYValues().length;

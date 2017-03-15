@@ -5,8 +5,6 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
-import at.archistar.crypto.math.EncodingConverter;
-import at.archistar.crypto.math.StaticOutputEncoderConverter;
 import at.archistar.crypto.math.gf256.GF256;
 
 /**
@@ -69,9 +67,10 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
      * @param data the data to share secretly
      * @param output n buffers where the output will be stored
      */
-    public void share(StaticOutputEncoderConverter output[], byte[] data) {
+    public void share(byte[][] output, byte[] data) {
         assert (output.length == n);
         int coeffs[] = new int[k];
+        int pos = 0;
 
         for (int i = 0; i < data.length; i += dataPerRound) {
             encodeData(coeffs, data, i, dataPerRound);
@@ -79,8 +78,9 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
             /* calculate the share a value for this byte for every share */
             for (int j = 0; j < n; j++) {
                 // skip evaluation in case all coefficients are 0
-                output[j].write(checkForZeros(coeffs) ? 0 : GF256.evaluateAt(coeffs, xValues[j]));
+                output[j][pos]=(byte)((checkForZeros(coeffs) ? 0 : GF256.evaluateAt(coeffs, xValues[j])));
             }
+            pos++;
         }
     }
 
@@ -97,11 +97,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
             data = new byte[0];
         }
         try {
-            StaticOutputEncoderConverter output[] = new StaticOutputEncoderConverter[n];
-            for (int i = 0; i < n; i++) {
-                output[i] = new StaticOutputEncoderConverter(data.length);
-            }
-
+            byte[][] output = new byte[n][encodedSizeFor(data.length)];
             share(output, data);
 
             return createShares(xValues, output, data.length);
@@ -122,7 +118,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
      * @throws InvalidParametersException if no valid share was build
      */
     protected abstract Share[] createShares(int[] xValues,
-                                            StaticOutputEncoderConverter[] results,
+                                            byte[][] results,
                                             int originalLength) throws InvalidParametersException;
 
     /**
@@ -135,17 +131,20 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
      * @return the reconstructed secret
      * @throws ReconstructionException thrown if the reconstruction failed
      */
-    public byte[] reconstruct(EncodingConverter[] input, int[] xValues, int originalLength) throws ReconstructionException {
+    public byte[] reconstruct(byte[][] input, int[] xValues, int originalLength) throws ReconstructionException {
         Decoder decoder = decoderFactory.createDecoder(xValues, k);
         byte result[] = new byte[originalLength];
         int yValues[] = new int[k];
         int resultMatrix[] = new int[k];
 
         int posResult = 0;
+        int posInput = 0;
+        
         while (posResult < originalLength) {
             for (int j = 0; j < k; j++) { // extract only k y-values (so we have k xy-pairs)
-                yValues[j] = input[j].readNext();
+                yValues[j] = input[j][posInput] & 0xff;
             }
+            posInput++;
 
             /* perform matrix-multiplication to compute the coefficients */
             try {
@@ -172,11 +171,6 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
             throw new ReconstructionException("Not enough shares to reconstruct");
         }
 
-        EncodingConverter input[] = new EncodingConverter[shares.length];
-        for (int i = 0; i < shares.length; i++) {
-            input[i] = new EncodingConverter(shares[i].getYValues());
-        }
-
         int originalLength = shares[0].getOriginalLength();
         for (Share s : shares) {
             if (s.getOriginalLength() != originalLength) {
@@ -186,8 +180,13 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
 
         // we only need k x-values for reconstruction
         int xTmpValues[] = extractXVals(shares, k);
+        
+        byte[][] tmp = new byte[shares.length][];
+        for(int i = 0; i < shares.length; i++) {
+            tmp[i] = shares[i].getYValues();
+        }
 
-        return reconstruct(input, xTmpValues, originalLength);
+        return reconstruct(tmp, xTmpValues, originalLength);
     }
 
     /**
@@ -251,4 +250,6 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
 
         return x;
     }
+
+    protected abstract int encodedSizeFor(int length);
 }
