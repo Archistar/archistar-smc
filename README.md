@@ -18,6 +18,7 @@ Performance Numbers
 Rough observed performance numbers on a Intel Core i5-4690k, single core, Java 1.8, 256kByte Datasets:
 
 ```
+                                                Split    Recombine
                    ShamirPSS(4/3)    4kB      39233.7      56032.8
                    ShamirPSS(4/3) 4096kB      42533.7      54179.9
                     RabinIDS(4/3)    4kB     120826.0     118381.5
@@ -32,6 +33,8 @@ Rabin-Ben-Or(Krawzywk(ChaCha20), Poly1305, 3/4)    4kB    37925.9    39384.6
 Rabin-Ben-Or(Krawzywk(ChaCha20), Poly1305, 3/4) 4096kB    47080.5    47080.5
 
 ```
+
+As this is a 3/4 split, this means that you can get roughly 320 MBit/Second network traffic when using a single core.
 
 Basic Introduction to Secret Sharing
 ---------------------------------------------
