@@ -15,23 +15,22 @@ Currently implemented algorithms
 Performance Numbers
 -------------------
 
-Rough observed performance numbers on a Intel Core i5-3570k, single core, Java 1.7, 256kByte Datasets:
+Rough observed performance numbers on a Intel Core i5-4690k, single core, Java 1.8, 256kByte Datasets:
 
 ```
-ShamirPSS:                        share:  24854.369kByte/sec, combine: 16075.35kByte/sec
+                   ShamirPSS(4/3)    4kB      39233.7      56032.8
+                   ShamirPSS(4/3) 4096kB      42533.7      54179.9
+                    RabinIDS(4/3)    4kB     120826.0     118381.5
+                    RabinIDS(4/3) 4096kB     123746.2     129211.4
+KrawczykCSS(4/3, AESCryptor(CBC))    4kB      54906.2      62439.0
+KrawczykCSS(4/3, AESCryptor(CBC)) 4096kB      60502.2      64707.7
+KrawczykCSS(4/3, AESGCMCryptor())    4kB      33907.3      34391.3
+KrawczykCSS(4/3, AESGCMCryptor()) 4096kB      41207.2      40354.7
+     KrawczykCSS(4/3, ChaCha20())    4kB      76848.0      82249.0
+     KrawczykCSS(4/3, ChaCha20()) 4096kB      79534.0      80313.7
+Rabin-Ben-Or(Krawzywk(ChaCha20), Poly1305, 3/4)    4kB    37925.9    39384.6
+Rabin-Ben-Or(Krawzywk(ChaCha20), Poly1305, 3/4) 4096kB    47080.5    47080.5
 
-RabinIDS:                         share: 107789.474kByte/sec, combine: 53333.33kByte/sec
-
-KrawczykCSS AES-CBC:              share:  50443.350kByte/sec, combine: 33684.21kByte/sec
-KrawczykCSS AES-GCM:              share:  31411.043kByte/sec, combine: 24824.24kByte/sec
-KrawczykCSS ChaCha:               share:  64402.516kByte/sec, combine: 41457.49kByte/sec
-
-RabinBenOrRSS (AES, SHA256):      share:  17594.502kByte/sec, combine: 14927.11kByte/sec
-RabinBenOrRSS (ChaCha, SHA256):   share:  19730.250kByte/sec, combine: 16677.52kByte/sec
-RabinBenOrRSS (AES, Poly1305):    share:  30385.757kByte/sec, combine: 22629.83kByte/sec
-RabinBenOrRSS (ChaCha, Poly1305): share:  34362.416kByte/sec, combine: 24674.70kByte/sec
-
-CevallosUSRSS (AES/CBC, SHA256):  share:   4550.100kByte/sec, combine:   173.03kByte/sec
 ```
 
 Basic Introduction to Secret Sharing
