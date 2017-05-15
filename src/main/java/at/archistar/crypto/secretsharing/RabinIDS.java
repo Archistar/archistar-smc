@@ -6,6 +6,8 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.math.gf256.GF256;
 
+import java.util.stream.IntStream;
+
 /**
  * <p>This class implements Rabin IDS (aka Reed-Solomon Code).</p>
  *
@@ -70,25 +72,25 @@ public class RabinIDS extends GeometricSecretSharing {
 
     @Override
     public void share(byte[][] output, byte[] data) {
-        int out = 0;
-        for (int i = k - 1; i < data.length; i += k) {
-            for (int x = 0; x < n; x++) {
-                int res = data[i] & 0xff;
-                for (int y = 1; y < k; y++) {
-                    res = GF256.add(data[i - y] & 0xff, GF256.mult(res, xValues[x]));
+        IntStream.range(0, n).parallel().forEach(
+                x -> {
+                    int out = 0;
+                    for (int i = k - 1; i < data.length; i += k) {
+                        int res = data[i] & 0xff;
+                        for (int y = 1; y < k; y++) {
+                            res = GF256.add(data[i - y] & 0xff, GF256.mult(res, xValues[x]));
+                        }
+                        output[x][out] = (byte) res;
+                        out++;
+                    }
+                    if (data.length % k != 0) {
+                        int res = data[data.length - 1] & 0xff;
+                        for (int y = data.length - 2; y >= data.length - data.length % k; y--) {
+                            res = GF256.add(data[y] & 0xff, GF256.mult(res, xValues[x]));
+                        }
+                        output[x][out] = (byte) res;
+                    }
                 }
-                output[x][out] = (byte) res;
-            }
-            out++;
-        }
-        if (data.length % k != 0) {
-            for (int x = 0; x < n; x++) {
-                int res = data[data.length - 1] & 0xff;
-                for (int y = data.length - 2; y >= data.length - data.length % k; y--) {
-                    res = GF256.add(data[y] & 0xff, GF256.mult(res, xValues[x]));
-                }
-                output[x][out] = (byte) res;
-            }
-        }
+        );
     }
 }
