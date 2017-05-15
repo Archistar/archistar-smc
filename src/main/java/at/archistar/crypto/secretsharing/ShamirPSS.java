@@ -4,6 +4,7 @@ import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.ShamirShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
+import at.archistar.crypto.math.gf256.GF256;
 import at.archistar.crypto.random.RandomSource;
 
 /**
@@ -22,6 +23,7 @@ import at.archistar.crypto.random.RandomSource;
 public class ShamirPSS extends GeometricSecretSharing {
 
     private final RandomSource rng;
+    private final byte[] rand;
 
     /**
      * Constructor
@@ -34,20 +36,13 @@ public class ShamirPSS extends GeometricSecretSharing {
      */
     public ShamirPSS(int n, int k, RandomSource rng, DecoderFactory decoderFactory) throws WeakSecurityException {
         super(n, k, decoderFactory);
-
-        this.dataPerRound = 1;
         this.rng = rng;
+        this.rand = new byte[k - 1];
     }
 
     @Override
     public String toString() {
         return "ShamirPSS(" + n + "/" + k + ")";
-    }
-
-    @Override
-    protected void encodeData(int[] coeffs, byte[] data, int offset, int length) {
-        this.rng.fillBytesAsInts(coeffs);
-        coeffs[0] = data[offset] & 0xff;
     }
 
     @Override
@@ -70,5 +65,19 @@ public class ShamirPSS extends GeometricSecretSharing {
     @Override
     protected int encodedSizeFor(int length) {
         return length;
+    }
+
+    @Override
+    public void share(byte[][] output, byte[] data) {
+        for (int i = 0; i < data.length; i++) {
+            rng.fillBytes(rand);
+            for (int j = 0; j < n; j++) {
+                int res = rand[0] & 0xff;
+                for (int y = 1; y < k - 1; y++) {
+                    res = GF256.add(rand[y] & 0xff, GF256.mult(res, xValues[j]));
+                }
+                output[j][i] = (byte) GF256.add(data[i] & 0xff, GF256.mult(res, xValues[j]));
+            }
+        }
     }
 }
