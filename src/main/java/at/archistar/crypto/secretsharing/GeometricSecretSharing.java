@@ -5,6 +5,7 @@ import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.UnsolvableException;
+import at.archistar.crypto.math.gf256.GF256;
 
 /**
  * <p>this contains basic functionality utilized by RabinIDS and ShamirPSS.</p>
@@ -20,7 +21,8 @@ import at.archistar.crypto.decode.UnsolvableException;
  */
 public abstract class GeometricSecretSharing extends BaseSecretSharing {
 
-    final int[] xValues;
+    final int[][] mulTables;
+    private final int[] xValues;
     private final DecoderFactory decoderFactory;
 
     /**
@@ -36,8 +38,13 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
         this.decoderFactory = decoderFactory;
 
         xValues = new int[n];
+        mulTables = new int[n][];
         for (int i = 0; i < n; i++) {
             xValues[i] = i + 1;
+            mulTables[i] = new int[256];
+            for (int j = 0; j < 256; j++) {
+                mulTables[i][j] = GF256.mult(i + 1, j);
+            }
         }
     }
 

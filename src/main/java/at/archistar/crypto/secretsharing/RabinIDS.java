@@ -74,11 +74,12 @@ public class RabinIDS extends GeometricSecretSharing {
     public void share(byte[][] output, byte[] data) {
         IntStream.range(0, n).parallel().forEach(
                 x -> {
+                    int[] mul = mulTables[x];
                     int out = 0;
                     for (int i = k - 1; i < data.length; i += k) {
                         int res = data[i] & 0xff;
                         for (int y = 1; y < k; y++) {
-                            res = GF256.add(data[i - y] & 0xff, GF256.mult(res, xValues[x]));
+                            res = GF256.add(data[i - y] & 0xff, mul[res]);
                         }
                         output[x][out] = (byte) res;
                         out++;
@@ -86,7 +87,7 @@ public class RabinIDS extends GeometricSecretSharing {
                     if (data.length % k != 0) {
                         int res = data[data.length - 1] & 0xff;
                         for (int y = data.length - 2; y >= data.length - data.length % k; y--) {
-                            res = GF256.add(data[y] & 0xff, GF256.mult(res, xValues[x]));
+                            res = GF256.add(data[y] & 0xff, mul[res]);
                         }
                         output[x][out] = (byte) res;
                     }

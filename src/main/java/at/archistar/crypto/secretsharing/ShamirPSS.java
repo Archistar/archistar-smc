@@ -74,9 +74,9 @@ public class ShamirPSS extends GeometricSecretSharing {
             for (int j = 0; j < n; j++) {
                 int res = rand[0] & 0xff;
                 for (int y = 1; y < k - 1; y++) {
-                    res = GF256.add(rand[y] & 0xff, GF256.mult(res, xValues[j]));
+                    res = GF256.add(rand[y] & 0xff, mulTables[j][res]);
                 }
-                output[j][i] = (byte) GF256.add(data[i] & 0xff, GF256.mult(res, xValues[j]));
+                output[j][i] = (byte) GF256.add(data[i] & 0xff, mulTables[j][res]);
             }
         }
     }
