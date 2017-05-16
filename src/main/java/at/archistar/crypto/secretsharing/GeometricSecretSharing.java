@@ -21,15 +21,9 @@ import at.archistar.crypto.math.gf256.GF256;
  */
 public abstract class GeometricSecretSharing extends BaseSecretSharing {
 
-    private final DecoderFactory decoderFactory;
-
-    /**
-     * this describes how many (secret) original data bytes are encoded per
-     * encryption round -- this is supposed to be overwritten by subclasses
-     */
-    protected int dataPerRound = 1;
-
+    final int[][] mulTables;
     private final int[] xValues;
+    private final DecoderFactory decoderFactory;
 
     /**
      * Constructor
@@ -44,22 +38,32 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
         this.decoderFactory = decoderFactory;
 
         xValues = new int[n];
+        mulTables = new int[n][];
         for (int i = 0; i < n; i++) {
             xValues[i] = i + 1;
+            mulTables[i] = new int[256];
+            for (int j = 0; j < 256; j++) {
+                mulTables[i][j] = GF256.mult(i + 1, j);
+            }
         }
     }
 
     /**
-     * This method should prepare the coefficients for our equation.
+     * Extracts k x-values from the given shares.
      *
-     * @param coeffs the resulting coefficients
-     * @param data the original data. For performance reasons the same data
-     * array is passed for multiple encoding rounds and the current
-     * data is determined by accessing data[offset .. (offset+length)]
-     * @param offset current position within the data array
-     * @param length how much (original) data should be encoded within coeffs
+     * @param shares the shares to extract the x-values from
+     * @param k how many xValues do we want?
+     * @return an array with all x-values from the given shares (in same order as the given Share[])
      */
-    protected abstract void encodeData(int coeffs[], byte[] data, int offset, int length);
+    static int[] extractXVals(Share[] shares, int k) {
+        int[] x = new int[k];
+
+        for (int i = 0; i < k; i++) {
+            x[i] = shares[i].getId();
+        }
+
+        return x;
+    }
 
     /**
      * Creates <i>n</i> secret shares for the given data where <i>k</i> shares are required for reconstruction.
@@ -67,22 +71,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
      * @param data the data to share secretly
      * @param output n buffers where the output will be stored
      */
-    public void share(byte[][] output, byte[] data) {
-        assert (output.length == n);
-        int coeffs[] = new int[k];
-        int pos = 0;
-
-        for (int i = 0; i < data.length; i += dataPerRound) {
-            encodeData(coeffs, data, i, dataPerRound);
-
-            /* calculate the share a value for this byte for every share */
-            for (int j = 0; j < n; j++) {
-                // skip evaluation in case all coefficients are 0
-                output[j][pos]=(byte)((checkForZeros(coeffs) ? 0 : GF256.evaluateAt(coeffs, xValues[j])));
-            }
-            pos++;
-        }
-    }
+    public abstract void share(byte[][] output, byte[] data);
 
     /**
      * Creates <i>n</i> secret shares for the given data where <i>k</i> shares
@@ -139,7 +128,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
 
         int posResult = 0;
         int posInput = 0;
-        
+
         while (posResult < originalLength) {
             for (int j = 0; j < k; j++) { // extract only k y-values (so we have k xy-pairs)
                 yValues[j] = input[j][posInput] & 0xff;
@@ -180,7 +169,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
 
         // we only need k x-values for reconstruction
         int xTmpValues[] = extractXVals(shares, k);
-        
+
         byte[][] tmp = new byte[shares.length][];
         for(int i = 0; i < shares.length; i++) {
             tmp[i] = shares[i].getYValues();
@@ -218,38 +207,6 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
      * new offset)
      */
     protected abstract int decodeData(int[] encoded, int originalLength, byte[] result, int offset);
-
-    /**
-     * Checks if the given array solely consists out of 0s.
-     *
-     * @param a the array to check
-     * @return true if yes; false otherwise
-     */
-    private static boolean checkForZeros(int[] a) {
-        for (int i : a) {
-            if (i != 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Extracts k x-values from the given shares.
-     *
-     * @param shares the shares to extract the x-values from
-     * @param k how many xValues do we want?
-     * @return an array with all x-values from the given shares (in same order as the given Share[])
-     */
-    public static int[] extractXVals(Share[] shares, int k) {
-        int[] x = new int[k];
-
-        for (int i = 0; i < k; i++) {
-            x[i] = shares[i].getId();
-        }
-
-        return x;
-    }
 
     protected abstract int encodedSizeFor(int length);
 }

@@ -3,7 +3,6 @@ package at.archistar.crypto.secretsharing;
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.KrawczykShare;
 import at.archistar.crypto.data.Share;
-
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
 import at.archistar.crypto.random.RandomSource;
@@ -11,11 +10,10 @@ import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.AESGCMEncryptor;
 import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import at.archistar.crypto.symmetric.Encryptor;
+import org.bouncycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-
-import org.bouncycastle.crypto.InvalidCipherTextException;
 
 /**
  * <p>This class implements the Computational Secret Sharing scheme developed by Krawczyk.</p>
@@ -39,9 +37,9 @@ public class KrawczykCSS extends BaseSecretSharing {
 
     private final RandomSource rng;
 
-    private final GeometricSecretSharing shamir;
+    private final ShamirPSS shamir;
 
-    private final GeometricSecretSharing rs;
+    private final RabinIDS rs;
 
     private final Encryptor cryptor;
 
