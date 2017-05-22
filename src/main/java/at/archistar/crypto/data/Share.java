@@ -15,33 +15,20 @@ import java.util.Map;
  */
 public abstract class Share implements Comparable<Share> {
 
+    /**
+     * on-disk version of the share
+     */
+    public static final int VERSION = 4;
     /** the share's id, mostly this will be it's "x" value */
     private final byte id;
-
     /** the share's body, mostly this will be it's "y" values */
     private final byte[] yValues;
-
     /** keys used during information checking */
     private final Map<Byte, byte[]> macKeys;
-
     /** macs generated during information checking */
     private final Map<Byte, byte[]> macs;
-
     /** which kind of information checking (if any) was employed? */
     private ICType informationChecking;
-
-    /** on-disk version of the share */
-    public static final int VERSION = 4;
-
-    /** which information checking schemas can we work with? */
-    public enum ICType {
-        /** no information checking was performed */
-        NONE,
-        /** rabin-ben-or with fixed hashes */
-        RABIN_BEN_OR,
-        /** cevallos with dynamic length hashes */
-        CEVALLOS
-    }
 
     /**
      * Constructor with information checking information.
@@ -81,6 +68,18 @@ public abstract class Share implements Comparable<Share> {
         this.informationChecking = ICType.NONE;
     }
 
+    private static void writeMap(DataOutputStream sout, Map<Byte, byte[]> map) throws IOException {
+        sout.writeInt(map.size());
+        for (Map.Entry<Byte, byte[]> e : map.entrySet()) {
+            Byte key = e.getKey();
+            byte[] value = e.getValue();
+
+            sout.writeByte(key);
+            sout.writeInt(value.length);
+            sout.write(value);
+        }
+    }
+
     /**
      * set the used information checking algorithm
      *
@@ -112,40 +111,31 @@ public abstract class Share implements Comparable<Share> {
         return yValues;
     }
     
-    private static void writeMap(DataOutputStream sout, Map<Byte, byte[]> map) throws IOException {
-        sout.writeInt(map.size());
-        for (Map.Entry<Byte, byte[]> e : map.entrySet()) {
-            Byte key = e.getKey();
-            byte[] value = e.getValue();
-
-            sout.writeByte(key);
-            sout.writeInt(value.length);
-            sout.write(value);
-        }
-    }
-
     /**
      * This returns a serialized form of the content (plus IC info) of the share.
      *
      * @return the share's byte[] representation containing all information
      * @throws IOException
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public byte[] getSerializedData() throws IOException {
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final DataOutputStream sout = new DataOutputStream(out);
-
-        /* serialize main data */
-        sout.write(yValues);
-
         if (informationChecking != ICType.NONE) {
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
+            final DataOutputStream sout = new DataOutputStream(out);
+
+            /* serialize main data */
+            sout.write(yValues);
+
             /* serialize macs */
             writeMap(sout, macs);
 
             /* serialize keys */
             writeMap(sout, macKeys);
-        }
 
-        return out.toByteArray();
+            return out.toByteArray();
+        } else {
+            return yValues;
+        }
     }
 
     /**
@@ -266,4 +256,16 @@ public abstract class Share implements Comparable<Share> {
      * @return the length of the original file
      */
     public abstract int getOriginalLength();
+
+    /**
+     * which information checking schemas can we work with?
+     */
+    public enum ICType {
+        /** no information checking was performed */
+        NONE,
+        /** rabin-ben-or with fixed hashes */
+        RABIN_BEN_OR,
+        /** cevallos with dynamic length hashes */
+        CEVALLOS
+    }
 }
