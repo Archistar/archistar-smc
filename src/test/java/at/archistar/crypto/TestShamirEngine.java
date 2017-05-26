@@ -20,14 +20,14 @@ import static org.fest.assertions.api.Assertions.assertThat;
  */
 public class TestShamirEngine {
 
+    private final static RandomSource rng = new FakeRandomSource();
     private final byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
     private final int n = 8;
     private final int k = 5;
-    private final static RandomSource rng = new FakeRandomSource();
     private CryptoEngine algorithm;
 
     /**
-     * create a new RabinBenOr CryptoEngine
+     * create a new Shamir CryptoEngine
      *
      * @throws WeakSecurityException should not happen due to fixed setup
      * @throws NoSuchAlgorithmException should not happen due to fixed setup
@@ -49,5 +49,39 @@ public class TestShamirEngine {
             byte[] reconstructed = algorithm.reconstructPartial(truncated, 0);
             assertThat(reconstructed).isEqualTo(Arrays.copyOf(data, i));
         }
+    }
+
+    @Test
+    public void reconstructWithOneCorruptedShare() throws ReconstructionException {
+        Share[] shares = algorithm.share(data);
+        assertThat(shares.length).isEqualTo(n);
+
+        shares[1].getYValues()[1] = (byte) (shares[1].getYValues()[1] + 1);
+
+        assertThat(algorithm.reconstruct(shares)).isEqualTo(data);
+    }
+
+    @Test
+    public void reconstructWithTCorruptedShares() throws ReconstructionException {
+        Share[] shares = algorithm.share(data);
+        assertThat(shares.length).isEqualTo(n);
+
+        for (int i = 0; i < (n - k); i++) {
+            shares[i].getYValues()[0] = (byte) (shares[i].getYValues()[0] + 1);
+        }
+
+        assertThat(algorithm.reconstruct(shares)).isEqualTo(data);
+    }
+
+    @Test(expected = ReconstructionException.class)
+    public void failWithTPlusOneCorruptedShares() throws ReconstructionException {
+        Share[] shares = algorithm.share(data);
+        assertThat(shares.length).isEqualTo(n);
+
+        for (int i = 0; i <= (n - k); i++) {
+            shares[i].getYValues()[0] = (byte) (shares[i].getYValues()[0] + 1);
+        }
+
+        algorithm.reconstruct(shares);
     }
 }
