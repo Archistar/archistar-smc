@@ -18,7 +18,7 @@ public abstract class Share implements Comparable<Share> {
     /**
      * on-disk version of the share
      */
-    public static final int VERSION = 4;
+    static final int VERSION = 5;
     /** the share's id, mostly this will be it's "x" value */
     private final byte id;
     /** the share's body, mostly this will be it's "y" values */
@@ -110,7 +110,7 @@ public abstract class Share implements Comparable<Share> {
     public byte[] getYValues() {
         return yValues;
     }
-    
+
     /**
      * This returns a serialized form of the content (plus IC info) of the share.
      *
