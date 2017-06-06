@@ -41,13 +41,6 @@ public class ShareFactory {
                     ", but version " + Share.VERSION + " was expected");
         }
 
-        /* information checking type */
-        final String icS = metaData.get("archistar-ic-type");
-        if (icS == null) {
-            throw new InvalidParametersException("Invalid share. No \"ic-type\" datum found");
-        }
-        final Share.ICType ic = parseICType(icS);
-
         /* id == x-value of the share */
         final String idS = metaData.get("archistar-id");
         if (idS == null) {
@@ -62,34 +55,7 @@ public class ShareFactory {
         }
         final int length = Integer.parseInt(lenS);
 
-        if (data.length > length && ic == Share.ICType.NONE) {
-            throw new InvalidParametersException("Invalid share. Data too long");
-        }
-
         try {
-
-            byte body[];
-            Map<Byte, byte[]> macs;
-            Map<Byte, byte[]> macKeys;
-
-            if (data.length <= length || ic == Share.ICType.NONE) {
-                // if data.length <= length, this must be a partial share
-                // so: no IC info either
-                body = data;
-                macs = new HashMap<>();
-                macKeys = new HashMap<>();
-            } else {
-                // a full share with IC info
-                body = new byte[length];
-                ByteArrayInputStream bis = new ByteArrayInputStream(data);
-                DataInputStream is = new DataInputStream(bis);
-                is.readFully(body);
-                macs = readMap(is);
-                macKeys = readMap(is);
-                // after reading the mac keys, we should be at the end;
-                // check if we have a full read
-                checkForEOF(is);
-            }
 
             /* algorithm */
             final String sT = metaData.get("archistar-share-type");
@@ -99,18 +65,27 @@ public class ShareFactory {
 
             switch (sT) {
                 case "SHAMIR":
-                    return new ShamirShare(id, body, ic, macKeys, macs);
+                    if (data.length > length) {
+                        throw new InvalidParametersException("Received more data than expected");
+                    }
+                    return new ShamirShare(id, data);
 
                 case "RABIN":
+                    if (data.length > length) {
+                        throw new InvalidParametersException("Received more data than expected");
+                    }
                     final String olrS = metaData.get("archistar-original-length");
                     if (olrS == null) {
                         throw new InvalidParametersException("Invalid Rabin share. No \"original-length\" datum found");
                     }
                     final int originalLengthRabin = Integer.parseInt(olrS);
 
-                    return new RabinShare(id, body, ic, macKeys, macs, originalLengthRabin);
+                    return new RabinShare(id, data, originalLengthRabin);
 
                 case "KRAWCZYK":
+                    if (data.length > length) {
+                        throw new InvalidParametersException("Received more data than expected");
+                    }
                     final String olkS = metaData.get("archistar-original-length");
                     if (olkS == null) {
                         throw new InvalidParametersException("Invalid Krawczyk share. No \"original-length\" datum found");
@@ -129,7 +104,81 @@ public class ShareFactory {
                     }
                     final byte[] encKey = Base64.decode(encKeyS);
 
-                    return new KrawczykShare(id, body, ic, macKeys, macs, originalLengthKrawczyk, encAlgorithm, encKey);
+                    return new KrawczykShare(id, data, originalLengthKrawczyk, encAlgorithm, encKey);
+
+                case "PSS":
+                    /* information checking type */
+                    final String icS = metaData.get("archistar-ic-type");
+                    if (icS == null) {
+                        throw new InvalidParametersException("Invalid share. No \"ic-type\" datum found");
+                    } else if (parseICType(icS) != InformationCheckingShare.ICType.RABIN_BEN_OR) {
+                        throw new InvalidParametersException("Information checking with PSS must be RABIN_BEN_OR");
+                    }
+
+                    byte[] body;
+
+                    Map<Byte, byte[]> macs;
+                    Map<Byte, byte[]> macKeys;
+
+                    if (data.length <= length) {
+                        // if data.length <= length, this must be a partial share
+                        body = data;
+                        macs = new HashMap<>();
+                        macKeys = new HashMap<>();
+                    } else {
+                        // a full share
+                        body = new byte[length];
+                        ByteArrayInputStream bis = new ByteArrayInputStream(data);
+                        DataInputStream is = new DataInputStream(bis);
+                        is.readFully(body);
+                        macs = readMap(is);
+                        macKeys = readMap(is);
+                        // after reading the mac keys, we should be at the end;
+                        // check if we have a full read
+                        checkForEOF(is);
+                    }
+
+                    return new PSSShare(id, body, macKeys, macs);
+
+                case "CSS":
+
+                    final String olCSS = metaData.get("archistar-original-length");
+                    if (olCSS == null) {
+                        throw new InvalidParametersException("Invalid Krawczyk share. No \"original-length\" datum found");
+                    }
+                    final int originalLengthCSS = Integer.parseInt(olCSS);
+
+                    final String encAlgoCSS = metaData.get("archistar-krawczyk-algorithm");
+                    if (encAlgoCSS == null) {
+                        throw new InvalidParametersException("Invalid Krawczyk share. No \"krawczyk-algorithm\" datum found");
+                    }
+                    int encAlgorithmCSS = Integer.parseInt(encAlgoCSS);
+
+                    final String encKeyCS = metaData.get("archistar-krawczyk-key");
+                    if (encKeyCS == null) {
+                        throw new InvalidParametersException("Invalid Krawczyk share. No \"krawczyk-key\" datum found");
+                    }
+                    final byte[] encKeyCSS = Base64.decode(encKeyCS);
+
+                    Map<Byte, byte[]> fingerprints;
+
+                    if (data.length <= length) {
+                        // if data.length <= length, this must be a partial share
+                        body = data;
+                        fingerprints = new HashMap<>();
+                    } else {
+                        // a full share
+                        body = new byte[length];
+                        ByteArrayInputStream bis = new ByteArrayInputStream(data);
+                        DataInputStream is = new DataInputStream(bis);
+                        is.readFully(body);
+                        fingerprints = readMap(is);
+                        // after reading the mac keys, we should be at the end;
+                        // check if we have a full read
+                        checkForEOF(is);
+                    }
+
+                    return new CSSShare(id, body, fingerprints, originalLengthCSS, encAlgorithmCSS, encKeyCSS);
 
                 default:
                     throw new InvalidParametersException("Unknown share type: " + sT);
@@ -160,10 +209,10 @@ public class ShareFactory {
         return macs;
     }
 
-    private static Share.ICType parseICType(String s) throws InvalidParametersException {
+    private static InformationCheckingShare.ICType parseICType(String s) throws InvalidParametersException {
         int idx = Integer.parseInt(s);
-        if (idx >= 0 && idx < Share.ICType.values().length) {
-            return Share.ICType.values()[idx];
+        if (idx >= 0 && idx < InformationCheckingShare.ICType.values().length) {
+            return InformationCheckingShare.ICType.values()[idx];
         } else {
             throw new InvalidParametersException("unknown share type");
         }

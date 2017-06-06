@@ -35,7 +35,7 @@ public interface CryptoEngine {
      * @param data the original data that should be split up
      * @return an array of shares
      */
-    public Share[] share(byte[] data);
+    Share[] share(byte[] data);
 
     /**
      * reconstruct the original data from given shares
@@ -44,7 +44,7 @@ public interface CryptoEngine {
      * @return the original data
      * @throws ReconstructionException is thrown is reconstruction failed
      */
-    public byte[] reconstruct(Share[] shares) throws ReconstructionException;
+    byte[] reconstruct(Share[] shares) throws ReconstructionException;
 
     /**
      * reconstruct a part of the original data from the given partial shares
@@ -54,5 +54,5 @@ public interface CryptoEngine {
      * @return a part of the original data
      * @throws ReconstructionException is thrown is partial reconstruction failed or impossible in the given scheme
      */
-    public byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException;
+    byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException;
 }

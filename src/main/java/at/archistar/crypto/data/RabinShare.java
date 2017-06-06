@@ -1,38 +1,59 @@
 package at.archistar.crypto.data;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author florian
  */
-public class RabinShare extends Share {
+public class RabinShare implements Share {
 
+    private byte id;
+    private byte[] body;
     private int originalLength;
 
     /**
-     * a Rabin share with Information Checking
+     * A Rabin share
      */
-    public RabinShare(byte id, byte[] body, Share.ICType ic,
-                      Map<Byte, byte[]> macKeys, Map<Byte, byte[]> macs, int originalLength) throws InvalidParametersException {
-        super(id, body, ic, macKeys, macs);
-        if (originalLength <= body.length) {
-            throw new InvalidParametersException("the given original length cannot be right");
-        }
-        this.originalLength = originalLength;
-    }
-
-    /**
-     * a Rabin share without Information Checking
-     */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public RabinShare(byte id, byte[] body, int originalLength) throws InvalidParametersException {
-        super(id, body);
+        if (id == 0) {
+            throw new InvalidParametersException("X must not be 0");
+        }
+        this.id = id;
+        this.body = body;
         this.originalLength = originalLength;
     }
 
     @Override
+    public int getX() {
+        return id;
+    }
+
+    @Override
+    public byte getId() {
+        return id;
+    }
+
+    @Override
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public byte[] getYValues() {
+        return body;
+    }
+
+    @Override
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public byte[] getSerializedData() throws IOException {
+        return body;
+    }
+
+    @Override
     public HashMap<String, String> getMetaData() {
-        HashMap<String, String> res = super.getCommonMetaData();
+        HashMap<String, String> res = getCommonMetaData();
         res.put("archistar-original-length", Integer.toString(originalLength));
         return res;
     }
@@ -45,5 +66,20 @@ public class RabinShare extends Share {
     @Override
     public int getOriginalLength() {
         return this.originalLength;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RabinShare that = (RabinShare) o;
+        return id == that.id &&
+                originalLength == that.originalLength &&
+                Arrays.equals(body, that.body);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, body, originalLength);
     }
 }

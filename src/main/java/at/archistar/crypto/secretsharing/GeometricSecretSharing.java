@@ -55,7 +55,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
      * @param k how many xValues do we want?
      * @return an array with all x-values from the given shares (in same order as the given Share[])
      */
-    static int[] extractXVals(Share[] shares, int k) {
+    public static int[] extractXVals(Share[] shares, int k) {
         int[] x = new int[k];
 
         for (int i = 0; i < k; i++) {

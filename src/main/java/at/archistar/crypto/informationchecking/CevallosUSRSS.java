@@ -1,6 +1,6 @@
 package at.archistar.crypto.informationchecking;
 
-import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.InformationCheckingShare;
 import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
@@ -46,11 +46,11 @@ public class CevallosUSRSS extends RabinBenOrRSS {
         this.mac = mac;
     }
 
-    private int getAcceptedCount(Share s1, Share[] shares, boolean[][] accepts) {
+    private int getAcceptedCount(InformationCheckingShare s1, InformationCheckingShare[] shares, boolean[][] accepts) {
 
         int counter = 0;
 
-        for (Share s2 : shares) {
+        for (InformationCheckingShare s2 : shares) {
             byte[] data = s1.getYValues();
             byte[] mac1 = s1.getMacs().get((byte) s2.getId());
             byte[] mac2 = s2.getMacKeys().get((byte) s1.getId());
@@ -65,16 +65,16 @@ public class CevallosUSRSS extends RabinBenOrRSS {
     }
 
     @Override
-    public Share[] checkShares(Share[] cshares) {
+    public InformationCheckingShare[] checkShares(InformationCheckingShare[] cshares) {
 
         Queue<Integer> queue = new LinkedList<>();
-        List<Share> valid = new LinkedList<>();
+        List<InformationCheckingShare> valid = new LinkedList<>();
 
         // accepts[i][j] = true means participant j accepts i
         boolean[][] accepts = new boolean[n + 1][n + 1];
         int a[] = new int[n + 1];
 
-        for (Share s1 : cshares) {
+        for (InformationCheckingShare s1 : cshares) {
 
             a[s1.getId()] += getAcceptedCount(s1, cshares, accepts);
 
@@ -87,8 +87,8 @@ public class CevallosUSRSS extends RabinBenOrRSS {
 
         while (valid.size() >= k && !queue.isEmpty()) {
             int s1id = queue.poll();
-            for (Iterator<Share> it = valid.iterator(); it.hasNext(); ) {
-                Share s2 = it.next();
+            for (Iterator<InformationCheckingShare> it = valid.iterator(); it.hasNext(); ) {
+                InformationCheckingShare s2 = it.next();
                 if (accepts[s2.getId()][s1id]) {
                     a[s2.getId()]--;
                     if (a[s2.getId()] < k) {
@@ -99,7 +99,7 @@ public class CevallosUSRSS extends RabinBenOrRSS {
             }
         }
 
-        return valid.toArray(new Share[valid.size()]);
+        return valid.toArray(new InformationCheckingShare[valid.size()]);
     }
 
     /**

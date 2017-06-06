@@ -29,7 +29,7 @@ public class TestShareWithICSerialization extends AbstractSerializationTest {
         macKeys.put((byte) 1, new byte[]{7, 8, 9});
         macKeys.put((byte) 2, new byte[]{10, 11, 12});
 
-        share = new RabinShare((byte) 7, new byte[]{1,2,3}, Share.ICType.RABIN_BEN_OR, macKeys, macs, 4);
+        share = new PSSShare((byte) 7, new byte[]{1,2,3}, macKeys, macs);
         metaData = share.getMetaData();
         serializedShare = share.getSerializedData();
     }

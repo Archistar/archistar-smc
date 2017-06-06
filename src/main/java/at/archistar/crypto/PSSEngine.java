@@ -1,5 +1,7 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.data.InvalidParametersException;
+import at.archistar.crypto.data.PSSShare;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
@@ -13,6 +15,9 @@ import at.archistar.crypto.secretsharing.ShamirPSS;
 import at.archistar.crypto.secretsharing.WeakSecurityException;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
 /**
  * This is a simple CryptoEngine that allows us to use ITS secret-sharing scheme
@@ -20,7 +25,7 @@ import java.security.NoSuchAlgorithmException;
  *
  * @author Andreas Happe <andreashappe@snikt.net>
  */
-public class ShamirEngine implements CryptoEngine {
+public class PSSEngine implements CryptoEngine {
 
     /** our ITS Shamir secret-sharing scheme */
     private final ShamirPSS sharing;
@@ -40,7 +45,7 @@ public class ShamirEngine implements CryptoEngine {
      * @param k minimum count of shares needed to recreate the original data
      * @throws WeakSecurityException if the k/n selection is insecure
      */
-    public ShamirEngine(int n, int k) throws NoSuchAlgorithmException, WeakSecurityException {
+    public PSSEngine(int n, int k) throws NoSuchAlgorithmException, WeakSecurityException {
         this(n, k, new BCDigestRandomSource());
     }
 
@@ -52,7 +57,7 @@ public class ShamirEngine implements CryptoEngine {
      * @param rng random number generator to be used
      * @throws WeakSecurityException if the k/n selection is insecure
      */
-    public ShamirEngine(int n, int k, RandomSource rng) throws NoSuchAlgorithmException, WeakSecurityException {
+    public PSSEngine(int n, int k, RandomSource rng) throws NoSuchAlgorithmException, WeakSecurityException {
         DecoderFactory decoderFactory = new ErasureDecoderFactory();
         MacHelper mac = new BCPoly1305MacHelper();
 
@@ -63,20 +68,35 @@ public class ShamirEngine implements CryptoEngine {
     }
 
     @Override
-    public Share[] share(byte[] data) {
-        return ic.createTags(sharing.share(data));
+    public PSSShare[] share(byte[] data) {
+        PSSShare[] res = new PSSShare[n];
+        if (data == null) {
+            data = new byte[0];
+        }
+        byte[][] output = new byte[n][data.length];
+        sharing.share(output, data);
+        try {
+            for (int i = 0; i < n; i++) {
+                res[i] = new PSSShare((byte) (i+1), output[i], new HashMap<>(), new HashMap<>());
+            }
+            ic.createTags(res);
+            return res;
+        } catch (InvalidParametersException ex) {
+            throw new RuntimeException("impossible: share failed: " + ex.getMessage());
+        }
     }
 
     @Override
     public byte[] reconstruct(Share[] shares) throws ReconstructionException {
-        return this.sharing.reconstruct(ic.checkShares(shares));
+        if (!Arrays.stream(shares).allMatch(s -> s instanceof PSSShare)) {
+            throw new ReconstructionException("Not all shares are PSS Shares");
+        }
+        PSSShare[] pss = Arrays.stream(shares).map(s -> (PSSShare) s).collect(Collectors.toList()).toArray(new PSSShare[n]);
+        return this.sharing.reconstruct(ic.checkShares(pss));
     }
 
     @Override
     public byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException {
-        for (Share s : shares) {
-            s.setInformationChecking(Share.ICType.NONE);
-        }
         System.err.println("*** WARNING: Partial reconstruction -- no Information Checking is performed");
         return this.sharing.reconstructPartial(shares, start);
     }

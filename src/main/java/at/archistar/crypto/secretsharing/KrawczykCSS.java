@@ -1,8 +1,6 @@
 package at.archistar.crypto.secretsharing;
 
-import at.archistar.crypto.data.InvalidParametersException;
-import at.archistar.crypto.data.KrawczykShare;
-import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.*;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoder;
 import at.archistar.crypto.random.RandomSource;
@@ -65,7 +63,7 @@ public class KrawczykCSS extends BaseSecretSharing {
     }
 
     @Override
-    public Share[] share(byte[] data) {
+    public KrawczykShare[] share(byte[] data) {
         try {
             if (data == null) {
                 data = new byte[0];
@@ -85,15 +83,14 @@ public class KrawczykCSS extends BaseSecretSharing {
             /* share key and content */
             byte[][] outputContent = new byte[n][newDataLength];
             byte[][] outputKey = new byte[n][encKey.length];
-            
+
             rs.share(outputContent, encSource);
             shamir.share(outputKey, encKey);
 
             //Generate a new array of encrypted shares
-            Share[] kshares = new Share[n];
+            KrawczykShare[] kshares = new KrawczykShare[n];
             for (int i = 0; i < kshares.length; i++) {
-                kshares[i] = new KrawczykShare((byte) (i + 1), outputContent[i],
-                        encSource.length, 1, outputKey[i]);
+                kshares[i] = new KrawczykShare((byte) (i + 1), outputContent[i], encSource.length, 1, outputKey[i]);
 
             }
 
@@ -133,7 +130,7 @@ public class KrawczykCSS extends BaseSecretSharing {
 
         try {
             int[] xValues = GeometricSecretSharing.extractXVals(shares, k);
-           
+
             byte[][] ecContent = new byte[n][];
             byte[][] ecKey = new byte[n][];
 
@@ -141,7 +138,7 @@ public class KrawczykCSS extends BaseSecretSharing {
                 ecContent[i] = shares[i].getYValues();
                 ecKey[i] = ((KrawczykShare) shares[i]).getKey();
             }
-            
+
             byte[] key = shamir.reconstruct(ecKey, xValues, originalLengthKey);
             if (partial) {
                 int actualLengthContent = shares[0].getYValues().length;

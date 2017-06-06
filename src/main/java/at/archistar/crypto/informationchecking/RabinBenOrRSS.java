@@ -1,6 +1,7 @@
 package at.archistar.crypto.informationchecking;
 
-import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.InformationCheckingShare;
+import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
 
@@ -35,12 +36,14 @@ public class RabinBenOrRSS implements InformationChecking {
     }
 
     @Override
-    public Share[] createTags(Share[] rboshares) {
+    public InformationCheckingShare[] createTags(InformationCheckingShare[] rboshares) throws InvalidParametersException {
         /* compute and add the corresponding tags */
-        for (Share share1 : rboshares) {
-            share1.setInformationChecking(Share.ICType.RABIN_BEN_OR);
+        for (InformationCheckingShare share1 : rboshares) {
+            if (share1.getICType() != InformationCheckingShare.ICType.RABIN_BEN_OR) {
+                throw new InvalidParametersException("Share is not a Rabin-Ben-Or IC Share");
+            }
 
-            for (Share share2 : rboshares) {
+            for (InformationCheckingShare share2 : rboshares) {
                 try {
                     byte[] key = new byte[this.mac.keySize()];
                     this.rng.fillBytes(key);
@@ -57,13 +60,13 @@ public class RabinBenOrRSS implements InformationChecking {
     }
 
     @Override
-    public Share[] checkShares(Share[] rboshares) {
-        Share[] valid = new Share[rboshares.length];
+    public InformationCheckingShare[] checkShares(InformationCheckingShare[] rboshares) {
+        InformationCheckingShare[] valid = new InformationCheckingShare[rboshares.length];
         int counter = 0;
 
-        for (Share rboshare1 : rboshares) { // go through all shares
+        for (InformationCheckingShare rboshare1 : rboshares) { // go through all shares
             int accepts = 0; // number of participants accepting i
-            for (Share rboshare : rboshares) {
+            for (InformationCheckingShare rboshare : rboshares) {
                 byte[] data = rboshare1.getYValues();
                 byte[] macCmp = rboshare1.getMacs().get((byte) rboshare.getId());
                 byte[] macKey = rboshare.getMacKeys().get((byte) rboshare1.getId());

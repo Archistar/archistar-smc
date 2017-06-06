@@ -1,16 +1,14 @@
 package at.archistar.crypto.informationchecking;
 
 import at.archistar.TestHelper;
-import at.archistar.crypto.data.Share;
-import at.archistar.crypto.decode.ErasureDecoderFactory;
+import at.archistar.crypto.PSSEngine;
+import at.archistar.crypto.data.InformationCheckingShare;
 import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.mac.BCPoly1305MacHelper;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.mac.JavaMacHelper;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.secretsharing.SecretSharing;
-import at.archistar.crypto.secretsharing.ShamirPSS;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -28,7 +26,7 @@ import org.junit.runners.Parameterized;
 @RunWith(value = Parameterized.class)
 public class PerformanceTest {
 
-    private final Share[][] input;
+    private final InformationCheckingShare[][] input;
     private final InformationChecking ic;
 
     private static byte[] createData(int size) {
@@ -49,14 +47,12 @@ public class PerformanceTest {
         final int n = 5;
         final int k = 3;
 
-        ErasureDecoderFactory df = new ErasureDecoderFactory();
-
         RandomSource rng = new FakeRandomSource();
         MacHelper mac = new JavaMacHelper("HMacSHA256");
         MacHelper macPoly1305 = new BCPoly1305MacHelper();
-        SecretSharing secretSharing = new ShamirPSS(n, k, rng, df);
+        PSSEngine secretSharing = new PSSEngine(n, k, rng);
 
-        Share[][] shares = new Share[][]{
+        InformationCheckingShare[][] shares = new InformationCheckingShare[][]{
                 secretSharing.share(createData(4 * 1024)),
                 secretSharing.share(createData(128 * 1024)),
                 secretSharing.share(createData(512 * 1024)),
@@ -73,21 +69,20 @@ public class PerformanceTest {
         return Arrays.asList(data);
     }
 
-    public PerformanceTest(Share[][] input, InformationChecking ic) {
+    public PerformanceTest(InformationCheckingShare[][] input, InformationChecking ic) {
         this.input = input;
         this.ic = ic;
     }
 
     @Test
     public void testPerformance() throws Exception {
-        for (Share[] shares : input) {
+        for (InformationCheckingShare[] shares : input) {
             double sumCreate = 0;
             double sumCheck = 0;
 
             int done = 0;
             for (int j = 0; j < TestHelper.TEST_SIZE / shares[0].getYValues().length; j++) {
-                for (Share s : shares) {
-                    s.setInformationChecking(Share.ICType.NONE);
+                for (InformationCheckingShare s : shares) {
                     s.getMacs().clear();
                     s.getMacKeys().clear();
                 }

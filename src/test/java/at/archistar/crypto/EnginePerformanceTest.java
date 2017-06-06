@@ -42,12 +42,10 @@ public class EnginePerformanceTest {
         RandomSource rng = new FakeRandomSource();
 
         Object[][] data = new Object[][]{
-                {secrets, new ShamirEngine(4, 3, rng)},
-                {secrets, new ShamirEngine(7, 3, rng)},
-                {secrets, new RabinBenOrEngine(4, 3, rng)},
-                {secrets, new RabinBenOrEngine(7, 3, rng)},
-                {secrets, new KrawczykEngine(4, 3, rng)},
-                {secrets, new KrawczykEngine(7, 3, rng)},
+                {secrets, new PSSEngine(4, 3, rng)},
+                {secrets, new PSSEngine(7, 3, rng)},
+                {secrets, new CSSEngine(4, 3, rng)},
+                {secrets, new CSSEngine(7, 3, rng)},
         };
 
         return Arrays.asList(data);
