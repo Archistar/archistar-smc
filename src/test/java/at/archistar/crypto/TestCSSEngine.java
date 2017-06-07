@@ -146,4 +146,38 @@ public class TestCSSEngine {
             }
         }
     }
+
+    @Test
+    public void reconstructWithOneCorruptedShare() throws ReconstructionException {
+        Share[] shares = algorithm.share(data);
+        assertThat(shares.length).isEqualTo(n);
+
+        shares[1].getYValues()[1] = (byte) (shares[1].getYValues()[1] + 1);
+
+        assertThat(algorithm.reconstruct(shares)).isEqualTo(data);
+    }
+
+    @Test
+    public void reconstructWithTCorruptedShares() throws ReconstructionException {
+        Share[] shares = algorithm.share(data);
+        assertThat(shares.length).isEqualTo(n);
+
+        for (int i = 0; i < (n - k); i++) {
+            shares[i].getYValues()[0] = (byte) (shares[i].getYValues()[0] + 1);
+        }
+
+        assertThat(algorithm.reconstruct(shares)).isEqualTo(data);
+    }
+
+    @Test(expected = ReconstructionException.class)
+    public void failWithTPlusOneCorruptedShares() throws ReconstructionException {
+        Share[] shares = algorithm.share(data);
+        assertThat(shares.length).isEqualTo(n);
+
+        for (int i = 0; i <= (n - k); i++) {
+            shares[i].getYValues()[0] = (byte) (shares[i].getYValues()[0] + 1);
+        }
+
+        algorithm.reconstruct(shares);
+    }
 }
