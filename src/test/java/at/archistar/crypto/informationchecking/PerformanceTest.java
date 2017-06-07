@@ -1,22 +1,22 @@
 package at.archistar.crypto.informationchecking;
 
 import at.archistar.TestHelper;
+import at.archistar.crypto.CryptoEngineFactory;
 import at.archistar.crypto.PSSEngine;
 import at.archistar.crypto.data.InformationCheckingShare;
-import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.mac.BCPoly1305MacHelper;
-import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.mac.JavaMacHelper;
+import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
+import at.archistar.crypto.secretsharing.WeakSecurityException;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 /**
  * Test information checking performance by calling create/check-tags upon a
@@ -28,6 +28,11 @@ public class PerformanceTest {
 
     private final InformationCheckingShare[][] input;
     private final InformationChecking ic;
+
+    public PerformanceTest(InformationCheckingShare[][] input, InformationChecking ic) {
+        this.input = input;
+        this.ic = ic;
+    }
 
     private static byte[] createData(int size) {
         byte[] tmp = new byte[size];
@@ -50,7 +55,7 @@ public class PerformanceTest {
         RandomSource rng = new FakeRandomSource();
         MacHelper mac = new JavaMacHelper("HMacSHA256");
         MacHelper macPoly1305 = new BCPoly1305MacHelper();
-        PSSEngine secretSharing = new PSSEngine(n, k, rng);
+        PSSEngine secretSharing = CryptoEngineFactory.getPSSEngine(n, k, rng);
 
         InformationCheckingShare[][] shares = new InformationCheckingShare[][]{
                 secretSharing.share(createData(4 * 1024)),
@@ -67,11 +72,6 @@ public class PerformanceTest {
         };
 
         return Arrays.asList(data);
-    }
-
-    public PerformanceTest(InformationCheckingShare[][] input, InformationChecking ic) {
-        this.input = input;
-        this.ic = ic;
     }
 
     @Test

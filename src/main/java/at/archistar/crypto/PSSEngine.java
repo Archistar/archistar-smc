@@ -45,7 +45,7 @@ public class PSSEngine implements CryptoEngine {
      * @param k minimum count of shares needed to recreate the original data
      * @throws WeakSecurityException if the k/n selection is insecure
      */
-    public PSSEngine(int n, int k) throws NoSuchAlgorithmException, WeakSecurityException {
+    PSSEngine(int n, int k) throws NoSuchAlgorithmException, WeakSecurityException {
         this(n, k, new BCDigestRandomSource());
     }
 
@@ -57,7 +57,7 @@ public class PSSEngine implements CryptoEngine {
      * @param rng random number generator to be used
      * @throws WeakSecurityException if the k/n selection is insecure
      */
-    public PSSEngine(int n, int k, RandomSource rng) throws NoSuchAlgorithmException, WeakSecurityException {
+    PSSEngine(int n, int k, RandomSource rng) throws NoSuchAlgorithmException, WeakSecurityException {
         DecoderFactory decoderFactory = new ErasureDecoderFactory();
         MacHelper mac = new BCPoly1305MacHelper();
 

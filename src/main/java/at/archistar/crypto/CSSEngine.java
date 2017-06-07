@@ -1,11 +1,16 @@
 package at.archistar.crypto;
 
-import at.archistar.crypto.data.*;
+import at.archistar.crypto.data.CSSShare;
+import at.archistar.crypto.data.InvalidParametersException;
+import at.archistar.crypto.data.KrawczykShare;
+import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.random.BCDigestRandomSource;
 import at.archistar.crypto.random.RandomSource;
-import at.archistar.crypto.secretsharing.*;
+import at.archistar.crypto.secretsharing.KrawczykCSS;
+import at.archistar.crypto.secretsharing.ReconstructionException;
+import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import at.archistar.crypto.symmetric.Encryptor;
 
@@ -42,7 +47,7 @@ public class CSSEngine implements CryptoEngine {
      * @param k minimum count of shares needed to recreate the original data
      * @throws WeakSecurityException if the k/n selection is insecure
      */
-    public CSSEngine(int n, int k) throws WeakSecurityException {
+    CSSEngine(int n, int k) throws WeakSecurityException {
         this(n, k, new BCDigestRandomSource());
     }
 
@@ -54,7 +59,7 @@ public class CSSEngine implements CryptoEngine {
      * @param rng random number generator to be used
      * @throws WeakSecurityException if the k/n selection is insecure
      */
-    public CSSEngine(int n, int k, RandomSource rng) throws WeakSecurityException {
+    CSSEngine(int n, int k, RandomSource rng) throws WeakSecurityException {
         this.n = n;
         this.k = k;
         DecoderFactory decoderFactory = new ErasureDecoderFactory();
