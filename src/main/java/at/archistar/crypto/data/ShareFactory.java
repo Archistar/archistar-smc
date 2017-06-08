@@ -16,6 +16,7 @@ public class ShareFactory {
 
     /**
      * Deserialize a single share out of the raw shared data plus metadata.
+     * On error, a BrokenShare is returned
      *
      * Note: this method does *not* employ (possible) information checking data
      * when determining if the share is valid
@@ -23,35 +24,34 @@ public class ShareFactory {
      * @param data the raw shared data (plus IC data at the end)
      * @param metaData the additional data needed to reconstruct the share
      * @return the deserialized share
-     * @throws InvalidParametersException if the input did not contain a valid share
      */
     @SuppressWarnings("cyclomaticcomplexity")
-    public static Share deserialize(byte[] data, Map<String, String> metaData) throws InvalidParametersException {
+    static Share deserialize(byte[] data, Map<String, String> metaData) {
 
         if (data == null || data.length == 0) {
-            throw new InvalidParametersException("No data received");
+            return new BrokenShare("No data received");
         }
 
         final String version = metaData.get("archistar-version");
         if (version == null) {
-            throw new InvalidParametersException("Invalid share. No \"version\" datum found");
+            return new BrokenShare("Invalid share. No \"version\" datum found");
         }
         if (!version.equalsIgnoreCase(Integer.toString(Share.VERSION))) {
-            throw new InvalidParametersException("This share is of version " + version +
+            return new BrokenShare("This share is of version " + version +
                     ", but version " + Share.VERSION + " was expected");
         }
 
         /* id == x-value of the share */
         final String idS = metaData.get("archistar-id");
         if (idS == null) {
-            throw new InvalidParametersException("Invalid share. No \"id\" datum found");
+            return new BrokenShare("Invalid share. No \"id\" datum found");
         }
         final byte id = Byte.parseByte(idS);
 
         /* length of the data part of the share (rest is IC metadata) */
         final String lenS = metaData.get("archistar-length");
         if (lenS == null) {
-            throw new InvalidParametersException("Invalid share. No \"length\" datum found");
+            return new BrokenShare("Invalid share. No \"length\" datum found");
         }
         final int length = Integer.parseInt(lenS);
 
@@ -60,23 +60,23 @@ public class ShareFactory {
             /* algorithm */
             final String sT = metaData.get("archistar-share-type");
             if (sT == null) {
-                throw new InvalidParametersException("Invalid share. No \"share-type\" datum found");
+                return new BrokenShare("Invalid share. No \"share-type\" datum found");
             }
 
             switch (sT) {
                 case "SHAMIR":
                     if (data.length > length) {
-                        throw new InvalidParametersException("Received more data than expected");
+                        return new BrokenShare("Received more data than expected");
                     }
                     return new ShamirShare(id, data);
 
                 case "RABIN":
                     if (data.length > length) {
-                        throw new InvalidParametersException("Received more data than expected");
+                        return new BrokenShare("Received more data than expected");
                     }
                     final String olrS = metaData.get("archistar-original-length");
                     if (olrS == null) {
-                        throw new InvalidParametersException("Invalid Rabin share. No \"original-length\" datum found");
+                        return new BrokenShare("Invalid Rabin share. No \"original-length\" datum found");
                     }
                     final int originalLengthRabin = Integer.parseInt(olrS);
 
@@ -84,23 +84,23 @@ public class ShareFactory {
 
                 case "KRAWCZYK":
                     if (data.length > length) {
-                        throw new InvalidParametersException("Received more data than expected");
+                        return new BrokenShare("Received more data than expected");
                     }
                     final String olkS = metaData.get("archistar-original-length");
                     if (olkS == null) {
-                        throw new InvalidParametersException("Invalid Krawczyk share. No \"original-length\" datum found");
+                        return new BrokenShare("Invalid Krawczyk share. No \"original-length\" datum found");
                     }
                     final int originalLengthKrawczyk = Integer.parseInt(olkS);
 
                     final String encAlgoS = metaData.get("archistar-krawczyk-algorithm");
                     if (encAlgoS == null) {
-                        throw new InvalidParametersException("Invalid Krawczyk share. No \"krawczyk-algorithm\" datum found");
+                        return new BrokenShare("Invalid Krawczyk share. No \"krawczyk-algorithm\" datum found");
                     }
                     int encAlgorithm = Integer.parseInt(encAlgoS);
 
                     final String encKeyS = metaData.get("archistar-krawczyk-key");
                     if (encKeyS == null) {
-                        throw new InvalidParametersException("Invalid Krawczyk share. No \"krawczyk-key\" datum found");
+                        return new BrokenShare("Invalid Krawczyk share. No \"krawczyk-key\" datum found");
                     }
                     final byte[] encKey = Base64.decode(encKeyS);
 
@@ -110,9 +110,9 @@ public class ShareFactory {
                     /* information checking type */
                     final String icS = metaData.get("archistar-ic-type");
                     if (icS == null) {
-                        throw new InvalidParametersException("Invalid share. No \"ic-type\" datum found");
+                        return new BrokenShare("Invalid share. No \"ic-type\" datum found");
                     } else if (parseICType(icS) != InformationCheckingShare.ICType.RABIN_BEN_OR) {
-                        throw new InvalidParametersException("Information checking with PSS must be RABIN_BEN_OR");
+                        return new BrokenShare("Information checking with PSS must be RABIN_BEN_OR");
                     }
 
                     byte[] body;
@@ -144,19 +144,19 @@ public class ShareFactory {
 
                     final String olCSS = metaData.get("archistar-original-length");
                     if (olCSS == null) {
-                        throw new InvalidParametersException("Invalid Krawczyk share. No \"original-length\" datum found");
+                        return new BrokenShare("Invalid Krawczyk share. No \"original-length\" datum found");
                     }
                     final int originalLengthCSS = Integer.parseInt(olCSS);
 
                     final String encAlgoCSS = metaData.get("archistar-krawczyk-algorithm");
                     if (encAlgoCSS == null) {
-                        throw new InvalidParametersException("Invalid Krawczyk share. No \"krawczyk-algorithm\" datum found");
+                        return new BrokenShare("Invalid Krawczyk share. No \"krawczyk-algorithm\" datum found");
                     }
                     int encAlgorithmCSS = Integer.parseInt(encAlgoCSS);
 
                     final String encKeyCS = metaData.get("archistar-krawczyk-key");
                     if (encKeyCS == null) {
-                        throw new InvalidParametersException("Invalid Krawczyk share. No \"krawczyk-key\" datum found");
+                        return new BrokenShare("Invalid Krawczyk share. No \"krawczyk-key\" datum found");
                     }
                     final byte[] encKeyCSS = Base64.decode(encKeyCS);
 
@@ -181,10 +181,10 @@ public class ShareFactory {
                     return new CSSShare(id, body, fingerprints, originalLengthCSS, encAlgorithmCSS, encKeyCSS);
 
                 default:
-                    throw new InvalidParametersException("Unknown share type: " + sT);
+                    return new BrokenShare("Unknown share type: " + sT);
             }
-        } catch (IOException ex) {
-            throw new InvalidParametersException("error during deserialization: " + ex.getLocalizedMessage());
+        } catch (IOException | InvalidParametersException ex) {
+            return new BrokenShare("error during deserialization: " + ex.getLocalizedMessage());
         }
     }
 

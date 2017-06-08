@@ -1,14 +1,14 @@
 package at.archistar.crypto.data;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.fest.assertions.api.Assertions.fail;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
  * Perform serialization tests upon Shares that contain information-checking
@@ -35,16 +35,13 @@ public class TestShareWithICSerialization extends AbstractSerializationTest {
     }
 
     /**
-     * with IC, partial shares should throw an exception
-     *
-     * @throws at.archistar.crypto.data.InvalidParametersException this should be thrown
-     * @throws java.io.IOException this shouldn't be thrown
+     * with IC, partial shares should result in a BrokenShare
      */
     @Override
-    @Test(expected = InvalidParametersException.class)
-    public void failingWithPartialShares() throws IOException, InvalidParametersException {
+    @Test
+    public void failingWithPartialShares() {
         byte[] tmp = Arrays.copyOf(serializedShare, serializedShare.length - 1);
         Share s = ShareFactory.deserialize(tmp, metaData);
-        fail("there was not enough data for this type of share");
+        assertThat(s).isExactlyInstanceOf(BrokenShare.class);
     }
 }
