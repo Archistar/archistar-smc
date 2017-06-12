@@ -7,6 +7,9 @@ import at.archistar.crypto.random.RandomSource;
 
 import java.security.InvalidKeyException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>This class implements the <i>Rabin-Ben-Or Robust Secret-Sharing </i> scheme.</p>
@@ -16,12 +19,10 @@ import java.util.Arrays;
  */
 public class RabinBenOrRSS implements InformationChecking {
 
-    private final MacHelper mac;
-
-    private final RandomSource rng;
-
     /** minimum amount of shares needed for reconstructing the secret */
     protected final int k;
+    private final MacHelper mac;
+    private final RandomSource rng;
 
     /**
      * Constructor
@@ -49,8 +50,8 @@ public class RabinBenOrRSS implements InformationChecking {
                     this.rng.fillBytes(key);
                     byte[] tag = this.mac.computeMAC(share1.getYValues(), key);
 
-                    share1.getMacs().put((byte) share2.getId(), tag);
-                    share2.getMacKeys().put((byte) share1.getId(), key);
+                    share1.getMacs().put(share2.getId(), tag);
+                    share2.getMacKeys().put(share1.getId(), key);
                 } catch (InvalidKeyException e) {
                     throw new RuntimeException("this cannot happen");
                 }
@@ -60,27 +61,15 @@ public class RabinBenOrRSS implements InformationChecking {
     }
 
     @Override
-    public InformationCheckingShare[] checkShares(InformationCheckingShare[] rboshares) {
-        InformationCheckingShare[] valid = new InformationCheckingShare[rboshares.length];
-        int counter = 0;
-
-        for (InformationCheckingShare rboshare1 : rboshares) { // go through all shares
-            int accepts = 0; // number of participants accepting i
-            for (InformationCheckingShare rboshare : rboshares) {
-                byte[] data = rboshare1.getYValues();
-                byte[] macCmp = rboshare1.getMacs().get((byte) rboshare.getId());
-                byte[] macKey = rboshare.getMacKeys().get((byte) rboshare1.getId());
-
-                if (mac.verifyMAC(data, macCmp, macKey)) {
-                    accepts++;
-                }
-            }
-
-            if (accepts >= k) { // if there are at least k accepts, this share is counted as valid
-                valid[counter++] = rboshare1;
-            }
-        }
-        return Arrays.copyOfRange(valid, 0, counter);
+    public Map<Boolean, List<InformationCheckingShare>> checkShares(InformationCheckingShare[] shares) {
+        return Arrays.stream(shares).collect(Collectors.partitioningBy(
+                share -> Arrays.stream(shares).filter(
+                        s -> mac.verifyMAC(
+                                share.getYValues(),
+                                share.getMacs().get(s.getId()),
+                                s.getMacKeys().get(share.getId()))
+                ).count() >= k
+        ));
     }
 
     @Override

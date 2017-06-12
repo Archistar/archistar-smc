@@ -1,6 +1,5 @@
 package at.archistar.crypto.secretsharing;
 
-import at.archistar.crypto.CryptoEngine;
 import at.archistar.crypto.data.Share;
 
 /**
@@ -16,7 +15,7 @@ import at.archistar.crypto.data.Share;
  * operations are: share for creating shares and reconstruct for reconstructing
  * the original secret from the given shares.</p>
  */
-public interface SecretSharing extends CryptoEngine {
+public interface SecretSharing {
 
     /**
      * Creates <i>n</i> secret shares for the given data where <i>k</i> shares are required for reconstruction.
@@ -24,7 +23,6 @@ public interface SecretSharing extends CryptoEngine {
      * @param data the data to share secretly
      * @return the n different secret shares for the given data
      */
-    @Override
     Share[] share(byte[] data);
 
     /**
@@ -35,8 +33,9 @@ public interface SecretSharing extends CryptoEngine {
      * @return the reconstructed secret
      * @throws ReconstructionException thrown if the reconstruction failed
      */
-    @Override
     byte[] reconstruct(Share[] shares) throws ReconstructionException;
+
+    byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException;
 
     /**
      * @return the created share count

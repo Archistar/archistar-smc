@@ -1,9 +1,6 @@
 package at.archistar.crypto;
 
-import at.archistar.crypto.data.CSSShare;
-import at.archistar.crypto.data.InvalidParametersException;
-import at.archistar.crypto.data.KrawczykShare;
-import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.*;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.random.BCDigestRandomSource;
@@ -16,10 +13,7 @@ import at.archistar.crypto.symmetric.Encryptor;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -94,27 +88,44 @@ public class CSSEngine implements CryptoEngine {
     }
 
     @Override
-    public byte[] reconstruct(Share[] shares) throws ReconstructionException {
+    public ReconstructionResult reconstruct(Share[] shares) {
         if (!Arrays.stream(shares).allMatch(s -> s instanceof CSSShare)) {
-            throw new ReconstructionException("Not all shares are CSS Shares");
+            return new ReconstructionResult(Collections.singletonList("Not all shares are CSS Shares"));
         }
-        List<CSSShare> valid = Arrays.stream(shares)
+        Map<Boolean, List<CSSShare>> partitioned = Arrays.stream(shares)
                 .map(s -> (CSSShare) s)
-                .filter(s ->
-                        Arrays.stream(shares)
+                .collect(Collectors.partitioningBy(
+                        s -> Arrays.stream(shares)
                                 .map(s0 -> (CSSShare) s0)
                                 .filter(s0 -> Arrays.equals(
                                         digest.digest(s.getYValues()),
                                         (s0.getFingerprints().get(s.getId()))))
                                 .count() >= k)
-                .collect(Collectors.toList());
-        return engine.reconstruct(valid.toArray(new CSSShare[valid.size()]));
+                );
+        CSSShare[] valid = partitioned.get(Boolean.TRUE).toArray(new CSSShare[partitioned.get(Boolean.TRUE).size()]);
+        List<String> errors = partitioned.get(Boolean.FALSE).stream()
+                .map(s -> "Could not validate " + s).collect(Collectors.toList());
+        try {
+            return new ReconstructionResult(engine.reconstruct(valid), errors);
+        } catch (ReconstructionException e) {
+            errors.add(e.toString());
+            return new ReconstructionResult(errors);
+        }
     }
 
     @Override
-    public byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException {
-        System.err.println("*** WARNING: Partial reconstruction -- no fingerprints are checked!");
-        return engine.reconstructPartial(shares, start);
+    public ReconstructionResult reconstructPartial(Share[] shares, long start) {
+        if (!Arrays.stream(shares).allMatch(s -> s instanceof CSSShare)) {
+            return new ReconstructionResult(Collections.singletonList("Not all shares are CSS Shares"));
+        }
+        String warning = "*** WARNING: Partial reconstruction -- no fingerprints are checked!";
+        System.err.println(warning);
+        try {
+            return new ReconstructionResult(engine.reconstructPartial(shares, start),
+                    Collections.singletonList(warning));
+        } catch (ReconstructionException e) {
+            return new ReconstructionResult(Collections.singletonList(e.toString()));
+        }
     }
 
     @Override

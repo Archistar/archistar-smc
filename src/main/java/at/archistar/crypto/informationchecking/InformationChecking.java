@@ -3,6 +3,9 @@ package at.archistar.crypto.informationchecking;
 import at.archistar.crypto.data.InformationCheckingShare;
 import at.archistar.crypto.data.InvalidParametersException;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * <p>Secret-sharing splits up the original secret data into n shares, k of
  * which are needed to reconstruct the original secret. Basic algorithms expect
@@ -21,7 +24,7 @@ public interface InformationChecking {
      * @param shares the shares with IC information to be checked
      * @return the shares that passed the IC check
      */
-    InformationCheckingShare[] checkShares(InformationCheckingShare[] shares);
+    Map<Boolean, List<InformationCheckingShare>> checkShares(InformationCheckingShare[] shares);
 
     /**
      * @param shares the shares that need IC information to be added

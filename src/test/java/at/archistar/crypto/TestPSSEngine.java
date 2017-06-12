@@ -2,6 +2,7 @@ package at.archistar.crypto;
 
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.PSSShare;
+import at.archistar.crypto.data.ReconstructionResult;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
@@ -48,8 +49,8 @@ public class TestPSSEngine {
                 truncated[s] = new PSSShare((byte) shares[s].getX(), Arrays.copyOf(shares[s].getYValues(), i),
                         new HashMap<>(), new HashMap<>());
             }
-            byte[] reconstructed = algorithm.reconstructPartial(truncated, 0);
-            assertThat(reconstructed).isEqualTo(Arrays.copyOf(data, i));
+            ReconstructionResult reconstructed = algorithm.reconstructPartial(truncated, 0);
+            assertThat(reconstructed.getData()).isEqualTo(Arrays.copyOf(data, i));
         }
     }
 
@@ -60,7 +61,9 @@ public class TestPSSEngine {
 
         shares[1].getYValues()[1] = (byte) (shares[1].getYValues()[1] + 1);
 
-        assertThat(algorithm.reconstruct(shares)).isEqualTo(data);
+        ReconstructionResult result = algorithm.reconstruct(shares);
+        assertThat(result.getData()).isEqualTo(data);
+        assertThat(result.getErrors().size()).isEqualTo(1);
     }
 
     @Test
@@ -72,10 +75,12 @@ public class TestPSSEngine {
             shares[i].getYValues()[0] = (byte) (shares[i].getYValues()[0] + 1);
         }
 
-        assertThat(algorithm.reconstruct(shares)).isEqualTo(data);
+        ReconstructionResult result = algorithm.reconstruct(shares);
+        assertThat(result.getData()).isEqualTo(data);
+        assertThat(result.getErrors().size()).isEqualTo(n - k);
     }
 
-    @Test(expected = ReconstructionException.class)
+    @Test
     public void failWithTPlusOneCorruptedShares() throws ReconstructionException {
         Share[] shares = algorithm.share(data);
         assertThat(shares.length).isEqualTo(n);
@@ -84,6 +89,8 @@ public class TestPSSEngine {
             shares[i].getYValues()[0] = (byte) (shares[i].getYValues()[0] + 1);
         }
 
-        algorithm.reconstruct(shares);
+        ReconstructionResult result = algorithm.reconstruct(shares);
+        assertThat(result.isOkay()).isFalse();
+        assertThat(result.getErrors().size()).isGreaterThan(n - k);
     }
 }

@@ -1,5 +1,6 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.data.ReconstructionResult;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.secretsharing.ReconstructionException;
 
@@ -44,7 +45,7 @@ public interface CryptoEngine {
      * @return the original data
      * @throws ReconstructionException is thrown is reconstruction failed
      */
-    byte[] reconstruct(Share[] shares) throws ReconstructionException;
+    ReconstructionResult reconstruct(Share[] shares) throws ReconstructionException;
 
     /**
      * reconstruct a part of the original data from the given partial shares
@@ -54,5 +55,5 @@ public interface CryptoEngine {
      * @return a part of the original data
      * @throws ReconstructionException is thrown is partial reconstruction failed or impossible in the given scheme
      */
-    byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException;
+    ReconstructionResult reconstructPartial(Share[] shares, long start) throws ReconstructionException;
 }

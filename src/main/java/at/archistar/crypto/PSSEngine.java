@@ -1,8 +1,6 @@
 package at.archistar.crypto;
 
-import at.archistar.crypto.data.InvalidParametersException;
-import at.archistar.crypto.data.PSSShare;
-import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.*;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.informationchecking.RabinBenOrRSS;
@@ -15,8 +13,7 @@ import at.archistar.crypto.secretsharing.ShamirPSS;
 import at.archistar.crypto.secretsharing.WeakSecurityException;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -87,18 +84,36 @@ public class PSSEngine implements CryptoEngine {
     }
 
     @Override
-    public byte[] reconstruct(Share[] shares) throws ReconstructionException {
+    public ReconstructionResult reconstruct(Share[] shares) throws ReconstructionException {
         if (!Arrays.stream(shares).allMatch(s -> s instanceof PSSShare)) {
-            throw new ReconstructionException("Not all shares are PSS Shares");
+            return new ReconstructionResult(Collections.singletonList("Not all shares are PSS Shares"));
         }
         PSSShare[] pss = Arrays.stream(shares).map(s -> (PSSShare) s).collect(Collectors.toList()).toArray(new PSSShare[n]);
-        return this.sharing.reconstruct(ic.checkShares(pss));
+        Map<Boolean, List<InformationCheckingShare>> partitioned = ic.checkShares(pss);
+        InformationCheckingShare[] valid = partitioned.get(Boolean.TRUE).toArray(new InformationCheckingShare[partitioned.get(Boolean.TRUE).size()]);
+        List<String> errors = partitioned.get(Boolean.FALSE).stream()
+                .map(s -> "Could not validate " + s).collect(Collectors.toList());
+        try {
+            return new ReconstructionResult(sharing.reconstruct(valid), errors);
+        } catch (ReconstructionException e) {
+            errors.add(e.toString());
+            return new ReconstructionResult(errors);
+        }
     }
 
     @Override
-    public byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException {
-        System.err.println("*** WARNING: Partial reconstruction -- no Information Checking is performed");
-        return this.sharing.reconstructPartial(shares, start);
+    public ReconstructionResult reconstructPartial(Share[] shares, long start) {
+        if (!Arrays.stream(shares).allMatch(s -> s instanceof PSSShare)) {
+            return new ReconstructionResult(Collections.singletonList("Not all shares are PSS Shares"));
+        }
+        String warning = "*** WARNING: Partial reconstruction -- no Information Checking is performed";
+        System.err.println(warning);
+        try {
+            return new ReconstructionResult(sharing.reconstructPartial(shares, start),
+                    Collections.singletonList(warning));
+        } catch (ReconstructionException e) {
+            return new ReconstructionResult(Collections.singletonList(e.toString()));
+        }
     }
 
     @Override

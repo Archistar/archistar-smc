@@ -2,6 +2,7 @@ package at.archistar.crypto;
 
 import at.archistar.crypto.data.CSSShare;
 import at.archistar.crypto.data.InvalidParametersException;
+import at.archistar.crypto.data.ReconstructionResult;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.informationchecking.RabinBenOrRSS;
 import at.archistar.crypto.random.FakeRandomSource;
@@ -17,7 +18,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.fail;
 
 /**
  * Tests for {@link RabinBenOrRSS}
@@ -52,8 +52,8 @@ public class TestCSSEngine {
     public void simpleShareReconstructRound() throws ReconstructionException, WeakSecurityException {
         Share shares[] = algorithm.share(data);
         assertThat(shares.length).isEqualTo(n);
-        byte reconstructedData[] = algorithm.reconstruct(shares);
-        assertThat(reconstructedData).isEqualTo(data);
+        ReconstructionResult reconstructedData = algorithm.reconstruct(shares);
+        assertThat(reconstructedData.getData()).isEqualTo(data);
     }
 
     /**
@@ -68,8 +68,8 @@ public class TestCSSEngine {
 
         for (int i = k + 1; i < n; i++) {
             Share shares1[] = Arrays.copyOfRange(shares, 0, i);
-            byte reconstructedData[] = algorithm.reconstruct(shares1);
-            assertThat(reconstructedData).isEqualTo(data);
+            ReconstructionResult reconstructedData = algorithm.reconstruct(shares1);
+            assertThat(reconstructedData.getData()).isEqualTo(data);
         }
     }
 
@@ -84,8 +84,8 @@ public class TestCSSEngine {
         Share shares[] = algorithm.share(data);
         Collections.shuffle(Arrays.asList(shares));
 
-        byte reconstructedData[] = algorithm.reconstruct(shares);
-        assertThat(reconstructedData).isEqualTo(data);
+        ReconstructionResult reconstructedData = algorithm.reconstruct(shares);
+        assertThat(reconstructedData.getData()).isEqualTo(data);
     }
 
     /**
@@ -99,13 +99,8 @@ public class TestCSSEngine {
 
         for (int i = 0; i < k; i++) {
             Share[] shares1 = Arrays.copyOfRange(shares, 0, i);
-
-            try {
-                algorithm.reconstruct(shares1);
-                fail("reconstruct with less than k shares did work. How?");
-            } catch (ReconstructionException ex) {
-                // this is actually the good case
-            }
+            ReconstructionResult result = algorithm.reconstruct(shares1);
+            assertThat(result.isOkay()).isFalse();
         }
     }
 
@@ -137,12 +132,12 @@ public class TestCSSEngine {
                     truncated[s] = new CSSShare((byte) share.getX(), Arrays.copyOfRange(share.getYValues(), i, j),
                             share.getFingerprints(), share.getOriginalLength(), 1, share.getKey());
                 }
-                byte[] reconstructed = algorithm.reconstructPartial(truncated, i * k);
+                ReconstructionResult reconstructed = algorithm.reconstructPartial(truncated, i * k);
                 int trunc_begin = i * k;
                 int trunc_end = Math.min(data.length, j * k);
                 int truncation = j * k > data.length ? data.length - (i * k) : (j - i) * k;
                 // truncation of the reconstructed data is actually only needed when we are on the last block
-                assertThat(Arrays.copyOf(reconstructed, truncation)).isEqualTo(Arrays.copyOfRange(data, trunc_begin, trunc_end));
+                assertThat(Arrays.copyOf(reconstructed.getData(), truncation)).isEqualTo(Arrays.copyOfRange(data, trunc_begin, trunc_end));
             }
         }
     }
@@ -154,7 +149,9 @@ public class TestCSSEngine {
 
         shares[1].getYValues()[1] = (byte) (shares[1].getYValues()[1] + 1);
 
-        assertThat(algorithm.reconstruct(shares)).isEqualTo(data);
+        ReconstructionResult result = algorithm.reconstruct(shares);
+        assertThat(result.getData()).isEqualTo(data);
+        assertThat(result.getErrors().size()).isEqualTo(1);
     }
 
     @Test
@@ -166,10 +163,12 @@ public class TestCSSEngine {
             shares[i].getYValues()[0] = (byte) (shares[i].getYValues()[0] + 1);
         }
 
-        assertThat(algorithm.reconstruct(shares)).isEqualTo(data);
+        ReconstructionResult result = algorithm.reconstruct(shares);
+        assertThat(result.getData()).isEqualTo(data);
+        assertThat(result.getErrors().size()).isEqualTo(n - k);
     }
 
-    @Test(expected = ReconstructionException.class)
+    @Test
     public void failWithTPlusOneCorruptedShares() throws ReconstructionException {
         Share[] shares = algorithm.share(data);
         assertThat(shares.length).isEqualTo(n);
@@ -178,6 +177,8 @@ public class TestCSSEngine {
             shares[i].getYValues()[0] = (byte) (shares[i].getYValues()[0] + 1);
         }
 
-        algorithm.reconstruct(shares);
+        ReconstructionResult result = algorithm.reconstruct(shares);
+        assertThat(result.isOkay()).isFalse();
+        assertThat(result.getErrors().size()).isGreaterThan(n - k);
     }
 }

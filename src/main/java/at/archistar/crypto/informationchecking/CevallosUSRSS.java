@@ -1,14 +1,12 @@
 package at.archistar.crypto.informationchecking;
 
 import at.archistar.crypto.data.InformationCheckingShare;
-import at.archistar.crypto.secretsharing.WeakSecurityException;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
+import at.archistar.crypto.secretsharing.WeakSecurityException;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>This class implements the <i>Unconditionally-Secure Robust Secret Sharing with Compact Shares</i>-scheme developed by:
@@ -46,14 +44,41 @@ public class CevallosUSRSS extends RabinBenOrRSS {
         this.mac = mac;
     }
 
+    /**
+     * Computes the required MAC-tag-length to achieve a security of <i>e</i> bits.
+     *
+     * @param m the length of the message in bit (TODO: this should be the blocklength)
+     * @param t amount of "defective" shares
+     * @param e the security constant in bit
+     * @return the amount of bytes the MAC-tags should have
+     */
+    public static int computeTagLength(int m, int t, int e) {
+        int tagLengthBit = log2(t + 1) + log2(m) + 2 / (t + 1) * e + log2(e);
+        return tagLengthBit / 8;
+    }
+
+    /**
+     * Computes the integer logarithm base 2 of a given number.
+     *
+     * @param n the int to compute the logarithm for
+     * @return the integer logarithm (whole number -> floor()) of the given number
+     */
+    private static int log2(int n) {
+        if (n <= 0) {
+            throw new IllegalArgumentException();
+        }
+
+        return 31 - Integer.numberOfLeadingZeros(n);
+    }
+
     private int getAcceptedCount(InformationCheckingShare s1, InformationCheckingShare[] shares, boolean[][] accepts) {
 
         int counter = 0;
 
         for (InformationCheckingShare s2 : shares) {
             byte[] data = s1.getYValues();
-            byte[] mac1 = s1.getMacs().get((byte) s2.getId());
-            byte[] mac2 = s2.getMacKeys().get((byte) s1.getId());
+            byte[] mac1 = s1.getMacs().get(s2.getId());
+            byte[] mac2 = s2.getMacKeys().get(s1.getId());
 
             accepts[s1.getId()][s2.getId()] = mac.verifyMAC(data, mac1, mac2);
             if (accepts[s1.getId()][s2.getId()]) {
@@ -65,7 +90,7 @@ public class CevallosUSRSS extends RabinBenOrRSS {
     }
 
     @Override
-    public InformationCheckingShare[] checkShares(InformationCheckingShare[] cshares) {
+    public Map<Boolean, List<InformationCheckingShare>> checkShares(InformationCheckingShare[] cshares) {
 
         Queue<Integer> queue = new LinkedList<>();
         List<InformationCheckingShare> valid = new LinkedList<>();
@@ -99,34 +124,11 @@ public class CevallosUSRSS extends RabinBenOrRSS {
             }
         }
 
-        return valid.toArray(new InformationCheckingShare[valid.size()]);
-    }
+        Map<Boolean, List<InformationCheckingShare>> res = new HashMap<>();
+        res.put(Boolean.TRUE, valid);
+        res.put(Boolean.FALSE, queue.stream().map(i -> cshares[i]).collect(Collectors.toList()));
 
-    /**
-     * Computes the required MAC-tag-length to achieve a security of <i>e</i> bits.
-     *
-     * @param m the length of the message in bit (TODO: this should be the blocklength)
-     * @param t amount of "defective" shares
-     * @param e the security constant in bit
-     * @return the amount of bytes the MAC-tags should have
-     */
-    public static int computeTagLength(int m, int t, int e) {
-        int tagLengthBit = log2(t + 1) + log2(m) + 2 / (t + 1) * e + log2(e);
-        return tagLengthBit / 8;
-    }
-
-    /**
-     * Computes the integer logarithm base 2 of a given number.
-     *
-     * @param n the int to compute the logarithm for
-     * @return the integer logarithm (whole number -> floor()) of the given number
-     */
-    private static int log2(int n) {
-        if (n <= 0) {
-            throw new IllegalArgumentException();
-        }
-
-        return 31 - Integer.numberOfLeadingZeros(n);
+        return res;
     }
 
     @Override
