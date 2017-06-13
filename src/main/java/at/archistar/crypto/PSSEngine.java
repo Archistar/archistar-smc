@@ -84,7 +84,7 @@ public class PSSEngine implements CryptoEngine {
     }
 
     @Override
-    public ReconstructionResult reconstruct(Share[] shares) throws ReconstructionException {
+    public ReconstructionResult reconstruct(Share[] shares) {
         if (!Arrays.stream(shares).allMatch(s -> s instanceof PSSShare)) {
             return new ReconstructionResult(Collections.singletonList("Not all shares are PSS Shares"));
         }
@@ -118,6 +118,6 @@ public class PSSEngine implements CryptoEngine {
 
     @Override
     public String toString() {
-        return "Shamir(" + k + "/" + n + ")";
+        return "PSS(" + k + "/" + n + ")";
     }
 }
