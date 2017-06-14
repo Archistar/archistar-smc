@@ -15,23 +15,31 @@ Currently implemented algorithms
 Performance Numbers
 -------------------
 
-Rough observed performance numbers on a Intel Core i5-4690k, single core, Java 1.8, 256kByte Datasets:
+Rough observed performance numbers on a Intel Core i5-4690k, Quad-Core (only Rabin is parallelized though), Java 1.8, 400MB input data split-up into files of Datasize `datasize` with a 4/3 split. All values are kilobytes/second:
 
 ```
-                                                Split    Recombine
-                   ShamirPSS(4/3)    4kB      39233.7      56032.8
-                   ShamirPSS(4/3) 4096kB      42533.7      54179.9
-                    RabinIDS(4/3)    4kB     120826.0     118381.5
-                    RabinIDS(4/3) 4096kB     123746.2     129211.4
-KrawczykCSS(4/3, AESCryptor(CBC))    4kB      54906.2      62439.0
-KrawczykCSS(4/3, AESCryptor(CBC)) 4096kB      60502.2      64707.7
-KrawczykCSS(4/3, AESGCMCryptor())    4kB      33907.3      34391.3
-KrawczykCSS(4/3, AESGCMCryptor()) 4096kB      41207.2      40354.7
-     KrawczykCSS(4/3, ChaCha20())    4kB      76848.0      82249.0
-     KrawczykCSS(4/3, ChaCha20()) 4096kB      79534.0      80313.7
-Rabin-Ben-Or(Krawzywk(ChaCha20), Poly1305, 3/4)    4kB    37925.9    39384.6
-Rabin-Ben-Or(Krawzywk(ChaCha20), Poly1305, 3/4) 4096kB    47080.5    47080.5
+Algorithm                       Datasize     Split-up      Recombine
+====================================================================
+```
+                   ShamirPSS(4/3)    4kB      53633.6      54439.1
+                   ShamirPSS(4/3)  256kB      54818.0      54803.3
+                   ShamirPSS(4/3) 4096kB      54606.1      54453.6
 
+                    RabinIDS(4/3)    4kB     119277.8      87111.9
+                    RabinIDS(4/3)  256kB     696598.6     128040.0
+                    RabinIDS(4/3) 4096kB     830831.6     129129.9
+
+KrawczykCSS(4/3, AESCryptor(CBC))    4kB      57278.7      44295.4
+KrawczykCSS(4/3, AESCryptor(CBC))  256kB      99659.4      64748.7
+KrawczykCSS(4/3, AESCryptor(CBC)) 4096kB     101764.0      64605.7
+
+KrawczykCSS(4/3, AESGCMCryptor())    4kB      34664.9      27928.5
+KrawczykCSS(4/3, AESGCMCryptor())  256kB      56317.9      40586.6
+KrawczykCSS(4/3, AESGCMCryptor()) 4096kB      57039.4      40618.8
+
+     KrawczykCSS(4/3, ChaCha20())    4kB      75683.7      52974.7
+     KrawczykCSS(4/3, ChaCha20())  256kB     164234.2      82183.0
+     KrawczykCSS(4/3, ChaCha20()) 4096kB     172318.0      82414.5
 ```
 
 As this is a 3/4 split, this means that you can get roughly 320 MBit/Second network traffic when using a single core.
