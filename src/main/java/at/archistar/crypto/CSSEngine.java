@@ -66,6 +66,19 @@ public class CSSEngine implements CryptoEngine {
         }
     }
 
+    CSSEngine(int n, int k, RandomSource rng, byte[] key) throws WeakSecurityException, InvalidParametersException {
+        this.n = n;
+        this.k = k;
+        DecoderFactory decoderFactory = new ErasureDecoderFactory();
+        Encryptor cryptor = new ChaCha20Encryptor();
+        this.engine = new KrawczykCSS(n, k, rng, cryptor, decoderFactory, key);
+        try {
+            this.digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public CSSShare[] share(byte[] data) {
         final KrawczykShare[] raw = engine.share(data);

@@ -1,13 +1,15 @@
 package at.archistar.crypto.secretsharing;
 
-import at.archistar.crypto.data.*;
+import at.archistar.crypto.data.InvalidParametersException;
+import at.archistar.crypto.data.KrawczykShare;
+import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
-import at.archistar.crypto.decode.ErasureDecoder;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.AESGCMEncryptor;
 import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import at.archistar.crypto.symmetric.Encryptor;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
@@ -41,25 +43,42 @@ public class KrawczykCSS extends BaseSecretSharing {
 
     private final Encryptor cryptor;
 
+    private final byte[] additionalKey;
+
     /**
-     * Constructor
-     * (Applying the default settings for the Shamir-RNG and the decoders: {@link SHA1PRNG} and {@link ErasureDecoder})
+     * Krawczyk
      *
      * @param n the number of shares
      * @param k the minimum number of shares required for reconstruction
      * @param rng the RandomSource to be used for the underlying Shamir-scheme
      * @param cryptor the to be used encryption algorithms
+     * @param decFactory the decoder
+     * @param additionalKey if present, generated keys will be encrypted with this key
      * @throws WeakSecurityException thrown if this scheme is not secure for the given parameters
+     * @throws InvalidParametersException when the length of the additional key is wrong
      */
-    public KrawczykCSS(int n, int k, RandomSource rng,
-                       Encryptor cryptor,
-                       DecoderFactory decFactory) throws WeakSecurityException {
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
+    public KrawczykCSS(int n, int k, RandomSource rng, Encryptor cryptor,
+                       DecoderFactory decFactory, byte[] additionalKey) throws WeakSecurityException, InvalidParametersException {
         super(n, k);
-
+        if (additionalKey != null && additionalKey.length != cryptor.getKeyLength()) {
+            throw new InvalidParametersException("Key has length " + additionalKey.length + " but needs to have length " + cryptor.getKeyLength());
+        }
         this.shamir = new ShamirPSS(n, k, rng, decFactory);
         this.rs = new RabinIDS(n, k, decFactory);
         this.cryptor = cryptor;
         this.rng = rng;
+        this.additionalKey = additionalKey;
+    }
+
+    public KrawczykCSS(int n, int k, RandomSource rng, Encryptor cryptor,
+                       DecoderFactory decFactory) throws WeakSecurityException {
+        super(n, k);
+        this.shamir = new ShamirPSS(n, k, rng, decFactory);
+        this.rs = new RabinIDS(n, k, decFactory);
+        this.cryptor = cryptor;
+        this.rng = rng;
+        this.additionalKey = null;
     }
 
     @Override
@@ -72,6 +91,9 @@ public class KrawczykCSS extends BaseSecretSharing {
             byte[] encKey = new byte[cryptor.getKeyLength()];
             this.rng.fillBytes(encKey);
             byte[] encSource = cryptor.encrypt(data, encKey);
+            if (additionalKey != null) {
+                encKey = cryptor.encrypt(encKey, additionalKey);
+            }
 
             int baseDataLength = data.length;
             // block cyphers use 16 byte blocks and add an extra block at the end
@@ -140,6 +162,9 @@ public class KrawczykCSS extends BaseSecretSharing {
             }
 
             byte[] key = shamir.reconstruct(ecKey, xValues, originalLengthKey);
+            if (additionalKey != null) {
+                key = cryptor.decrypt(key, additionalKey);
+            }
             if (partial) {
                 int actualLengthContent = shares[0].getYValues().length;
                 for (Share s : shares) {
