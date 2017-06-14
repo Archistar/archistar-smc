@@ -20,7 +20,6 @@ Rough observed performance numbers on a Intel Core i5-4690k, Quad-Core (only Rab
 ```
 Algorithm                       Datasize     Split-up      Recombine
 ====================================================================
-```
                    ShamirPSS(4/3)    4kB      53633.6      54439.1
                    ShamirPSS(4/3)  256kB      54818.0      54803.3
                    ShamirPSS(4/3) 4096kB      54606.1      54453.6
