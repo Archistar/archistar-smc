@@ -104,4 +104,4 @@ Citing Archistar
 If you find Archistar useful for your work or if you use Archistar in a project, paper, website, etc., 
 please cite the software as
 
-T. Lorünser, A. Happe, D. Slamanig (2014). “ARCHISTAR – A framework for secure distributed storage”. GNU General Public License. http://ARCHISTAR.at
+T. Loruenser, A. Happe, D. Slamanig: "ARCHISTAR: Towards Secure and Robust Cloud Based Data Sharing"; Vortrag: Cloud Computing Technology and Science (CloudCom), 2015, Vancouver, Canada; 30.11.2015 - 03.12.2015; in: "CloudCom 2015", IEEE, (2016), S. 371 - 378.
