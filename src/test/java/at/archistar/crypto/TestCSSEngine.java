@@ -1,34 +1,34 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.data.CSSShare;
 import at.archistar.crypto.data.InvalidParametersException;
-import at.archistar.crypto.data.KrawczykShare;
-import at.archistar.crypto.informationchecking.RabinBenOrRSS;
+import at.archistar.crypto.data.ReconstructionResult;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.secretsharing.ReconstructionException;
-import at.archistar.crypto.secretsharing.WeakSecurityException;
+import at.archistar.crypto.informationchecking.RabinBenOrRSS;
 import at.archistar.crypto.random.FakeRandomSource;
 import at.archistar.crypto.random.RandomSource;
+import at.archistar.crypto.secretsharing.ReconstructionException;
+import at.archistar.crypto.secretsharing.WeakSecurityException;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.fest.assertions.api.Assertions.*;
-
-import org.junit.Before;
-import org.junit.Test;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
  * Tests for {@link RabinBenOrRSS}
  */
-public class TestRabinBenOrEngine {
+public class TestCSSEngine {
 
+    private final static RandomSource rng = new FakeRandomSource();
     private final byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17};
     private final int n = 8;
     private final int k = 5;
-    private final static RandomSource rng = new FakeRandomSource();
-    private CryptoEngine algorithm;
+    private CSSEngine algorithm;
 
     /**
      * create a new RabinBenOr CryptoEngine
@@ -38,7 +38,7 @@ public class TestRabinBenOrEngine {
      */
     @Before
     public void setup() throws WeakSecurityException, NoSuchAlgorithmException {
-        algorithm = new RabinBenOrEngine(n, k, rng);
+        algorithm = new CSSEngine(n, k, rng);
     }
 
     /**
@@ -52,8 +52,8 @@ public class TestRabinBenOrEngine {
     public void simpleShareReconstructRound() throws ReconstructionException, WeakSecurityException {
         Share shares[] = algorithm.share(data);
         assertThat(shares.length).isEqualTo(n);
-        byte reconstructedData[] = algorithm.reconstruct(shares);
-        assertThat(reconstructedData).isEqualTo(data);
+        ReconstructionResult reconstructedData = algorithm.reconstruct(shares);
+        assertThat(reconstructedData.getData()).isEqualTo(data);
     }
 
     /**
@@ -68,8 +68,8 @@ public class TestRabinBenOrEngine {
 
         for (int i = k + 1; i < n; i++) {
             Share shares1[] = Arrays.copyOfRange(shares, 0, i);
-            byte reconstructedData[] = algorithm.reconstruct(shares1);
-            assertThat(reconstructedData).isEqualTo(data);
+            ReconstructionResult reconstructedData = algorithm.reconstruct(shares1);
+            assertThat(reconstructedData.getData()).isEqualTo(data);
         }
     }
 
@@ -84,8 +84,8 @@ public class TestRabinBenOrEngine {
         Share shares[] = algorithm.share(data);
         Collections.shuffle(Arrays.asList(shares));
 
-        byte reconstructedData[] = algorithm.reconstruct(shares);
-        assertThat(reconstructedData).isEqualTo(data);
+        ReconstructionResult reconstructedData = algorithm.reconstruct(shares);
+        assertThat(reconstructedData.getData()).isEqualTo(data);
     }
 
     /**
@@ -99,13 +99,8 @@ public class TestRabinBenOrEngine {
 
         for (int i = 0; i < k; i++) {
             Share[] shares1 = Arrays.copyOfRange(shares, 0, i);
-
-            try {
-                algorithm.reconstruct(shares1);
-                fail("reconstruct with less than k shares did work. How?");
-            } catch (ReconstructionException ex) {
-                // this is actually the good case
-            }
+            ReconstructionResult result = algorithm.reconstruct(shares1);
+            assertThat(result.isOkay()).isFalse();
         }
     }
 
@@ -126,25 +121,64 @@ public class TestRabinBenOrEngine {
      */
     @Test
     public void reconstructPartialShares() throws InvalidParametersException, ReconstructionException {
-        Share[] shares = algorithm.share(data);
+        CSSShare[] shares = algorithm.share(data);
         assertThat(shares.length).isEqualTo(n);
-        Share[] truncated = new Share[n];
+        CSSShare[] truncated = new CSSShare[n];
         int sharedLength = shares[0].getYValues().length;
         for (int i = 0; i < sharedLength; i++) {
             for (int j = i + 1; j <= sharedLength; j++) {
                 for (int s = 0; s < n; s++) {
-                    assert (shares[s] instanceof KrawczykShare);
-                    KrawczykShare share = (KrawczykShare) shares[s];
-                    truncated[s] = new KrawczykShare((byte) share.getX(), Arrays.copyOfRange(share.getYValues(), i, j),
-                            share.getOriginalLength(), 1, share.getKey());
+                    CSSShare share = shares[s];
+                    truncated[s] = new CSSShare((byte) share.getX(), Arrays.copyOfRange(share.getYValues(), i, j),
+                            share.getFingerprints(), share.getOriginalLength(), 1, share.getKey());
                 }
-                byte[] reconstructed = algorithm.reconstructPartial(truncated, i * k);
+                ReconstructionResult reconstructed = algorithm.reconstructPartial(truncated, i * k);
                 int trunc_begin = i * k;
                 int trunc_end = Math.min(data.length, j * k);
                 int truncation = j * k > data.length ? data.length - (i * k) : (j - i) * k;
                 // truncation of the reconstructed data is actually only needed when we are on the last block
-                assertThat(Arrays.copyOf(reconstructed, truncation)).isEqualTo(Arrays.copyOfRange(data, trunc_begin, trunc_end));
+                assertThat(Arrays.copyOf(reconstructed.getData(), truncation)).isEqualTo(Arrays.copyOfRange(data, trunc_begin, trunc_end));
             }
         }
+    }
+
+    @Test
+    public void reconstructWithOneCorruptedShare() throws ReconstructionException {
+        Share[] shares = algorithm.share(data);
+        assertThat(shares.length).isEqualTo(n);
+
+        shares[1].getYValues()[1] = (byte) (shares[1].getYValues()[1] + 1);
+
+        ReconstructionResult result = algorithm.reconstruct(shares);
+        assertThat(result.getData()).isEqualTo(data);
+        assertThat(result.getErrors().size()).isEqualTo(1);
+    }
+
+    @Test
+    public void reconstructWithTCorruptedShares() throws ReconstructionException {
+        Share[] shares = algorithm.share(data);
+        assertThat(shares.length).isEqualTo(n);
+
+        for (int i = 0; i < (n - k); i++) {
+            shares[i].getYValues()[0] = (byte) (shares[i].getYValues()[0] + 1);
+        }
+
+        ReconstructionResult result = algorithm.reconstruct(shares);
+        assertThat(result.getData()).isEqualTo(data);
+        assertThat(result.getErrors().size()).isEqualTo(n - k);
+    }
+
+    @Test
+    public void failWithTPlusOneCorruptedShares() throws ReconstructionException {
+        Share[] shares = algorithm.share(data);
+        assertThat(shares.length).isEqualTo(n);
+
+        for (int i = 0; i <= (n - k); i++) {
+            shares[i].getYValues()[0] = (byte) (shares[i].getYValues()[0] + 1);
+        }
+
+        ReconstructionResult result = algorithm.reconstruct(shares);
+        assertThat(result.isOkay()).isFalse();
+        assertThat(result.getErrors().size()).isGreaterThan(n - k);
     }
 }

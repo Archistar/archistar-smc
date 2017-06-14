@@ -1,0 +1,72 @@
+@startuml
+
+interface Share {
+  int VERSION
+  {static} void writeMap()
+  int getX()
+  byte getId()
+  byte[] getYValues()
+  byte[] getSerializedData()
+  {default} Map<String, String> getCommonMetaData()
+  Map<String, String> getMetaData()
+  String getShareType()
+  int getOriginalLength()
+}
+
+interface InformationCheckingShare {
+  Map<Byte, byte[]> getMacs()
+  Map<Byte, byte[]> getMacKeys()
+  ICType getICType()
+}
+
+enum ICType {
+    RABIN_BEN_OR
+    CEVALLOS
+}
+
+Share <|-- InformationCheckingShare
+Share <|-- ShamirShare
+Share <|-- RabinShare
+Share <|-- KrawczykShare
+Share <|-- BrokenShare
+ShamirShare <|-- PSSShare
+InformationCheckingShare <|-- PSSShare
+KrawczykShare <|-- CSSShare
+
+class ShamirShare {
+  -byte id
+  -byte[] body
+}
+
+class RabinShare {
+  -byte id
+  -byte[] body
+  -int originalLength
+}
+
+class KrawczykShare {
+  -byte id
+  -byte[] body
+  -int originalLength
+  -int encAlgorithm
+  -byte[] encKey
+  +int getEncAlgorithm
+  +byte[] getKey()
+}
+
+class BrokenShare {
+  -String error
+  +String getError()
+}
+
+class PSSShare {
+  -Map<Byte, byte[]> macKeys
+  -Map<Byte, byte[]> macs
+  -ICType ICType
+}
+
+class CSSShare {
+  -Map<Byte, byte[]> fingerprints
+}
+
+@enduml

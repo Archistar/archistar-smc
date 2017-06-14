@@ -1,11 +1,14 @@
 package at.archistar.crypto.secretsharing;
 
+import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.decode.ErasureDecoderFactory;
 import at.archistar.crypto.random.FakeRandomSource;
+import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.ChaCha20Encryptor;
+import at.archistar.crypto.symmetric.Encryptor;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,5 +55,26 @@ public class TestKrawczykCSS extends BasicSecretSharingTest {
         for (Share s : shares) {
             assertThat(s.getYValues().length).isEqualTo(new_length);
         }
+    }
+
+    @Test
+    public void additionalKey() throws InvalidParametersException, WeakSecurityException, ReconstructionException {
+        RandomSource rng = new FakeRandomSource();
+        Encryptor enc = new ChaCha20Encryptor();
+        byte[] key = new byte[enc.getKeyLength()];
+        rng.fillBytes(key);
+        algorithm = new KrawczykCSS(n, k, rng, enc, new ErasureDecoderFactory(), key);
+
+        final Share[] shares = algorithm.share(data);
+        assertThat(algorithm.reconstruct(shares)).isEqualTo(data);
+    }
+
+    @Test(expected = InvalidParametersException.class)
+    public void additionalKeyWrongLength() throws InvalidParametersException, WeakSecurityException {
+        RandomSource rng = new FakeRandomSource();
+        Encryptor enc = new ChaCha20Encryptor();
+        byte[] key = new byte[enc.getKeyLength() - 1];
+        rng.fillBytes(key);
+        algorithm = new KrawczykCSS(n, k, rng, enc, new ErasureDecoderFactory(), key);
     }
 }

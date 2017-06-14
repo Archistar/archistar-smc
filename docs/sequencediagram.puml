@@ -1,0 +1,22 @@
+@startuml
+
+actor LibraryUser
+
+LibraryUser -> ShamirPSS: share(byte[] data)
+
+ShamirPSS -> ShamirPSS: share(byte[][] output, byte[] data)
+
+hnote over ShamirPSS
+  secret sharing happens here
+end note
+
+ShamirPSS -> ShamirPSS: createShares(int[] xvalues,\nbyte[][] results,\nint originalLength)
+
+group iterate on results
+  ShamirPSS -> ShamirShare: new(xValue, yValues)
+  ShamirShare -> ShamirPSS: ShamirShare
+end
+
+ShamirPSS -> LibraryUser: Share[]
+
+@enduml
