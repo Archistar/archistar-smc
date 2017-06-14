@@ -51,8 +51,8 @@ public class RabinIDS extends GeometricSecretSharing {
     }
 
     @Override
-    protected Share[] createShares(int[] xValues, byte[][] results, int originalLength) throws InvalidParametersException {
-        Share shares[] = new Share[n];
+    protected RabinShare[] createShares(int[] xValues, byte[][] results, int originalLength) throws InvalidParametersException {
+        RabinShare shares[] = new RabinShare[n];
 
         for (int i = 0; i < n; i++) {
             shares[i] = new RabinShare((byte) xValues[i], results[i], originalLength);

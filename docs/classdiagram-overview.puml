@@ -1,19 +1,18 @@
 @startuml
-abstract class at.archistar.crypto.data.Share
-abstract class at.archistar.crypto.math.BinOp
-abstract class at.archistar.crypto.math.ntt.AbstractNTT
 abstract class at.archistar.crypto.random.BaseRandomAlgorithm
 abstract class at.archistar.crypto.secretsharing.GeometricSecretSharing
-abstract class at.archistar.crypto.secretsharing.NTTSecretSharing
-class at.archistar.crypto.RabinBenOrEngine
-class at.archistar.crypto.ShamirEngine
+class at.archistar.crypto.CryptoEngineFactory
+class at.archistar.crypto.CSSEngine
+class at.archistar.crypto.PSSEngine
 class at.archistar.crypto.data.InvalidParametersException
-class at.archistar.crypto.data.KrawczykShare
-class at.archistar.crypto.data.NTTRabinShare
-class at.archistar.crypto.data.NTTShamirShare
+class at.archistar.crypto.data.CSSShare
 class at.archistar.crypto.data.RabinShare
 class at.archistar.crypto.data.ShamirShare
+class at.archistar.crypto.data.KrawczykShare
+class at.archistar.crypto.data.BrokenShare
+class at.archistar.crypto.data.PSSShare
 class at.archistar.crypto.data.ShareFactory
+class at.archistar.crypto.data.ReconstructionResult
 class at.archistar.crypto.decode.BerlekampWelchDecoder
 class at.archistar.crypto.decode.BerlekampWelchDecoderFactory
 class at.archistar.crypto.decode.ErasureDecoder
@@ -27,28 +26,15 @@ class at.archistar.crypto.mac.BCShortenedMacHelper
 class at.archistar.crypto.mac.BCShortenedMacHelperFactory
 class at.archistar.crypto.mac.JavaMacHelper
 class at.archistar.crypto.mac.PolyHash
-class at.archistar.crypto.math.DynamicOutputEncoderConverter
-class at.archistar.crypto.math.EncodingConverter
-class at.archistar.crypto.math.GenericMatrix
-class at.archistar.crypto.math.GenericPolyHelper
-class at.archistar.crypto.math.StaticOutputEncoderConverter
-class at.archistar.crypto.math.bc.BCGF256
-class at.archistar.crypto.math.bc.BCGFFactory
 class at.archistar.crypto.math.gf256.GF256
-class at.archistar.crypto.math.gf256.GF256Factory
-class at.archistar.crypto.math.gf257.GF257
-class at.archistar.crypto.math.gf257.GF257Factory
-class at.archistar.crypto.math.ntt.NTTDit2
-class at.archistar.crypto.math.ntt.NTTSlow
-class at.archistar.crypto.math.ntt.NTTTextbook
+class at.archistar.crypto.math.gf256.GF256Matrix
+class at.archistar.crypto.math.gf256.GF256PolyHelper
 class at.archistar.crypto.random.BCDigestRandomSource
 class at.archistar.crypto.random.CTRPRNG
 class at.archistar.crypto.random.FakeRandomSource
 class at.archistar.crypto.random.JavaSecureRandom
 class at.archistar.crypto.random.StreamPRNG
 class at.archistar.crypto.secretsharing.KrawczykCSS
-class at.archistar.crypto.secretsharing.NTTRabinIDS
-class at.archistar.crypto.secretsharing.NTTShamirPSS
 class at.archistar.crypto.secretsharing.RabinIDS
 class at.archistar.crypto.secretsharing.ReconstructionException
 class at.archistar.crypto.secretsharing.ShamirPSS
@@ -56,29 +42,29 @@ class at.archistar.crypto.secretsharing.WeakSecurityException
 class at.archistar.crypto.symmetric.AESEncryptor
 class at.archistar.crypto.symmetric.AESGCMEncryptor
 class at.archistar.crypto.symmetric.ChaCha20Encryptor
+interface at.archistar.crypto.data.Share
+interface at.archistar.crypto.data.InformationCheckingShare
 interface at.archistar.crypto.CryptoEngine
 interface at.archistar.crypto.decode.Decoder
 interface at.archistar.crypto.decode.DecoderFactory
 interface at.archistar.crypto.informationchecking.InformationChecking
 interface at.archistar.crypto.mac.MacHelper
-interface at.archistar.crypto.math.GF
-interface at.archistar.crypto.math.GFFactory
-interface at.archistar.crypto.math.GFMatrix
-interface at.archistar.crypto.math.OutputEncoderConverter
 interface at.archistar.crypto.random.RandomSource
 interface at.archistar.crypto.secretsharing.SecretSharing
 interface at.archistar.crypto.symmetric.Encryptor
 at.archistar.crypto.random.BaseRandomAlgorithm --|> at.archistar.crypto.random.RandomSource
 at.archistar.crypto.secretsharing.BaseSecretSharing --|> at.archistar.crypto.secretsharing.SecretSharing
 at.archistar.crypto.secretsharing.GeometricSecretSharing --|> at.archistar.crypto.secretsharing.BaseSecretSharing
-at.archistar.crypto.secretsharing.NTTSecretSharing --|> at.archistar.crypto.secretsharing.BaseSecretSharing
-at.archistar.crypto.RabinBenOrEngine --|> at.archistar.crypto.CryptoEngine
-at.archistar.crypto.ShamirEngine --|> at.archistar.crypto.CryptoEngine
-at.archistar.crypto.data.KrawczykShare --|> at.archistar.crypto.data.Share
-at.archistar.crypto.data.NTTRabinShare --|> at.archistar.crypto.data.Share
-at.archistar.crypto.data.NTTShamirShare --|> at.archistar.crypto.data.Share
+at.archistar.crypto.CSSEngine --|> at.archistar.crypto.CryptoEngine
+at.archistar.crypto.PSSEngine --|> at.archistar.crypto.CryptoEngine
+at.archistar.crypto.data.CSSShare --|> at.archistar.crypto.data.KrawczykShare
 at.archistar.crypto.data.RabinShare --|> at.archistar.crypto.data.Share
 at.archistar.crypto.data.ShamirShare --|> at.archistar.crypto.data.Share
+at.archistar.crypto.data.KrawczykShare --|> at.archistar.crypto.data.Share
+at.archistar.crypto.data.PSSShare --|> at.archistar.crypto.data.ShamirShare
+at.archistar.crypto.data.PSSShare --|> at.archistar.crypto.data.InformationCheckingShare
+at.archistar.crypto.data.InformationCheckingShare --|> at.archistar.crypto.data.Share
+at.archistar.crypto.data.BrokenShare --|> at.archistar.crypto.data.Share
 at.archistar.crypto.decode.BerlekampWelchDecoder --|> at.archistar.crypto.decode.Decoder
 at.archistar.crypto.decode.BerlekampWelchDecoderFactory --|> at.archistar.crypto.decode.DecoderFactory
 at.archistar.crypto.decode.ErasureDecoder --|> at.archistar.crypto.decode.Decoder
@@ -90,30 +76,15 @@ at.archistar.crypto.mac.BCPoly1305MacHelper --|> at.archistar.crypto.mac.MacHelp
 at.archistar.crypto.mac.BCShortenedMacHelper --|> at.archistar.crypto.mac.MacHelper
 at.archistar.crypto.mac.JavaMacHelper --|> at.archistar.crypto.mac.MacHelper
 at.archistar.crypto.mac.PolyHash --|> at.archistar.crypto.mac.MacHelper
-at.archistar.crypto.math.DynamicOutputEncoderConverter --|> at.archistar.crypto.math.OutputEncoderConverter
-at.archistar.crypto.math.GenericMatrix --|> at.archistar.crypto.math.GFMatrix
-at.archistar.crypto.math.StaticOutputEncoderConverter --|> at.archistar.crypto.math.OutputEncoderConverter
-at.archistar.crypto.math.bc.BCGF256 --|> at.archistar.crypto.math.GF
-at.archistar.crypto.math.bc.BCGFFactory --|> at.archistar.crypto.math.GFFactory
-at.archistar.crypto.math.gf256.GF256 --|> at.archistar.crypto.math.GF
-at.archistar.crypto.math.gf256.GF256Factory --|> at.archistar.crypto.math.GFFactory
-at.archistar.crypto.math.gf257.GF257 --|> at.archistar.crypto.math.GF
-at.archistar.crypto.math.gf257.GF257Factory --|> at.archistar.crypto.math.GFFactory
-at.archistar.crypto.math.ntt.NTTDit2 --|> at.archistar.crypto.math.ntt.AbstractNTT
-at.archistar.crypto.math.ntt.NTTSlow --|> at.archistar.crypto.math.ntt.AbstractNTT
-at.archistar.crypto.math.ntt.NTTTextbook --|> at.archistar.crypto.math.ntt.AbstractNTT
 at.archistar.crypto.random.BCDigestRandomSource --|> at.archistar.crypto.random.RandomSource
 at.archistar.crypto.random.CTRPRNG --|> at.archistar.crypto.random.BaseRandomAlgorithm
 at.archistar.crypto.random.FakeRandomSource --|> at.archistar.crypto.random.RandomSource
 at.archistar.crypto.random.JavaSecureRandom --|> at.archistar.crypto.random.RandomSource
 at.archistar.crypto.random.StreamPRNG --|> at.archistar.crypto.random.BaseRandomAlgorithm
 at.archistar.crypto.secretsharing.KrawczykCSS --|> at.archistar.crypto.secretsharing.BaseSecretSharing
-at.archistar.crypto.secretsharing.NTTRabinIDS --|> at.archistar.crypto.secretsharing.NTTSecretSharing
-at.archistar.crypto.secretsharing.NTTShamirPSS --|> at.archistar.crypto.secretsharing.NTTSecretSharing
 at.archistar.crypto.secretsharing.RabinIDS --|> at.archistar.crypto.secretsharing.GeometricSecretSharing
 at.archistar.crypto.secretsharing.ShamirPSS --|> at.archistar.crypto.secretsharing.GeometricSecretSharing
 at.archistar.crypto.symmetric.AESEncryptor --|> at.archistar.crypto.symmetric.Encryptor
 at.archistar.crypto.symmetric.AESGCMEncryptor --|> at.archistar.crypto.symmetric.Encryptor
 at.archistar.crypto.symmetric.ChaCha20Encryptor --|> at.archistar.crypto.symmetric.Encryptor
-at.archistar.crypto.secretsharing.SecretSharing --|> at.archistar.crypto.CryptoEngine
 @enduml

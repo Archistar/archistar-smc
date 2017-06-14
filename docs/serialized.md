@@ -71,7 +71,7 @@ for values.
 ### 1. Binary
 
 This is just one binary blob consisting of the raw secret-shared data,
-immediately followed by the IC data (if present)
+immediately followed by the IC or fingerprinting data (if present)
 
 ### 2. Metadata
 
@@ -81,30 +81,21 @@ The metadata common to all share formats (as returned by
 * #### "archistar-share-type"
 
     this is currently one of: "SHAMIR", "RABIN", "KRAWCZYK",
-    "NTT_SHAMIR", "NTT_RABIN" (see below)
+    "PSS", "CSS" (see below)
 
 * #### "archistar-version"
 
     this is the version number of the share format and is
-    currently "4"
+    currently "5"
 
 * #### "archistar-id"
 
     this is the x-value of the share
 
-* #### "archistar-ic-type"
-
-    this is one of:
-    * "0" for no information checking
-    * "1" for Rabin-Ben-Or information checking (see informationchecking/RabinBenOrRSS)
-    * "2" for Cevallos information checking (se informationchecking/CevallosUSRSS)
-
 * #### "archistar-length"
 
     this is the length (in bytes) of the raw share data, and is used
-    to determine the starting point of the IC info
-
-
+    to determine the starting point of the IC or fingerprinting info
 
 The metadata specific to each share type are:
 
@@ -135,22 +126,16 @@ no extra data
     (the original key is distributed over all shares via ShamirPSS
     and then - for robustness - Base64-encoded)
         
-### 2d. NTT_SHAMIR (see data/NTTShamirShare)
+### 2d. PSS (see data/PSSShare)
 
-* #### "archistar-original-length"
+This is a ShamirShare with Information Checking; it has one additional key:
 
-    this is the length of the original (unshared, complete) file
+* #### "archistar-ic-type"
 
-* #### "archistar-ntt-share-size"
+    this is one of:
+    * "0" for Rabin-Ben-Or information checking (see informationchecking/RabinBenOrRSS)
+    * "1" for Cevallos information checking (see informationchecking/CevallosUSRSS)
 
-    ?
+### 2e. CSS (see data/CSSShare)
 
-### 2e. NTT_RABIN (see data/NTTRabinShare)
-
-* #### "archistar-original-length"
-
-    this is the length of the original (unshared, complete) file
-
-* #### "archistar-ntt-share-size"
-
-    ?
+This is a KrawczykShare with Fingerprinting; metadata are therefore the same as KRAWCZYK
