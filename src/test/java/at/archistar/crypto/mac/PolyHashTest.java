@@ -1,7 +1,5 @@
 package at.archistar.crypto.mac;
 
-import at.archistar.crypto.math.gf256.GF256;
-
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -25,7 +23,7 @@ public class PolyHashTest {
             data[i] = (byte) i;
         }
 
-        MacHelper mac = new PolyHash(64 / 8, new GF256());
+        MacHelper mac = new PolyHash(64 / 8);
         byte[] hash = mac.computeMAC(data, key);
         assertThat(hash.length).isEqualTo(8);
         assertThat(mac.verifyMAC(data, hash, key)).isEqualTo(true);

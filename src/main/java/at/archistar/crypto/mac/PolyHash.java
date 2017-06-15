@@ -1,7 +1,6 @@
 package at.archistar.crypto.mac;
 
-import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.GenericPolyHelper;
+import at.archistar.crypto.math.gf256.GF256PolyHelper;
 
 import java.security.InvalidKeyException;
 import java.util.Arrays;
@@ -12,27 +11,20 @@ import java.util.Arrays;
 public class PolyHash implements MacHelper {
 
     private final int keylength;
-
-    private final GF gf;
-
-    private final GenericPolyHelper polyHelper;
-
+    
     /**
      * create a new hash
      *
      * @param keylength output keylength
-     * @param gf mathematical field within which operations should be performed
      */
-    public PolyHash(int keylength, GF gf) {
+    public PolyHash(int keylength) {
         this.keylength = keylength;
-        this.polyHelper = new GenericPolyHelper(gf);
-        this.gf = gf;
     }
 
     private static int[] createIntArrayFromByte(byte[] a) {
         int[] b = new int[a.length];
         for (int i = 0; i < a.length; i++) {
-            b[i] = (a[i] < 0) ? a[i] + 256 : a[i];
+            b[i] = a[1] & 0xff;
         }
         return b;
     }
@@ -63,7 +55,7 @@ public class PolyHash implements MacHelper {
         /* reihenfolge innerhalb des arrays sollte ja wurscht sein */
         for (int i = 1; i < rowCount; i++) {
             int[] next = createIntArrayFromByte(Arrays.copyOfRange(data, i * this.keylength, (i + 1) * this.keylength));
-            result = polyHelper.multiply(result, polyHelper.add(b, next));
+            result = GF256PolyHelper.multiply(result, GF256PolyHelper.add(b, next));
         }
 
         /* add rest -> reihenfolge wurscht, sollt also funktionieren */
@@ -72,11 +64,11 @@ public class PolyHash implements MacHelper {
 
             /* expand to keylength */
             next = Arrays.copyOf(next, keylength);
-            result = polyHelper.add(result, next);
+            result = GF256PolyHelper.add(result, next);
         }
 
         /* add a */
-        result = polyHelper.add(result, a);
+        result = GF256PolyHelper.add(result, a);
 
         /* extract result into a byte[] array */
         byte[] byteResult = new byte[this.keylength];

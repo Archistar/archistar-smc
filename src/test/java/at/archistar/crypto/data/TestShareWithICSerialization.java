@@ -1,14 +1,14 @@
 package at.archistar.crypto.data;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.fest.assertions.api.Assertions.fail;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
  * Perform serialization tests upon Shares that contain information-checking
@@ -29,22 +29,19 @@ public class TestShareWithICSerialization extends AbstractSerializationTest {
         macKeys.put((byte) 1, new byte[]{7, 8, 9});
         macKeys.put((byte) 2, new byte[]{10, 11, 12});
 
-        share = new RabinShare((byte) 7, new byte[]{1,2,3}, Share.ICType.RABIN_BEN_OR, macKeys, macs, 4);
+        share = new PSSShare((byte) 7, new byte[]{1,2,3}, macKeys, macs);
         metaData = share.getMetaData();
         serializedShare = share.getSerializedData();
     }
 
     /**
-     * with IC, partial shares should throw an exception
-     *
-     * @throws at.archistar.crypto.data.InvalidParametersException this should be thrown
-     * @throws java.io.IOException this shouldn't be thrown
+     * with IC, partial shares should result in a BrokenShare
      */
     @Override
-    @Test(expected = InvalidParametersException.class)
-    public void failingWithPartialShares() throws IOException, InvalidParametersException {
+    @Test
+    public void failingWithPartialShares() {
         byte[] tmp = Arrays.copyOf(serializedShare, serializedShare.length - 1);
         Share s = ShareFactory.deserialize(tmp, metaData);
-        fail("there was not enough data for this type of share");
+        assertThat(s).isExactlyInstanceOf(BrokenShare.class);
     }
 }

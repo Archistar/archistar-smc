@@ -15,24 +15,33 @@ Currently implemented algorithms
 Performance Numbers
 -------------------
 
-Rough observed performance numbers on a Intel Core i5-3570k, single core, Java 1.7, 256kByte Datasets:
+Rough observed performance numbers on a Intel Core i5-4690k, Quad-Core (only Rabin is parallelized though), Java 1.8, 400MB input data split-up into files of Datasize `datasize` with a 4/3 split. All values are kilobytes/second:
 
 ```
-ShamirPSS:                        share:  24854.369kByte/sec, combine: 16075.35kByte/sec
+Algorithm                       Datasize     Split-up      Recombine
+====================================================================
+                   ShamirPSS(4/3)    4kB      53633.6      54439.1
+                   ShamirPSS(4/3)  256kB      54818.0      54803.3
+                   ShamirPSS(4/3) 4096kB      54606.1      54453.6
 
-RabinIDS:                         share: 107789.474kByte/sec, combine: 53333.33kByte/sec
+                    RabinIDS(4/3)    4kB     119277.8      87111.9
+                    RabinIDS(4/3)  256kB     696598.6     128040.0
+                    RabinIDS(4/3) 4096kB     830831.6     129129.9
 
-KrawczykCSS AES-CBC:              share:  50443.350kByte/sec, combine: 33684.21kByte/sec
-KrawczykCSS AES-GCM:              share:  31411.043kByte/sec, combine: 24824.24kByte/sec
-KrawczykCSS ChaCha:               share:  64402.516kByte/sec, combine: 41457.49kByte/sec
+KrawczykCSS(4/3, AESCryptor(CBC))    4kB      57278.7      44295.4
+KrawczykCSS(4/3, AESCryptor(CBC))  256kB      99659.4      64748.7
+KrawczykCSS(4/3, AESCryptor(CBC)) 4096kB     101764.0      64605.7
 
-RabinBenOrRSS (AES, SHA256):      share:  17594.502kByte/sec, combine: 14927.11kByte/sec
-RabinBenOrRSS (ChaCha, SHA256):   share:  19730.250kByte/sec, combine: 16677.52kByte/sec
-RabinBenOrRSS (AES, Poly1305):    share:  30385.757kByte/sec, combine: 22629.83kByte/sec
-RabinBenOrRSS (ChaCha, Poly1305): share:  34362.416kByte/sec, combine: 24674.70kByte/sec
+KrawczykCSS(4/3, AESGCMCryptor())    4kB      34664.9      27928.5
+KrawczykCSS(4/3, AESGCMCryptor())  256kB      56317.9      40586.6
+KrawczykCSS(4/3, AESGCMCryptor()) 4096kB      57039.4      40618.8
 
-CevallosUSRSS (AES/CBC, SHA256):  share:   4550.100kByte/sec, combine:   173.03kByte/sec
+     KrawczykCSS(4/3, ChaCha20())    4kB      75683.7      52974.7
+     KrawczykCSS(4/3, ChaCha20())  256kB     164234.2      82183.0
+     KrawczykCSS(4/3, ChaCha20()) 4096kB     172318.0      82414.5
 ```
+
+As this is a 3/4 split, this means that you can get roughly 320 MBit/Second network traffic when using a single core.
 
 Basic Introduction to Secret Sharing
 ---------------------------------------------

@@ -1,8 +1,7 @@
 package at.archistar.crypto.decode;
 
-import at.archistar.crypto.math.GFMatrix;
-import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.GFFactory;
+import at.archistar.crypto.math.gf256.GF256;
+import at.archistar.crypto.math.gf256.GF256Matrix;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
@@ -12,7 +11,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  */
 public class ErasureDecoder implements Decoder {
 
-    private final GFMatrix matrix;
+    private final GF256Matrix matrix;
 
     private final int k;
 
@@ -21,22 +20,20 @@ public class ErasureDecoder implements Decoder {
      *
      * @param xValues the known xValues
      * @param k how many elements will be expected for reconstruction
-     * @param gffactory within which field will be performing our operations
      */
-    public ErasureDecoder(final int[] xValues, final int k, final GFFactory gffactory) {
+    public ErasureDecoder(final int[] xValues, final int k) {
 
         this.k = k;
-        final GF gf = gffactory.createHelper();
 
         final int[][] matrixX = new int[k][k];
 
         for (int i = 0; i < k; i++) {
             for (int j = 0; j < k; j++) {
-                matrixX[i][j] = gf.pow(xValues[i], j);
+                matrixX[i][j] = GF256.pow(xValues[i], j);
             }
         }
 
-        matrix = gffactory.createMatrix(matrixX).inverse();
+        matrix = new GF256Matrix(matrixX).inverse();
     }
 
     /**

@@ -1,22 +1,11 @@
-package at.archistar.crypto.math;
+package at.archistar.crypto.math.gf256;
 
 import java.util.Arrays;
 
 /**
  * TODO: refactor or rewrite. But make it faster and more beautiful
  */
-public class GenericPolyHelper {
-
-    private final GF gf;
-
-    /**
-     * create a new helper for operations upon polynomials within the field gf
-     *
-     * @param gf the field within which operations will be performed
-     */
-    public GenericPolyHelper(GF gf) {
-        this.gf = gf;
-    }
+public class GF256PolyHelper {
 
     /**
      * divide polynom a with polynom f
@@ -25,7 +14,7 @@ public class GenericPolyHelper {
      * @param f perform a/f
      * @return the result
      */
-    public int[][] polyDiv(int a[], int f[]) {
+    public static int[][] polyDiv(int a[], int f[]) {
         int df = computeDegree(f);
         int da = computeDegree(a) + 1;
         if (df == -1) {
@@ -35,13 +24,13 @@ public class GenericPolyHelper {
         result[0] = new int[1];
         result[1] = new int[da];
         int hc = headCoefficient(f);
-        hc = gf.inverse(hc);
+        hc = GF256.inverse(hc);
         result[0][0] = 0;
         System.arraycopy(a, 0, result[1], 0, result[1].length);
         while (df <= computeDegree(result[1])) {
             int[] q;
             int[] coeff = new int[1];
-            coeff[0] = gf.mult(headCoefficient(result[1]), hc);
+            coeff[0] = GF256.mult(headCoefficient(result[1]), hc);
             q = multWithElement(f, coeff[0]);
             int n = computeDegree(result[1]) - df;
             q = multWithMonomial(q, n);
@@ -62,7 +51,7 @@ public class GenericPolyHelper {
         return result;
     }
 
-    private int[] multWithElement(int[] a, int element) {
+    private static int[] multWithElement(int[] a, int element) {
         int degree = computeDegree(a);
         if (degree == -1 || element == 0) {
             return new int[1];
@@ -74,7 +63,7 @@ public class GenericPolyHelper {
 
         int[] result = new int[degree + 1];
         for (int i = degree; i >= 0; i--) {
-            result[i] = gf.mult(a[i], element);
+            result[i] = GF256.mult(a[i], element);
         }
 
         return result;
@@ -94,7 +83,7 @@ public class GenericPolyHelper {
         return degree;
     }
 
-    private int[] sub(int[] a, int[] b) {
+    private static int[] sub(int[] a, int[] b) {
         // TODO: optimize
         //assert(a.length == b.length);
         int[] result, addend;
@@ -109,7 +98,7 @@ public class GenericPolyHelper {
         }
 
         for (int i = addend.length - 1; i >= 0; i--) {
-            result[i] = gf.sub(result[i], addend[i]);
+            result[i] = GF256.sub(result[i], addend[i]);
         }
 
         return result;
@@ -122,7 +111,7 @@ public class GenericPolyHelper {
      * @param b
      * @return a+b
      */
-    public int[] add(int[] a, int[] b) {
+    public static int[] add(int[] a, int[] b) {
 
         // TODO: optimize
         //assert(a.length == b.length);
@@ -138,7 +127,7 @@ public class GenericPolyHelper {
         }
 
         for (int i = addend.length - 1; i >= 0; i--) {
-            result[i] = gf.add(result[i], addend[i]);
+            result[i] = GF256.add(result[i], addend[i]);
         }
 
         return result;
@@ -151,7 +140,7 @@ public class GenericPolyHelper {
      * @param b
      * @return a*b
      */
-    public int[] multiply(int[] a, int[] b) {
+    public static int[] multiply(int[] a, int[] b) {
         int[] mult1, mult2;
         if (computeDegree(a) < computeDegree(b)) {
             mult1 = b;

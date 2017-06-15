@@ -1,14 +1,12 @@
 package at.archistar.crypto.informationchecking;
 
-import at.archistar.crypto.data.Share;
-import at.archistar.crypto.secretsharing.WeakSecurityException;
+import at.archistar.crypto.data.InformationCheckingShare;
 import at.archistar.crypto.mac.MacHelper;
 import at.archistar.crypto.random.RandomSource;
+import at.archistar.crypto.secretsharing.WeakSecurityException;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>This class implements the <i>Unconditionally-Secure Robust Secret Sharing with Compact Shares</i>-scheme developed by:
@@ -46,62 +44,6 @@ public class CevallosUSRSS extends RabinBenOrRSS {
         this.mac = mac;
     }
 
-    private int getAcceptedCount(Share s1, Share[] shares, boolean[][] accepts) {
-
-        int counter = 0;
-
-        for (Share s2 : shares) {
-            byte[] data = s1.getYValues();
-            byte[] mac1 = s1.getMacs().get((byte) s2.getId());
-            byte[] mac2 = s2.getMacKeys().get((byte) s1.getId());
-
-            accepts[s1.getId()][s2.getId()] = mac.verifyMAC(data, mac1, mac2);
-            if (accepts[s1.getId()][s2.getId()]) {
-                counter++;
-            }
-        }
-
-        return counter;
-    }
-
-    @Override
-    public Share[] checkShares(Share[] cshares) {
-
-        Queue<Integer> queue = new LinkedList<>();
-        List<Share> valid = new LinkedList<>();
-
-        // accepts[i][j] = true means participant j accepts i
-        boolean[][] accepts = new boolean[n + 1][n + 1];
-        int a[] = new int[n + 1];
-
-        for (Share s1 : cshares) {
-
-            a[s1.getId()] += getAcceptedCount(s1, cshares, accepts);
-
-            if (a[s1.getId()] < k) {
-                queue.add((int) s1.getId());
-            } else {
-                valid.add(s1);
-            }
-        }
-
-        while (valid.size() >= k && !queue.isEmpty()) {
-            int s1id = queue.poll();
-            for (Iterator<Share> it = valid.iterator(); it.hasNext(); ) {
-                Share s2 = it.next();
-                if (accepts[s2.getId()][s1id]) {
-                    a[s2.getId()]--;
-                    if (a[s2.getId()] < k) {
-                        queue.add((int) s2.getId());
-                        it.remove();
-                    }
-                }
-            }
-        }
-
-        return valid.toArray(new Share[valid.size()]);
-    }
-
     /**
      * Computes the required MAC-tag-length to achieve a security of <i>e</i> bits.
      *
@@ -127,6 +69,66 @@ public class CevallosUSRSS extends RabinBenOrRSS {
         }
 
         return 31 - Integer.numberOfLeadingZeros(n);
+    }
+
+    private int getAcceptedCount(InformationCheckingShare s1, InformationCheckingShare[] shares, boolean[][] accepts) {
+
+        int counter = 0;
+
+        for (InformationCheckingShare s2 : shares) {
+            byte[] data = s1.getYValues();
+            byte[] mac1 = s1.getMacs().get(s2.getId());
+            byte[] mac2 = s2.getMacKeys().get(s1.getId());
+
+            accepts[s1.getId()][s2.getId()] = mac.verifyMAC(data, mac1, mac2);
+            if (accepts[s1.getId()][s2.getId()]) {
+                counter++;
+            }
+        }
+
+        return counter;
+    }
+
+    @Override
+    public Map<Boolean, List<InformationCheckingShare>> checkShares(InformationCheckingShare[] cshares) {
+
+        Queue<Integer> queue = new LinkedList<>();
+        List<InformationCheckingShare> valid = new LinkedList<>();
+
+        // accepts[i][j] = true means participant j accepts i
+        boolean[][] accepts = new boolean[n + 1][n + 1];
+        int a[] = new int[n + 1];
+
+        for (InformationCheckingShare s1 : cshares) {
+
+            a[s1.getId()] += getAcceptedCount(s1, cshares, accepts);
+
+            if (a[s1.getId()] < k) {
+                queue.add((int) s1.getId());
+            } else {
+                valid.add(s1);
+            }
+        }
+
+        while (valid.size() >= k && !queue.isEmpty()) {
+            int s1id = queue.poll();
+            for (Iterator<InformationCheckingShare> it = valid.iterator(); it.hasNext(); ) {
+                InformationCheckingShare s2 = it.next();
+                if (accepts[s2.getId()][s1id]) {
+                    a[s2.getId()]--;
+                    if (a[s2.getId()] < k) {
+                        queue.add((int) s2.getId());
+                        it.remove();
+                    }
+                }
+            }
+        }
+
+        Map<Boolean, List<InformationCheckingShare>> res = new HashMap<>();
+        res.put(Boolean.TRUE, valid);
+        res.put(Boolean.FALSE, queue.stream().map(i -> cshares[i]).collect(Collectors.toList()));
+
+        return res;
     }
 
     @Override

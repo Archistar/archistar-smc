@@ -3,25 +3,17 @@ package at.archistar.crypto.secretsharing;
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.KrawczykShare;
 import at.archistar.crypto.data.Share;
-
 import at.archistar.crypto.decode.DecoderFactory;
-import at.archistar.crypto.decode.ErasureDecoder;
-import at.archistar.crypto.math.DynamicOutputEncoderConverter;
-import at.archistar.crypto.math.EncodingConverter;
-import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.OutputEncoderConverter;
-import at.archistar.crypto.math.StaticOutputEncoderConverter;
-import at.archistar.crypto.math.gf257.GF257;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
 import at.archistar.crypto.symmetric.AESGCMEncryptor;
 import at.archistar.crypto.symmetric.ChaCha20Encryptor;
 import at.archistar.crypto.symmetric.Encryptor;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.bouncycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-
-import org.bouncycastle.crypto.InvalidCipherTextException;
 
 /**
  * <p>This class implements the Computational Secret Sharing scheme developed by Krawczyk.</p>
@@ -45,38 +37,52 @@ public class KrawczykCSS extends BaseSecretSharing {
 
     private final RandomSource rng;
 
-    private final GeometricSecretSharing shamir;
+    private final ShamirPSS shamir;
 
-    private final GeometricSecretSharing rs;
+    private final RabinIDS rs;
 
     private final Encryptor cryptor;
 
-    private final GF gf;
+    private final byte[] additionalKey;
 
     /**
-     * Constructor
-     * (Applying the default settings for the Shamir-RNG and the decoders: {@link SHA1PRNG} and {@link ErasureDecoder})
+     * Krawczyk
      *
      * @param n the number of shares
      * @param k the minimum number of shares required for reconstruction
      * @param rng the RandomSource to be used for the underlying Shamir-scheme
      * @param cryptor the to be used encryption algorithms
+     * @param decFactory the decoder
+     * @param additionalKey if present, generated keys will be encrypted with this key
      * @throws WeakSecurityException thrown if this scheme is not secure for the given parameters
+     * @throws InvalidParametersException when the length of the additional key is wrong
      */
-    public KrawczykCSS(int n, int k, RandomSource rng,
-                       Encryptor cryptor,
-                       DecoderFactory decFactory, GF gf) throws WeakSecurityException {
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
+    public KrawczykCSS(int n, int k, RandomSource rng, Encryptor cryptor,
+                       DecoderFactory decFactory, byte[] additionalKey) throws WeakSecurityException, InvalidParametersException {
         super(n, k);
-
-        this.shamir = new ShamirPSS(n, k, rng, decFactory, gf);
-        this.rs = new RabinIDS(n, k, decFactory, gf);
+        if (additionalKey != null && additionalKey.length != cryptor.getKeyLength()) {
+            throw new InvalidParametersException("Key has length " + additionalKey.length + " but needs to have length " + cryptor.getKeyLength());
+        }
+        this.shamir = new ShamirPSS(n, k, rng, decFactory);
+        this.rs = new RabinIDS(n, k, decFactory);
         this.cryptor = cryptor;
         this.rng = rng;
-        this.gf = gf;
+        this.additionalKey = additionalKey;
+    }
+
+    public KrawczykCSS(int n, int k, RandomSource rng, Encryptor cryptor,
+                       DecoderFactory decFactory) throws WeakSecurityException {
+        super(n, k);
+        this.shamir = new ShamirPSS(n, k, rng, decFactory);
+        this.rs = new RabinIDS(n, k, decFactory);
+        this.cryptor = cryptor;
+        this.rng = rng;
+        this.additionalKey = null;
     }
 
     @Override
-    public Share[] share(byte[] data) {
+    public KrawczykShare[] share(byte[] data) {
         try {
             if (data == null) {
                 data = new byte[0];
@@ -85,6 +91,9 @@ public class KrawczykCSS extends BaseSecretSharing {
             byte[] encKey = new byte[cryptor.getKeyLength()];
             this.rng.fillBytes(encKey);
             byte[] encSource = cryptor.encrypt(data, encKey);
+            if (additionalKey != null) {
+                encKey = cryptor.encrypt(encKey, additionalKey);
+            }
 
             int baseDataLength = data.length;
             // block cyphers use 16 byte blocks and add an extra block at the end
@@ -94,26 +103,16 @@ public class KrawczykCSS extends BaseSecretSharing {
             int newDataLength = baseDataLength % k == 0 ? baseDataLength / k : (baseDataLength / k) + 1;
 
             /* share key and content */
-            OutputEncoderConverter outputContent[] = new OutputEncoderConverter[n];
-            OutputEncoderConverter outputKey[] = new OutputEncoderConverter[n];
-            for (int i = 0; i < n; i++) {
-                if (gf instanceof GF257) {
-                    outputKey[i] = new DynamicOutputEncoderConverter(encKey.length, gf);
-                    outputContent[i] = new DynamicOutputEncoderConverter(newDataLength, gf);
-                } else {
-                    outputKey[i] = new StaticOutputEncoderConverter(encKey.length);
-                    outputContent[i] = new StaticOutputEncoderConverter(newDataLength);
-                }
-            }
+            byte[][] outputContent = new byte[n][newDataLength];
+            byte[][] outputKey = new byte[n][encKey.length];
 
             rs.share(outputContent, encSource);
             shamir.share(outputKey, encKey);
 
             //Generate a new array of encrypted shares
-            Share[] kshares = new Share[n];
+            KrawczykShare[] kshares = new KrawczykShare[n];
             for (int i = 0; i < kshares.length; i++) {
-                kshares[i] = new KrawczykShare((byte) (i + 1), outputContent[i].getEncodedData(),
-                        encSource.length, 1, outputKey[i].getEncodedData());
+                kshares[i] = new KrawczykShare((byte) (i + 1), outputContent[i], encSource.length, 1, outputKey[i]);
 
             }
 
@@ -153,14 +152,19 @@ public class KrawczykCSS extends BaseSecretSharing {
 
         try {
             int[] xValues = GeometricSecretSharing.extractXVals(shares, k);
-            EncodingConverter[] ecKey = new EncodingConverter[shares.length];
-            EncodingConverter[] ecContent = new EncodingConverter[shares.length];
-            for (int i = 0; i < shares.length; i++) {
-                ecKey[i] = new EncodingConverter(((KrawczykShare) shares[i]).getKey(), gf);
-                ecContent[i] = new EncodingConverter(shares[i].getYValues(), gf);
+
+            byte[][] ecContent = new byte[n][];
+            byte[][] ecKey = new byte[n][];
+
+            for(int i = 0; i < k; i++) {
+                ecContent[i] = shares[i].getYValues();
+                ecKey[i] = ((KrawczykShare) shares[i]).getKey();
             }
 
             byte[] key = shamir.reconstruct(ecKey, xValues, originalLengthKey);
+            if (additionalKey != null) {
+                key = cryptor.decrypt(key, additionalKey);
+            }
             if (partial) {
                 int actualLengthContent = shares[0].getYValues().length;
                 for (Share s : shares) {

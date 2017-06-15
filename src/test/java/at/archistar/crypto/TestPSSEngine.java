@@ -1,10 +1,9 @@
 package at.archistar.crypto;
 
 import at.archistar.crypto.data.InvalidParametersException;
-import at.archistar.crypto.data.ShamirShare;
+import at.archistar.crypto.data.PSSShare;
+import at.archistar.crypto.data.ReconstructionResult;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.random.FakeRandomSource;
-import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.ReconstructionException;
 import at.archistar.crypto.secretsharing.WeakSecurityException;
 import org.junit.Before;
@@ -12,29 +11,24 @@ import org.junit.Test;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
- * Tests for {@link at.archistar.crypto.ShamirEngine}
+ * Tests for {@link PSSEngine}
  */
-public class TestShamirEngine {
-
-    private final byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-    private final int n = 8;
-    private final int k = 5;
-    private final static RandomSource rng = new FakeRandomSource();
-    private CryptoEngine algorithm;
+public class TestPSSEngine extends AbstractEngineTest {
 
     /**
-     * create a new RabinBenOr CryptoEngine
+     * create a new PSS CryptoEngine
      *
      * @throws WeakSecurityException should not happen due to fixed setup
      * @throws NoSuchAlgorithmException should not happen due to fixed setup
      */
     @Before
     public void setup() throws WeakSecurityException, NoSuchAlgorithmException {
-        algorithm = new ShamirEngine(n, k, rng);
+        algorithm = new PSSEngine(n, k, rng);
     }
 
     @Test
@@ -44,10 +38,11 @@ public class TestShamirEngine {
         Share[] truncated = new Share[n];
         for (int i = data.length + 1; i > 0; i--) {
             for (int s = 0; s < n; s++) {
-                truncated[s] = new ShamirShare((byte) shares[s].getX(), Arrays.copyOf(shares[s].getYValues(), i));
+                truncated[s] = new PSSShare((byte) shares[s].getX(), Arrays.copyOf(shares[s].getYValues(), i),
+                        new HashMap<>(), new HashMap<>());
             }
-            byte[] reconstructed = algorithm.reconstructPartial(truncated, 0);
-            assertThat(reconstructed).isEqualTo(Arrays.copyOf(data, i));
+            ReconstructionResult reconstructed = algorithm.reconstructPartial(truncated, 0);
+            assertThat(reconstructed.getData()).isEqualTo(Arrays.copyOf(data, i));
         }
     }
 }

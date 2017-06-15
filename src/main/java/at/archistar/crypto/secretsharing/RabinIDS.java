@@ -3,10 +3,10 @@ package at.archistar.crypto.secretsharing;
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.RabinShare;
 import at.archistar.crypto.data.Share;
-
 import at.archistar.crypto.decode.DecoderFactory;
-import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.OutputEncoderConverter;
+import at.archistar.crypto.math.gf256.GF256;
+
+import java.util.stream.IntStream;
 
 /**
  * <p>This class implements Rabin IDS (aka Reed-Solomon Code).</p>
@@ -31,34 +31,15 @@ public class RabinIDS extends GeometricSecretSharing {
      * @param n the number of shares to create
      * @param k the minimum number of shares required for reconstruction
      * @param decoderFactory the solving algorithm to use for reconstructing the secret
-     * @param gf the field within which we will be doing all our computation
      * @throws WeakSecurityException thrown if this scheme is not secure enough for the given parameters
      */
-    public RabinIDS(int n, int k, DecoderFactory decoderFactory, GF gf) throws WeakSecurityException {
-        super(n, k, decoderFactory, gf);
-
-        this.dataPerRound = k;
+    public RabinIDS(int n, int k, DecoderFactory decoderFactory) throws WeakSecurityException {
+        super(n, k, decoderFactory);
     }
 
     @Override
     public String toString() {
         return "RabinIDS(" + n + "/" + k + ")";
-    }
-
-    @Override
-    protected void encodeData(int coeffs[], byte[] data, int offset, int length) {
-
-        /* TODO: replace with array copy */
-
-        for (int j = 0; j < k; j++) {
-            // let k coefficients be the secret in this polynomial
-            // todo: optimize, use array copy
-            if ((offset + j) < data.length) {
-                coeffs[j] = (data[offset + j] < 0) ? data[offset + j] + 256 : data[offset + j];
-            } else {
-                coeffs[j] = 0;
-            }
-        }
     }
 
     @Override
@@ -70,13 +51,47 @@ public class RabinIDS extends GeometricSecretSharing {
     }
 
     @Override
-    protected Share[] createShares(int[] xValues, OutputEncoderConverter[] results, int originalLength) throws InvalidParametersException {
-        Share shares[] = new Share[n];
+    protected RabinShare[] createShares(int[] xValues, byte[][] results, int originalLength) throws InvalidParametersException {
+        RabinShare shares[] = new RabinShare[n];
 
         for (int i = 0; i < n; i++) {
-            shares[i] = new RabinShare((byte) xValues[i], results[i].getEncodedData(), originalLength);
+            shares[i] = new RabinShare((byte) xValues[i], results[i], originalLength);
         }
 
         return shares;
+    }
+
+    @Override
+    protected int encodedSizeFor(int length) {
+        if (length % k == 0) {
+            return length / k;
+        } else {
+            return length / k + 1;
+        }
+    }
+
+    @Override
+    public void share(byte[][] output, byte[] data) {
+        IntStream.range(0, n).parallel().forEach(
+                x -> {
+                    int[] mul = mulTables[x];
+                    int out = 0;
+                    for (int i = k - 1; i < data.length; i += k) {
+                        int res = data[i] & 0xff;
+                        for (int y = 1; y < k; y++) {
+                            res = GF256.add(data[i - y] & 0xff, mul[res]);
+                        }
+                        output[x][out] = (byte) res;
+                        out++;
+                    }
+                    if (data.length % k != 0) {
+                        int res = data[data.length - 1] & 0xff;
+                        for (int y = data.length - 2; y >= data.length - data.length % k; y--) {
+                            res = GF256.add(data[y] & 0xff, mul[res]);
+                        }
+                        output[x][out] = (byte) res;
+                    }
+                }
+        );
     }
 }

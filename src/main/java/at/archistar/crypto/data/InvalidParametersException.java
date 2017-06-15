@@ -5,13 +5,12 @@ package at.archistar.crypto.data;
  * just doesn't make any sense
  */
 public class InvalidParametersException extends Exception {
-    private final String errorMsg;
 
-    InvalidParametersException(String msg) {
-        this.errorMsg = msg;
+    public InvalidParametersException(String msg) {
+        super(msg);
     }
 
     InvalidParametersException() {
-        this.errorMsg = "generic error";
+        super();
     }
 }

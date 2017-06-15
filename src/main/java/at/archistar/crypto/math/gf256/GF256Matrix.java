@@ -1,4 +1,4 @@
-package at.archistar.crypto.math;
+package at.archistar.crypto.math.gf256;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -7,11 +7,9 @@ import java.util.Arrays;
 /**
  * generic matrix implementation only depending upon a field
  */
-public class GenericMatrix implements GFMatrix {
+public class GF256Matrix {
 
     private final int[][] matrix;
-
-    private final GF gf;
 
     /**
      * create a new matrix
@@ -20,17 +18,14 @@ public class GenericMatrix implements GFMatrix {
      * @param gf the mathematical field all operations will be performed in
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public GenericMatrix(int input[][], GF gf) {
-        this.gf = gf;
+    public GF256Matrix(int input[][]) {
         this.matrix = input;
     }
 
-    @Override
-    public GFMatrix inverse() {
+    public GF256Matrix inverse() {
         return this.inverse(true);
     }
 
-    @Override
     public int[] rightMultiply(int[] vec) {
         if (vec.length != matrix.length || vec.length != matrix[0].length) { // multiplication only works if A(MxN) and B(NxO)
             throw new ArithmeticException("when matrix is MxN, vector must be Nx1");
@@ -40,19 +35,18 @@ public class GenericMatrix implements GFMatrix {
         for (int i = 0; i < vec.length; i++) {
             int tmp = 0;
             for (int j = 0; j < vec.length; j++) {
-                tmp = gf.add(tmp, gf.mult(matrix[i][j], vec[j]));
+                tmp = GF256.add(tmp, GF256.mult(matrix[i][j], vec[j]));
             }
             result[i] = tmp;
         }
         return result;
     }
 
-    @Override
     public int[] rightMultiplyInto(int[] result, int[] vec) {
         for (int i = 0; i < vec.length; i++) {
             int tmp = 0;
             for (int j = 0; j < vec.length; j++) {
-                tmp = gf.add(tmp, gf.mult(matrix[i][j], vec[j]));
+                tmp = GF256.add(tmp, GF256.mult(matrix[i][j], vec[j]));
             }
             result[i] = tmp;
         }
@@ -82,7 +76,7 @@ public class GenericMatrix implements GFMatrix {
     }
 
     /* where is the dead store? */
-    private GFMatrix inverse(boolean throwException) {
+    private GF256Matrix inverse(boolean throwException) {
 
         int numRows = matrix.length;
 
@@ -111,7 +105,7 @@ public class GenericMatrix implements GFMatrix {
 
             // normalize i-th row
             int coef = tmpMatrix[i][i];
-            int invCoef = gf.inverse(coef);
+            int invCoef = GF256.inverse(coef);
 
             normalizeRow(tmpMatrix[i], invMatrix[i], invCoef);
 
@@ -127,17 +121,16 @@ public class GenericMatrix implements GFMatrix {
             }
         }
 
-        return new GenericMatrix(invMatrix, gf);
+        return new GF256Matrix(invMatrix);
     }
 
     private void multAndSubstract(int[] row, int[] normalized, int coef) {
         for (int i = 0; i < row.length; i++) {
-            row[i] = gf.sub(row[i], gf.mult(normalized[i], coef));
+            row[i] = GF256.sub(row[i], GF256.mult(normalized[i], coef));
         }
     }
 
-    @Override
-    public GFMatrix inverseElimDepRows() {
+    public GF256Matrix inverseElimDepRows() {
         return this.inverse(false);
     }
 
@@ -151,15 +144,14 @@ public class GenericMatrix implements GFMatrix {
         matrix[second] = tmp;
     }
 
-    @Override
     public int getNumRows() {
         return this.matrix.length;
     }
 
     private void normalizeRow(int[] tmpMatrix, int[] invMatrix, int element) {
         for (int i = tmpMatrix.length - 1; i >= 0; i--) {
-            tmpMatrix[i] = gf.mult(tmpMatrix[i], element);
-            invMatrix[i] = gf.mult(invMatrix[i], element);
+            tmpMatrix[i] = GF256.mult(tmpMatrix[i], element);
+            invMatrix[i] = GF256.mult(invMatrix[i], element);
         }
     }
 }

@@ -1,13 +1,12 @@
 package at.archistar.crypto.decode;
 
+import at.archistar.crypto.math.gf256.GF256;
+import at.archistar.crypto.math.gf256.GF256Matrix;
 import java.util.Arrays;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-import at.archistar.crypto.math.GF;
-import at.archistar.crypto.math.GFMatrix;
-import at.archistar.crypto.math.GFFactory;
-import at.archistar.crypto.math.GenericPolyHelper;
+import at.archistar.crypto.math.gf256.GF256PolyHelper;
 
 /**
  * Reconstructs a polynomial from the given xy-pairs using the
@@ -20,20 +19,14 @@ public class BerlekampWelchDecoder implements Decoder {
     private final int f; // max number of allowed errors
     private final int k; // (degree+1), number of reconstructed elements
 
-    private final GFFactory gffactory;
-    private final GF gf;
-
     /**
      * Constructor
      */
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     public BerlekampWelchDecoder(final int[] xValues,
-                                 final int k,
-                                 final GFFactory gffactory) {
+                                 final int k) {
 
         final int n = xValues.length;
-        this.gffactory = gffactory;
-        this.gf = gffactory.createHelper();
         this.k = k;
         this.f = (n - k) / 2;
         this.x = xValues;
@@ -45,7 +38,7 @@ public class BerlekampWelchDecoder implements Decoder {
         final int t = x.length - f;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < t; j++) {
-                matrix[i][j] = gf.pow(x[i], j);
+                matrix[i][j] = GF256.pow(x[i], j);
             }
         }
     }
@@ -60,7 +53,7 @@ public class BerlekampWelchDecoder implements Decoder {
 
         for (int i = 0; i < y.length; i++) {
             for (int j = t; j < y.length; j++) {
-                matrix[i][j] = gf.mult(y[i], gf.pow(x[i], j - t));
+                matrix[i][j] = GF256.mult(y[i], GF256.pow(x[i], j - t));
             }
         }
     }
@@ -103,7 +96,7 @@ public class BerlekampWelchDecoder implements Decoder {
         final int[] res = new int[length];
 
         for (int i = 0; i < length; i++) {
-            res[i] = gf.mult(gf.pow(x[i], f), y[i]);
+            res[i] = GF256.mult(GF256.pow(x[i], f), y[i]);
         }
 
         return res;
@@ -115,7 +108,7 @@ public class BerlekampWelchDecoder implements Decoder {
         /* finish preparation of the decode-matrix */
         prepareEx(y);
 
-        GFMatrix decodeMatrix = gffactory.createMatrix(matrix).inverseElimDepRows();
+        GF256Matrix decodeMatrix = new GF256Matrix(matrix).inverseElimDepRows();
         int[] coeffs = decodeMatrix.rightMultiply(buildMultVector(x, y, decodeMatrix.getNumRows())); // compute the coefficients
 
         coeffs = Arrays.copyOf(coeffs, y.length + 1); // fill 0s for eliminated rows
@@ -125,8 +118,7 @@ public class BerlekampWelchDecoder implements Decoder {
         int[] q = Arrays.copyOfRange(coeffs, 0, coeffs.length - (f + 1));
         int[] e = Arrays.copyOfRange(coeffs, coeffs.length - (f + 1), coeffs.length);
 
-        GenericPolyHelper div = new GenericPolyHelper(gf);
-        int[][] divRes = div.polyDiv(q, e);
+        int[][] divRes = GF256PolyHelper.polyDiv(q, e);
 
         if (getDegree(divRes[1]) > 0) { // if there is a remainder, reconstruction failed
             throw new UnsolvableException();
