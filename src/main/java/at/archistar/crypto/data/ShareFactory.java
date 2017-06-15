@@ -26,7 +26,7 @@ public class ShareFactory {
      * @return the deserialized share
      */
     @SuppressWarnings("cyclomaticcomplexity")
-    static Share deserialize(byte[] data, Map<String, String> metaData) {
+    public static Share deserialize(byte[] data, Map<String, String> metaData) {
 
         if (data == null || data.length == 0) {
             return new BrokenShare("No data received");

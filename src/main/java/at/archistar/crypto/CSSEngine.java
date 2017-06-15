@@ -121,7 +121,7 @@ public class CSSEngine implements CryptoEngine {
         try {
             return new ReconstructionResult(engine.reconstruct(valid), errors);
         } catch (ReconstructionException e) {
-            errors.add(e.toString());
+            errors.add(e.getMessage());
             return new ReconstructionResult(errors);
         }
     }
@@ -137,7 +137,7 @@ public class CSSEngine implements CryptoEngine {
             return new ReconstructionResult(engine.reconstructPartial(shares, start),
                     Collections.singletonList(warning));
         } catch (ReconstructionException e) {
-            return new ReconstructionResult(Collections.singletonList(e.toString()));
+            return new ReconstructionResult(Collections.singletonList(e.getMessage()));
         }
     }
 
