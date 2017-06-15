@@ -4,8 +4,6 @@ import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.PSSShare;
 import at.archistar.crypto.data.ReconstructionResult;
 import at.archistar.crypto.data.Share;
-import at.archistar.crypto.random.FakeRandomSource;
-import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.secretsharing.ReconstructionException;
 import at.archistar.crypto.secretsharing.WeakSecurityException;
 import org.junit.Before;
@@ -20,16 +18,10 @@ import static org.fest.assertions.api.Assertions.assertThat;
 /**
  * Tests for {@link PSSEngine}
  */
-public class TestPSSEngine {
-
-    private final static RandomSource rng = new FakeRandomSource();
-    private final byte data[] = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-    private final int n = 8;
-    private final int k = 5;
-    private CryptoEngine algorithm;
+public class TestPSSEngine extends AbstractEngineTest {
 
     /**
-     * create a new Shamir CryptoEngine
+     * create a new PSS CryptoEngine
      *
      * @throws WeakSecurityException should not happen due to fixed setup
      * @throws NoSuchAlgorithmException should not happen due to fixed setup
@@ -52,45 +44,5 @@ public class TestPSSEngine {
             ReconstructionResult reconstructed = algorithm.reconstructPartial(truncated, 0);
             assertThat(reconstructed.getData()).isEqualTo(Arrays.copyOf(data, i));
         }
-    }
-
-    @Test
-    public void reconstructWithOneCorruptedShare() throws ReconstructionException {
-        Share[] shares = algorithm.share(data);
-        assertThat(shares.length).isEqualTo(n);
-
-        shares[1].getYValues()[1] = (byte) (shares[1].getYValues()[1] + 1);
-
-        ReconstructionResult result = algorithm.reconstruct(shares);
-        assertThat(result.getData()).isEqualTo(data);
-        assertThat(result.getErrors().size()).isEqualTo(1);
-    }
-
-    @Test
-    public void reconstructWithTCorruptedShares() throws ReconstructionException {
-        Share[] shares = algorithm.share(data);
-        assertThat(shares.length).isEqualTo(n);
-
-        for (int i = 0; i < (n - k); i++) {
-            shares[i].getYValues()[0] = (byte) (shares[i].getYValues()[0] + 1);
-        }
-
-        ReconstructionResult result = algorithm.reconstruct(shares);
-        assertThat(result.getData()).isEqualTo(data);
-        assertThat(result.getErrors().size()).isEqualTo(n - k);
-    }
-
-    @Test
-    public void failWithTPlusOneCorruptedShares() throws ReconstructionException {
-        Share[] shares = algorithm.share(data);
-        assertThat(shares.length).isEqualTo(n);
-
-        for (int i = 0; i <= (n - k); i++) {
-            shares[i].getYValues()[0] = (byte) (shares[i].getYValues()[0] + 1);
-        }
-
-        ReconstructionResult result = algorithm.reconstruct(shares);
-        assertThat(result.isOkay()).isFalse();
-        assertThat(result.getErrors().size()).isGreaterThan(n - k);
     }
 }
