@@ -107,6 +107,10 @@ Andreas Happe (85):
  * Merge branch 'master' of github.com:Archistar/archistar-smc into purify
  * Merge branch 'purify' of github.com:Archistar/archistar-smc into purify
  * update performance numbers for 'purify'
+ * add some release notes and fix version number
+ * fix formatting error
+ * bump bouncy castle version
+ * Merge pull request #28 from effweh-ait/purify
 
 Chapman Flack (1):
 
@@ -149,6 +153,10 @@ Florian Wohner (35):
  * adapt overall class diagram to recent changes
  * adapt sequence diagram to recent changes
  * add possibility to CSS to have all generated keys encrypted
+ * forgot to override getShareType in CSSShare
+ * ShareFactory::deserialize should be public of course
+ * PSSEngine fix to IC; also, more informative exceptions
+ * refactor CryptoEngine tests and add tests for (de)serialization (the extra test here is necessary because of fingerprinting/IC)
 
 Thomas Lorünser (2):
 
