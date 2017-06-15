@@ -88,7 +88,7 @@ public class PSSEngine implements CryptoEngine {
         if (!Arrays.stream(shares).allMatch(s -> s instanceof PSSShare)) {
             return new ReconstructionResult(Collections.singletonList("Not all shares are PSS Shares"));
         }
-        PSSShare[] pss = Arrays.stream(shares).map(s -> (PSSShare) s).collect(Collectors.toList()).toArray(new PSSShare[n]);
+        PSSShare[] pss = Arrays.stream(shares).map(s -> (PSSShare) s).collect(Collectors.toList()).toArray(new PSSShare[shares.length]);
         Map<Boolean, List<InformationCheckingShare>> partitioned = ic.checkShares(pss);
         InformationCheckingShare[] valid = partitioned.get(Boolean.TRUE).toArray(new InformationCheckingShare[partitioned.get(Boolean.TRUE).size()]);
         List<String> errors = partitioned.get(Boolean.FALSE).stream()
@@ -96,7 +96,7 @@ public class PSSEngine implements CryptoEngine {
         try {
             return new ReconstructionResult(sharing.reconstruct(valid), errors);
         } catch (ReconstructionException e) {
-            errors.add(e.toString());
+            errors.add(e.getMessage());
             return new ReconstructionResult(errors);
         }
     }
@@ -112,7 +112,7 @@ public class PSSEngine implements CryptoEngine {
             return new ReconstructionResult(sharing.reconstructPartial(shares, start),
                     Collections.singletonList(warning));
         } catch (ReconstructionException e) {
-            return new ReconstructionResult(Collections.singletonList(e.toString()));
+            return new ReconstructionResult(Collections.singletonList(e.getMessage()));
         }
     }
 
