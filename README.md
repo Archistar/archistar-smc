@@ -1,7 +1,7 @@
 archistar-smc [![Build Status](https://travis-ci.org/Archistar/archistar-smc.png?branch=master)](https://travis-ci.org/Archistar/archistar-smc)
 =============
 
-Secure multiparty cryptography for the [Archistar secure multi-cloud Prototype](http://github.org/archistar/archistar-core).
+Secret sharing library for the [Archistar secure multi-cloud Prototype](http://github.org/archistar/archistar-core).
 
 Currently implemented algorithms
 --------------------------------
