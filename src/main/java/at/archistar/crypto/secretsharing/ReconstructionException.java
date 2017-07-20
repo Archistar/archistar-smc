@@ -6,13 +6,11 @@ package at.archistar.crypto.secretsharing;
 public class ReconstructionException extends Exception {
     private static final long serialVersionUID = 1L;
 
-    private final String msg;
-
     /**
      * creates a generic reconstruction exception
      */
     public ReconstructionException() {
-        this.msg = "generic";
+        super("generic");
     }
 
     /**
@@ -21,6 +19,6 @@ public class ReconstructionException extends Exception {
      * @param msg the to be used error message
      */
     public ReconstructionException(String msg) {
-        this.msg = msg;
+        super(msg);
     }
 }

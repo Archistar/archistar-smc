@@ -7,10 +7,8 @@ package at.archistar.crypto.secretsharing;
 public class WeakSecurityException extends Exception {
     private static final long serialVersionUID = 1L;
 
-    private final String msg;
-
     WeakSecurityException() {
-        this.msg = "none given";
+        super("none given");
     }
 
     /**
@@ -20,6 +18,6 @@ public class WeakSecurityException extends Exception {
      * @param msg an detailed error message
      */
     public WeakSecurityException(String msg) {
-        this.msg = msg;
+        super(msg);
     }
 }

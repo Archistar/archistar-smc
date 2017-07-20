@@ -11,6 +11,6 @@ public class InvalidParametersException extends Exception {
     }
 
     InvalidParametersException() {
-        super();
+        super("generic");
     }
 }
