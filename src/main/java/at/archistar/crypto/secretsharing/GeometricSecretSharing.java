@@ -23,7 +23,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
 
     final int[][] mulTables;
     private final int[] xValues;
-    private final DecoderFactory decoderFactory;
+    final DecoderFactory decoderFactory;
 
     /**
      * Constructor

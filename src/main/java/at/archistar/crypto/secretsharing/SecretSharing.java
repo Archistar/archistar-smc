@@ -38,6 +38,15 @@ public interface SecretSharing {
     byte[] reconstructPartial(Share[] shares, long start) throws ReconstructionException;
 
     /**
+     * Attempts to recover the missing shares from the given shares
+     *
+     * @param shares the valid shares out of which to recover the missing shares
+     * @return the recovered shares
+     * @throws ReconstructionException thrown if recovery fails
+     */
+    Share[] recover(Share[] shares) throws ReconstructionException;
+
+    /**
      * @return the created share count
      */
     int getN();

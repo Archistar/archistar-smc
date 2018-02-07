@@ -72,7 +72,11 @@ public class RabinIDS extends GeometricSecretSharing {
 
     @Override
     public void share(byte[][] output, byte[] data) {
-        IntStream.range(0, n).parallel().forEach(
+        share(output, data, IntStream.range(0, n));
+    }
+
+    private void share(byte[][] output, byte[] data, IntStream range) {
+        range.parallel().forEach(
                 x -> {
                     int[] mul = mulTables[x];
                     byte[] out = output[x];
@@ -92,5 +96,34 @@ public class RabinIDS extends GeometricSecretSharing {
                     }
                 }
         );
+    }
+
+    @Override
+    public RabinShare[] recover(Share[] shares) throws ReconstructionException {
+        byte[] missing = determineMissingShares(shares);
+        int len = shares[0].getYValues().length;
+        int olen = shares[0].getOriginalLength();
+        byte[] reconstructed = reconstruct(shares);
+        byte[][] recovered = new byte[n][];
+        for (byte b : missing) {
+            recovered[b - 1] = new byte[len];
+        }
+
+        IntStream stream = IntStream.range(0, missing.length)
+                .map(i -> missing[i] - 1);
+
+        share(recovered, reconstructed, stream);
+
+        RabinShare[] res = new RabinShare[missing.length];
+
+        for (int i = 0; i < missing.length; i++) {
+            try {
+                res[i] = new RabinShare(missing[i], recovered[missing[i] - 1], olen);
+            } catch (InvalidParametersException e) {
+                throw new ReconstructionException(e.toString());
+            }
+        }
+
+        return res;
     }
 }

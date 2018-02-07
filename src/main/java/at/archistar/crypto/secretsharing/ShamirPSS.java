@@ -2,7 +2,10 @@ package at.archistar.crypto.secretsharing;
 
 import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.ShamirShare;
+import at.archistar.crypto.data.Share;
+import at.archistar.crypto.decode.Decoder;
 import at.archistar.crypto.decode.DecoderFactory;
+import at.archistar.crypto.decode.UnsolvableException;
 import at.archistar.crypto.math.gf256.GF256;
 import at.archistar.crypto.random.RandomSource;
 
@@ -78,5 +81,38 @@ public class ShamirPSS extends GeometricSecretSharing {
                 output[j][i] = (byte) GF256.add(data[i] & 0xff, mulTables[j][res]);
             }
         }
+    }
+
+    @Override
+    public ShamirShare[] recover(Share[] shares) throws ReconstructionException {
+        byte[] missing = determineMissingShares(shares);
+        int len = shares[0].getYValues().length;
+        ShamirShare[] res = new ShamirShare[missing.length];
+        for (int i = 0; i < missing.length; i++) {
+            try {
+                res[i] = new ShamirShare(missing[i], new byte[len]);
+            } catch (InvalidParametersException e) {
+                throw new ReconstructionException("This should not have happened");
+            }
+        }
+        Decoder decoder = decoderFactory.createDecoder(extractXVals(shares, k), k);
+        final int[] coeffs = new int[k];
+        final int[] temp = new int[k];
+
+        for (int i = 0; i < len; i++) {
+            for (int x = 0; x < k; x++) {
+                coeffs[x] = shares[x].getYValues()[i] & 0xff;
+            }
+            try {
+                decoder.decodeUnsafe(temp, coeffs, 0);
+            } catch (UnsolvableException e) {
+                throw new ReconstructionException(e.toString());
+            }
+            for (int j = 0; j < missing.length; j++) {
+                res[j].getYValues()[i] = (byte) GF256.evaluateAt(temp, missing[j]);
+            }
+        }
+
+        return res;
     }
 }

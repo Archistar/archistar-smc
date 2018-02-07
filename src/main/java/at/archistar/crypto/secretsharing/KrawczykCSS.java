@@ -1,8 +1,6 @@
 package at.archistar.crypto.secretsharing;
 
-import at.archistar.crypto.data.InvalidParametersException;
-import at.archistar.crypto.data.KrawczykShare;
-import at.archistar.crypto.data.Share;
+import at.archistar.crypto.data.*;
 import at.archistar.crypto.decode.DecoderFactory;
 import at.archistar.crypto.random.RandomSource;
 import at.archistar.crypto.symmetric.AESEncryptor;
@@ -194,6 +192,41 @@ public class KrawczykCSS extends BaseSecretSharing {
             throw new ReconstructionException("Partial reconstruction not possible with given cypher");
         }
         return reconstruct(shares, true, start);
+    }
+
+    @Override
+    public KrawczykShare[] recover(Share[] shares) throws ReconstructionException {
+        byte[] missing = determineMissingShares(shares);
+        int olen = shares[0].getOriginalLength();
+        int algo = ((KrawczykShare) (shares[0])).getEncAlgorithm();
+
+        RabinShare[] rabinShares = new RabinShare[shares.length];
+        ShamirShare[] shamirShares = new ShamirShare[shares.length];
+
+        for (int i = 0; i < shares.length; i++) {
+            KrawczykShare s = (KrawczykShare) shares[i];
+            try {
+                rabinShares[i] = new RabinShare(s.getId(), s.getYValues(), s.getOriginalLength());
+                shamirShares[i] = new ShamirShare(s.getId(), s.getKey());
+            } catch (InvalidParametersException e) {
+                throw new ReconstructionException(e.toString());
+            }
+        }
+
+        RabinShare[] recoveredRabin = rs.recover(rabinShares);
+        ShamirShare[] recoveredShamir = shamir.recover(shamirShares);
+
+        KrawczykShare[] res = new KrawczykShare[missing.length];
+
+        for (int i = 0; i < missing.length; i++) {
+            try {
+                res[i] = new KrawczykShare(missing[i], recoveredRabin[i].getYValues(), olen, algo, recoveredShamir[i].getYValues());
+            } catch (InvalidParametersException e) {
+                throw new ReconstructionException(e.toString());
+            }
+        }
+
+        return res;
     }
 
     @Override
