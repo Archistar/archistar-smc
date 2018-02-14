@@ -49,7 +49,7 @@ abstract class BaseSecretSharing implements SecretSharing {
      */
     protected static void checkSecurity(int n, int k) throws WeakSecurityException { // n is there in case we want to override this
         if (k < 2) {
-            throw new WeakSecurityException();
+            throw new WeakSecurityException("Parameter \"k\" has to be at least 2");
         }
     }
 

@@ -155,7 +155,7 @@ public class CSSEngine implements CryptoEngine {
             try {
                 res[i] = new CSSShare(recovered[i], valid[0].getFingerprints());
             } catch (InvalidParametersException e) {
-                throw new ReconstructionException(e.toString());
+                throw new ReconstructionException(e.getMessage());
             }
         }
         return res;

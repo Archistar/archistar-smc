@@ -5,14 +5,9 @@ package at.archistar.crypto.secretsharing;
  * not secure enough.
  */
 public class WeakSecurityException extends Exception {
-    private static final long serialVersionUID = 1L;
-
-    WeakSecurityException() {
-        super("none given");
-    }
 
     /**
-     * create a new exceeption that denotes that an algorithm was configured
+     * create a new exception that denotes that an algorithm was configured
      * in such a way, that it would yield no security or privacy
      *
      * @param msg an detailed error message

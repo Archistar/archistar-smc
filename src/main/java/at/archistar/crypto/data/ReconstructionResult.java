@@ -49,7 +49,8 @@ public class ReconstructionResult {
         if (okay) {
             return data;
         } else {
-            throw new ReconstructionException();
+            throw new ReconstructionException("Tried to read data from a failed reconstruction:\n"
+                + String.join("\n", errors));
         }
     }
 

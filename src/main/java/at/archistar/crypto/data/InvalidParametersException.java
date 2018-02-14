@@ -9,8 +9,4 @@ public class InvalidParametersException extends Exception {
     public InvalidParametersException(String msg) {
         super(msg);
     }
-
-    InvalidParametersException() {
-        super("generic");
-    }
 }
