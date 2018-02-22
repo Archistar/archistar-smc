@@ -15,7 +15,6 @@ import at.archistar.crypto.secretsharing.WeakSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * This is a simple CryptoEngine that allows us to use ITS secret-sharing scheme
