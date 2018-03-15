@@ -63,6 +63,14 @@ public class CryptoEngineFactory {
     }
 
     /**
+     * Krawczyk Secret Sharing (CSS without Fingerprinting; custom Random Number Generator)
+     * This variant will use the given key to encrypt all generated keys before secret-sharing
+     */
+    public static KrawczykEngine getKrawczykEngine(int n, int k, RandomSource rng, byte[] key) throws WeakSecurityException, InvalidParametersException {
+        return new KrawczykEngine(n, k, rng, key);
+    }
+
+    /**
      * Shamir Secret Sharing (PSS without Information Checking)
      */
     public static ShamirEngine getShamirEngine(int n, int k) throws WeakSecurityException {

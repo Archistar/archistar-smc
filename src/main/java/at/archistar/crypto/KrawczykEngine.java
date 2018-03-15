@@ -1,5 +1,6 @@
 package at.archistar.crypto;
 
+import at.archistar.crypto.data.InvalidParametersException;
 import at.archistar.crypto.data.ReconstructionResult;
 import at.archistar.crypto.data.Share;
 import at.archistar.crypto.decode.DecoderFactory;
@@ -30,6 +31,14 @@ public class KrawczykEngine implements CryptoEngine {
         DecoderFactory decoderFactory = new ErasureDecoderFactory();
         Encryptor cryptor = new ChaCha20Encryptor();
         engine = new KrawczykCSS(n, k, rng, cryptor, decoderFactory);
+    }
+
+    public KrawczykEngine(int n, int k, RandomSource rng, byte[] additionalKey) throws InvalidParametersException, WeakSecurityException {
+        this.n = n;
+        this.k = k;
+        DecoderFactory decoderFactory = new ErasureDecoderFactory();
+        Encryptor cryptor = new ChaCha20Encryptor();
+        engine = new KrawczykCSS(n, k, rng, cryptor, decoderFactory, additionalKey);
     }
 
     @Override
