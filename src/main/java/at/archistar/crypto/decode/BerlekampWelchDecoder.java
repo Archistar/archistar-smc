@@ -121,7 +121,7 @@ public class BerlekampWelchDecoder implements Decoder {
         int[][] divRes = GF256PolyHelper.polyDiv(q, e);
 
         if (getDegree(divRes[1]) > 0) { // if there is a remainder, reconstruction failed
-            throw new UnsolvableException();
+            throw new UnsolvableException("There was a remainder during Berlekamp-Welch decoding");
         }
 
         for (int i = 0; i < k; i++) {

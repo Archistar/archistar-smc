@@ -117,6 +117,16 @@ public class PSSEngine implements CryptoEngine {
     }
 
     @Override
+    public PSSShare[] recover(Share[] shares) throws ReconstructionException {
+        ReconstructionResult res = reconstruct(shares);
+        if (res.isOkay()) {
+            return share(res.getData());
+        } else {
+            throw new ReconstructionException(res.getErrors().stream().reduce((s1, s2) -> s1 + "\n" + s2).orElse(""));
+        }
+    }
+
+    @Override
     public String toString() {
         return "PSS(" + k + "/" + n + ")";
     }

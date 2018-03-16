@@ -1,5 +1,12 @@
 package at.archistar.crypto.secretsharing;
 
+import at.archistar.crypto.data.Share;
+
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 /**
  * <p>This is the abstract base class for all Secret-Sharing algorithms.</p>
  *
@@ -42,7 +49,7 @@ abstract class BaseSecretSharing implements SecretSharing {
      */
     protected static void checkSecurity(int n, int k) throws WeakSecurityException { // n is there in case we want to override this
         if (k < 2) {
-            throw new WeakSecurityException();
+            throw new WeakSecurityException("Parameter \"k\" has to be at least 2");
         }
     }
 
@@ -56,6 +63,23 @@ abstract class BaseSecretSharing implements SecretSharing {
      */
     protected static boolean validateShareCount(int n, int k) {
         return n >= k; // base implementation; necessary condition for every Secret-Sharing scheme
+    }
+
+    /**
+     * Returns the ids of the shares missing from the given set
+     *
+     * @param shares the given shares
+     * @return the ids of the missing shares
+     */
+    byte[] determineMissingShares(Share[] shares) {
+        Set<Byte> missing = IntStream.range(1, n + 1).mapToObj(i -> ((byte) i)).collect(Collectors.toSet());
+        missing.removeAll(Arrays.stream(shares).map(Share::getId).collect(Collectors.toSet()));
+        Byte[] miss = missing.toArray(new Byte[missing.size()]);
+        byte[] res = new byte[missing.size()];
+        for (int i = 0; i < miss.length; i++) {
+            res[i] = miss[i];
+        }
+        return res;
     }
 
     @Override

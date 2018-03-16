@@ -1,5 +1,7 @@
 package at.archistar;
 
+import at.archistar.crypto.data.Share;
+
 /**
  * commonly needed test functionality
  */
@@ -40,5 +42,23 @@ public class TestHelper {
         }
 
         return result;
+    }
+
+    /**
+     * drop the array element at the specified index
+     *
+     * @param shares the array to drop from
+     * @param i the index of the element to drop
+     * @return a new array without the element at the specified index
+     */
+    public static Share[] dropElementAt(Share[] shares, int i) {
+        Share[] res = new Share[shares.length - 1];
+        int pos = 0;
+        for (int x = 0; x < shares.length; x++) {
+            if (x != i) {
+                res[pos++] = shares[x];
+            }
+        }
+        return res;
     }
 }

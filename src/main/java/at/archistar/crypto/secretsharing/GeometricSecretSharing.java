@@ -23,7 +23,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
 
     final int[][] mulTables;
     private final int[] xValues;
-    private final DecoderFactory decoderFactory;
+    final DecoderFactory decoderFactory;
 
     /**
      * Constructor
@@ -140,7 +140,7 @@ public abstract class GeometricSecretSharing extends BaseSecretSharing {
                 decoder.decodeUnsafe(resultMatrix, yValues, 0);
                 posResult = decodeData(resultMatrix, originalLength, result, posResult);
             } catch (UnsolvableException e) {
-                throw new ReconstructionException();
+                throw new ReconstructionException(e.getMessage());
             }
         }
         return result;

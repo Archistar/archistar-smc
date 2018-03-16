@@ -12,6 +12,9 @@ import org.junit.Test;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
@@ -57,6 +60,25 @@ public class TestCSSEngine extends AbstractEngineTest {
                 int truncation = j * k > data.length ? data.length - (i * k) : (j - i) * k;
                 // truncation of the reconstructed data is actually only needed when we are on the last block
                 assertThat(Arrays.copyOf(reconstructed.getData(), truncation)).isEqualTo(Arrays.copyOfRange(data, trunc_begin, trunc_end));
+            }
+        }
+    }
+
+    @Test
+    public void recovery() throws ReconstructionException {
+        Share[] shared = algorithm.share(data);
+        Map<Byte, byte[]> fp = ((CSSShare) shared[0]).getFingerprints();
+        for (int i = 0; i <= n - k; i++) {
+            List<Share> corrupted = Arrays.asList(algorithm.share(data));
+            Collections.shuffle(corrupted);
+            for (int j = 0; j < i; j++) {
+                corrupted.get(j).getYValues()[0] = (byte) (corrupted.get(j).getYValues()[0] + 1);
+            }
+            Share[] recovered = algorithm.recover(corrupted.toArray(new Share[0]));
+            assertThat(recovered.length).isEqualTo(i);
+            for (Share recov : recovered) {
+                assertThat(recov.getYValues()).isEqualTo(shared[recov.getId() - 1].getYValues());
+                assertThat(recov).usingComparator(Share::compareTo).isEqualTo(shared[recov.getId() - 1]);
             }
         }
     }

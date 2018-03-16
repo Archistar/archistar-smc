@@ -11,7 +11,9 @@ import org.junit.Test;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
@@ -43,6 +45,25 @@ public class TestPSSEngine extends AbstractEngineTest {
             }
             ReconstructionResult reconstructed = algorithm.reconstructPartial(truncated, 0);
             assertThat(reconstructed.getData()).isEqualTo(Arrays.copyOf(data, i));
+        }
+    }
+
+    @Test
+    public void recovery() throws ReconstructionException {
+        Share[] shared = algorithm.share(data);
+        for (int i = 0; i <= n - k; i++) {
+            List<Share> corrupted = Arrays.asList(algorithm.share(data));
+            Collections.shuffle(corrupted);
+            for (int j = 0; j < i; j++) {
+                corrupted.get(j).getYValues()[0] = (byte) (corrupted.get(j).getYValues()[0] + 1);
+            }
+            Share[] recovered = algorithm.recover(corrupted.toArray(new Share[0]));
+            assertThat(recovered.length).isEqualTo(n);
+            // we can only check if the y values of the recovered share are identical
+            // to those of the dropped one (because the IC data have been regenerated)
+            for (Share recov : recovered) {
+                assertThat(recov.getYValues()).isEqualTo(shared[recov.getId() - 1].getYValues());
+            }
         }
     }
 }

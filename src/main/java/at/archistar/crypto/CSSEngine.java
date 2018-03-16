@@ -105,16 +105,7 @@ public class CSSEngine implements CryptoEngine {
         if (!Arrays.stream(shares).allMatch(s -> s instanceof CSSShare)) {
             return new ReconstructionResult(Collections.singletonList("Not all shares are CSS Shares"));
         }
-        Map<Boolean, List<CSSShare>> partitioned = Arrays.stream(shares)
-                .map(s -> (CSSShare) s)
-                .collect(Collectors.partitioningBy(
-                        s -> Arrays.stream(shares)
-                                .map(s0 -> (CSSShare) s0)
-                                .filter(s0 -> Arrays.equals(
-                                        digest.digest(s.getYValues()),
-                                        (s0.getFingerprints().get(s.getId()))))
-                                .count() >= k)
-                );
+        Map<Boolean, List<CSSShare>> partitioned = partition(shares);
         CSSShare[] valid = partitioned.get(Boolean.TRUE).toArray(new CSSShare[partitioned.get(Boolean.TRUE).size()]);
         List<String> errors = partitioned.get(Boolean.FALSE).stream()
                 .map(s -> "Could not validate " + s).collect(Collectors.toList());
@@ -124,6 +115,19 @@ public class CSSEngine implements CryptoEngine {
             errors.add(e.getMessage());
             return new ReconstructionResult(errors);
         }
+    }
+
+    private Map<Boolean, List<CSSShare>> partition(Share[] shares) {
+        return Arrays.stream(shares)
+                .map(s -> (CSSShare) s)
+                .collect(Collectors.partitioningBy(
+                        s -> Arrays.stream(shares)
+                                .map(s0 -> (CSSShare) s0)
+                                .filter(s0 -> Arrays.equals(
+                                        digest.digest(s.getYValues()),
+                                        (s0.getFingerprints().get(s.getId()))))
+                                .count() >= k)
+                );
     }
 
     @Override
@@ -139,6 +143,22 @@ public class CSSEngine implements CryptoEngine {
         } catch (ReconstructionException e) {
             return new ReconstructionResult(Collections.singletonList(e.getMessage()));
         }
+    }
+
+    @Override
+    public CSSShare[] recover(Share[] shares) throws ReconstructionException {
+        Map<Boolean, List<CSSShare>> partitioned = partition(shares);
+        CSSShare[] valid = partitioned.get(Boolean.TRUE).toArray(new CSSShare[partitioned.get(Boolean.TRUE).size()]);
+        KrawczykShare[] recovered = engine.recover(valid);
+        CSSShare[] res = new CSSShare[recovered.length];
+        for (int i = 0; i < recovered.length; i++) {
+            try {
+                res[i] = new CSSShare(recovered[i], valid[0].getFingerprints());
+            } catch (InvalidParametersException e) {
+                throw new ReconstructionException(e.getMessage());
+            }
+        }
+        return res;
     }
 
     @Override
