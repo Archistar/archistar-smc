@@ -45,7 +45,7 @@ public abstract class AbstractSerializationTest {
      */
     @Test
     public void itFailsForDifferentVersions() {
-        HashMap<String, String> tmp = (HashMap<String, String>) metaData.clone();
+        HashMap<String, String> tmp = new HashMap<>(metaData);
         tmp.put("archistar-version","1");
         Share s = ShareFactory.deserialize(serializedShare, tmp);
         assertThat(s).isExactlyInstanceOf(BrokenShare.class);
@@ -65,7 +65,7 @@ public abstract class AbstractSerializationTest {
      */
     @Test
     public void itFailsIfTheresAnUnknownType() {
-        HashMap<String, String> tmp = (HashMap<String, String>) metaData.clone();
+        HashMap<String, String> tmp = new HashMap<>(metaData);
         tmp.put("archistar-share-type", "XYZ");
         Share s = ShareFactory.deserialize(serializedShare, tmp);
         assertThat(s).isExactlyInstanceOf(BrokenShare.class);

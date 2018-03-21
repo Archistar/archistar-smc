@@ -1,6 +1,7 @@
 package at.archistar.crypto.secretsharing;
 
 import at.archistar.TestHelper;
+import at.archistar.crypto.data.BrokenShare;
 import at.archistar.crypto.data.Share;
 
 import java.util.Arrays;
@@ -11,6 +12,7 @@ import java.util.stream.Stream;
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.fail;
 
+import org.fest.assertions.core.Condition;
 import org.junit.Test;
 
 /**
@@ -67,11 +69,23 @@ public abstract class BasicSecretSharingTest {
     }
 
     @Test
-    public void itStoresEmptyData() {
+    public void itStoresAndReconstructsEmptyData() throws ReconstructionException {
         Share[] shares = algorithm.share(new byte[0]);
         Share[] shares2 = algorithm.share(null);
+
+        Condition<Share> broken = new Condition<Share>() {
+            @Override
+            public boolean matches(Share share) {
+                return share instanceof BrokenShare;
+            }
+        };
+
         assertThat(shares).isNotEmpty();
+        assertThat(shares).areNot(broken);
         assertThat(shares2).isNotEmpty();
+        assertThat(shares2).areNot(broken);
+        assertThat(algorithm.reconstruct(shares).length).isEqualTo(0);
+        assertThat(algorithm.reconstruct(shares2).length).isEqualTo(0);
     }
 
     @Test
