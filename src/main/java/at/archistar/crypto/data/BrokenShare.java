@@ -52,4 +52,11 @@ public class BrokenShare implements Share {
     public int getOriginalLength() {
         return 0;
     }
+
+    @Override
+    public String toString() {
+        return "BrokenShare{" +
+                "error='" + error + '\'' +
+                '}';
+    }
 }

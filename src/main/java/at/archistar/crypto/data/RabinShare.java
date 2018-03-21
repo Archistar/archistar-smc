@@ -69,6 +69,15 @@ public class RabinShare implements Share {
     }
 
     @Override
+    public String toString() {
+        return "RabinShare{" +
+                "x=" + id +
+                ", body.length=" + body.length +
+                ", originalLength=" + originalLength +
+                '}';
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

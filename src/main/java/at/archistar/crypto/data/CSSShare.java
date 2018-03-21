@@ -64,6 +64,16 @@ public class CSSShare extends KrawczykShare {
     }
 
     @Override
+    public String toString() {
+        return "CSSShare{" +
+                "x=" + getId() +
+                ", body.length=" + body.length +
+                ", originalLength=" + getOriginalLength() +
+                ", encAlgorithm=" + getEncAlgorithm() +
+                '}';
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), fingerprints);
     }
