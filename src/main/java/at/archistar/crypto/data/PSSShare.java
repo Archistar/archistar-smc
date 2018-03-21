@@ -85,6 +85,15 @@ public class PSSShare extends ShamirShare implements InformationCheckingShare {
     }
 
     @Override
+    public String toString() {
+        return "PSSShare{" +
+                "x=" + getId() +
+                ", body.length=" + body.length +
+                ", ICType=" + getICType() +
+                '}';
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), macKeys, macs, ICType);
     }

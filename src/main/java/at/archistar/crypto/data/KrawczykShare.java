@@ -101,6 +101,16 @@ public class KrawczykShare implements Share {
     }
 
     @Override
+    public String toString() {
+        return "KrawczykShare{" +
+                "x=" + id +
+                ", body.length=" + body.length +
+                ", originalLength=" + originalLength +
+                ", encAlgorithm=" + encAlgorithm +
+                '}';
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

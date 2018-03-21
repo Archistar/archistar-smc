@@ -62,6 +62,14 @@ public class ShamirShare implements Share {
     }
 
     @Override
+    public String toString() {
+        return "ShamirShare{" +
+                "x=" + id +
+                ", body.length=" + body.length +
+                '}';
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
